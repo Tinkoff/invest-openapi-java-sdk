@@ -1,0 +1,25 @@
+dependencies {
+    compile project(':sdk')
+}
+
+test {
+    useJUnitPlatform()
+}
+
+build {
+    task copyToLib(type: Copy) {
+        into "${buildDir}/libs/lib"
+        from configurations.runtime
+    }
+
+    dependsOn(copyToLib)
+}
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'ru.tinkoff.trading.openapi.example.App',
+                'Class-Path': configurations.runtime.files.collect { "lib/$it.name" }.join(' ')
+        )
+    }
+}

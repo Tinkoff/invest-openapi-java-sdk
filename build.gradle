@@ -1,0 +1,13 @@
+subprojects {
+    apply plugin: 'java'
+
+    group 'ru.tinkoff.trading'
+    version '0.1'
+
+    sourceCompatibility = 1.11
+    targetCompatibility = 1.11
+
+    repositories {
+        mavenCentral()
+    }
+}
