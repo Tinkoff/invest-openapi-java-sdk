@@ -37,7 +37,7 @@ gradlew javadoc
 
 Для непосредственного взаимодействия с OpenAPI нужно создать подключение.
 ```$java
-import ru.tinkoff.trading.openapi.wrapper.impl.ConnectionFactory;
+import ru.tinkoff.invest.openapi.wrapper.impl.ConnectionFactory;
 
 var token = "super_token"; // токен авторизации
 var connection = ConnectionFactory.connect(token, logger).join(); // содание подключения происходит асинхронно
@@ -50,8 +50,8 @@ var portfolio = context.getPortfolio().join(); // получить текущи�
 Для написания собственной торговой стратегии реализуйте интерфейс `Strategy`. Затем запустите исполнение стратегии через
 `StrategyExecutor`.
 ```$java
-import ru.tinkoff.trading.openapi.Strategy;
-import ru.tinkoff.trading.openapi.StrategyExecutor;
+import ru.tinkoff.invest.openapi.Strategy;
+import ru.tinkoff.invest.openapi.StrategyExecutor;
 
 final var myStrategy = new Strategy() { /*...*/ };
 final var strategyExecutor = new StrategyExecutor(context, strategy, logger);

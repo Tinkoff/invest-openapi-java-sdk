@@ -1,7 +1,7 @@
 subprojects {
     apply plugin: 'java'
 
-    group 'ru.tinkoff.trading'
+    group 'ru.tinkoff.invest'
     version '0.2-SNAPSHOT'
 
     sourceCompatibility = 1.11
