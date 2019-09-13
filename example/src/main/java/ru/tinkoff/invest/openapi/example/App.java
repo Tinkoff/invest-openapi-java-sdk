@@ -45,6 +45,8 @@ public class App {
                 logger.fine("Создаём подключение в режиме \"песочницы\"... ");
                 connection = ConnectionFactory.connectSandbox(ssoToken, logger).join();
                 context = connection.context();
+                // ОБЯЗАТЕЛЬНО нужно выполнить регистрацию в "песочнице"
+                ((SandboxContext)context).performRegistration();
             } else {
                 logger.fine("Создаём подключение в биржевом режиме... ");
                 connection = ConnectionFactory.connect(ssoToken, logger).join();
