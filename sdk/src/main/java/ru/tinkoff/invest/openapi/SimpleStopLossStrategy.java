@@ -94,7 +94,7 @@ public class SimpleStopLossStrategy implements Strategy {
         final var candle = tradingState.getCandle();
         final var instrumentInfo = tradingState.getInstrumentInfo();
 
-        chackCanTrade(instrumentInfo);
+        checkCanTrade(instrumentInfo);
 
         if (candle == null) {
             return StrategyDecision.Pass.instance();
@@ -234,13 +234,23 @@ public class SimpleStopLossStrategy implements Strategy {
     }
 
     @Override
-    public void consumeRejectedLimitOrder(OperationType operationType) {
-        currentPositionStatus = operationType == OperationType.Buy
+    public void consumeRejectedLimitOrder(LimitOrder limitOrder) {
+        currentPositionStatus = limitOrder.getOperation() == OperationType.Buy
                 ? CurrentPositionStatus.None
                 : CurrentPositionStatus.Exists;
     }
 
-    private void chackCanTrade(final StreamingEvent.InstrumentInfo instrumentInfo) {
+    @Override
+    public void consumeCanceledOrder(String orderId) {
+
+    }
+
+    @Override
+    public void consumeFailedCancellingOrder(String orderId) {
+
+    }
+
+    private void checkCanTrade(final StreamingEvent.InstrumentInfo instrumentInfo) {
         if (instrumentInfo != null) {
             final var newCanTrade = instrumentInfo.canTrade();
             if (newCanTrade != this.canTrade)

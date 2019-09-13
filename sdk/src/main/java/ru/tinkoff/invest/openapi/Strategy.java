@@ -39,9 +39,23 @@ public interface Strategy {
     /**
      * Обработка неразмещённой заявки.
      *
-     * @param operationType Тип заявки.
+     * @param limitOrder Неразмещённая заявка.
      */
-    void consumeRejectedLimitOrder(OperationType operationType);
+    void consumeRejectedLimitOrder(LimitOrder limitOrder);
+
+    /**
+     * Обработка отменённой заявки.
+     *
+     * @param orderId Идентификатор заявки.
+     */
+    void consumeCanceledOrder(String orderId);
+
+    /**
+     * Обработка неотменённой заявки.
+     *
+     * @param orderId Идентификатор заявки.
+     */
+    void consumeFailedCancellingOrder(String orderId);
 
     /**
      * Выполнение подготовительных действий.

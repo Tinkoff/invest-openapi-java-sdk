@@ -6,7 +6,6 @@ import ru.tinkoff.invest.openapi.data.StreamingRequest;
 import ru.tinkoff.invest.openapi.wrapper.Context;
 
 import java.util.concurrent.Flow;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -96,7 +95,7 @@ public class StrategyExecutor {
                     return null;
                 }).exceptionally(ex -> {
                     logger.log(Level.WARNING, "Заявка не размещена.", ex);
-                    strategy.consumeRejectedLimitOrder(limitOrder.getOperation());
+                    strategy.consumeRejectedLimitOrder(limitOrder);
                     return null;
                 });
             } else if (strategyDecision instanceof StrategyDecision.CancelOrder) {
