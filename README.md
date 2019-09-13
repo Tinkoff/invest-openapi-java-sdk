@@ -36,7 +36,7 @@ gradlew javadoc
 ### А если вкратце?
 
 Для непосредственного взаимодействия с OpenAPI нужно создать подключение.
-```$java
+```java
 import ru.tinkoff.trading.openapi.wrapper.impl.ConnectionFactory;
 
 var token = "super_token"; // токен авторизации
@@ -49,7 +49,7 @@ var portfolio = context.getPortfolio().join(); // получить текущи�
 ```
 Для написания собственной торговой стратегии реализуйте интерфейс `Strategy`. Затем запустите исполнение стратегии через
 `StrategyExecutor`.
-```$java
+```java
 import ru.tinkoff.trading.openapi.Strategy;
 import ru.tinkoff.trading.openapi.StrategyExecutor;
 
@@ -64,7 +64,7 @@ strategyExecutor.run();
 продемонстрировано в подпроекте _example_. После сборки в поддиректории `example/build/libs` появится jar-файл, который
 запускает робота. При желании можно запустить робота в Docker-контейнере - есть соответствующий `Dockerfile`. После
 сборки проекта постройте docker-образ и запустите его.
-```$bash
+```bash
 docker build --tag=openapi-example .
 docker run --mount source=openapi_volume,target=/app/logs \
     -e "token=<auth_token>" \
