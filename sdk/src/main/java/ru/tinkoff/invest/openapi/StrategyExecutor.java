@@ -16,7 +16,7 @@ public class StrategyExecutor {
     private final Context context;
     private final Strategy strategy;
     private boolean hasRun;
-    private Logger logger;
+    private final Logger logger;
 
     /**
      * Создаёт исполнителя заданной стратегии на заданном контексте. Процесс торговли при этом не запускается!
