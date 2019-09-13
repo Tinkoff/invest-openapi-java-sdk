@@ -6,6 +6,7 @@ import ru.tinkoff.invest.openapi.data.StreamingRequest;
 import ru.tinkoff.invest.openapi.wrapper.Context;
 
 import java.util.concurrent.Flow;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -13,10 +14,12 @@ import java.util.logging.Logger;
  * Исполнитель стратегии. Берёт торговую стратегию, контекст OpenAPI и осущствляет процесс автоматической торговли.
  */
 public class StrategyExecutor {
+
     private final Context context;
     private final Strategy strategy;
-    private boolean hasRun;
     private final Logger logger;
+    private boolean hasRun;
+    private volatile TradingState currentState;
 
     /**
      * Создаёт исполнителя заданной стратегии на заданном контексте. Процесс торговли при этом не запускается!
@@ -25,7 +28,7 @@ public class StrategyExecutor {
      * @param strategy Исполняемая стратегия.
      * @param logger Экзепляер логгера.
      */
-    public StrategyExecutor(Context context, Strategy strategy, Logger logger) {
+    public StrategyExecutor(final Context context, final Strategy strategy, final Logger logger) {
         this.context = context;
         this.strategy = strategy;
         this.hasRun = false;
@@ -43,8 +46,6 @@ public class StrategyExecutor {
         strategy.init();
 
         context.subscribe(new ContextSubscriber());
-        strategy.getLimitOrderPublisher().subscribe(new LimitOrderSubscriber());
-        strategy.getCancelPublisher().subscribe(new CancelSubscriber());
 
         final var figi = strategy.getInstrument().getFigi();
         context.sendStreamingRequest(
@@ -55,6 +56,7 @@ public class StrategyExecutor {
                 StreamingRequest.subscribeCandle(figi, strategy.getCandleInterval()));
 
         hasRun = true;
+        currentState = new TradingState(null, null ,null);
     }
 
     private class ContextSubscriber implements Flow.Subscriber<StreamingEvent> {
@@ -66,15 +68,47 @@ public class StrategyExecutor {
 
         @Override
         public void onNext(StreamingEvent item) {
+            StrategyDecision strategyDecision;
+
             if (item instanceof StreamingEvent.Candle) {
                 final var candle = (StreamingEvent.Candle)item;
-                strategy.consumeCandle(candle);
+                currentState.setCandle(candle);
+                strategyDecision = strategy.reactOnMarketChange(currentState);
             } else if (item instanceof StreamingEvent.Orderbook) {
                 final var orderbook = (StreamingEvent.Orderbook)item;
-                strategy.consumeOrderbook(orderbook);
+                currentState.setOrderbook(orderbook);
+                strategyDecision = strategy.reactOnMarketChange(currentState);
             } else {
                 final var instrumentInfo = (StreamingEvent.InstrumentInfo)item;
-                strategy.consumeInstrumentInfo(instrumentInfo);
+                currentState.setInstrumentInfo(instrumentInfo);
+                strategyDecision = strategy.reactOnMarketChange(currentState);
+            }
+
+            if (strategyDecision instanceof StrategyDecision.PlaceLimitOrder) {
+                final LimitOrder limitOrder = ((StrategyDecision.PlaceLimitOrder) strategyDecision).getLimitOrder();
+
+                logger.info("Стратегия решила разместить " + limitOrder.getOperation() + " заявку на " +
+                        limitOrder.getLots() + " лотов по цене " + limitOrder.getPrice() + " " +
+                        strategy.getInstrument().getCurrency());
+                context.placeLimitOrder(limitOrder).thenApply(plo -> {
+                    logger.fine("Заявка успешно размещена.");
+                    strategy.consumePlacedLimitOrder(plo);
+                    return null;
+                }).exceptionally(ex -> {
+                    logger.log(Level.WARNING, "Заявка не размещена.", ex);
+                    strategy.consumeRejectedLimitOrder(limitOrder.getOperation());
+                    return null;
+                });
+            } else if (strategyDecision instanceof StrategyDecision.CancelOrder) {
+                final String orderId = ((StrategyDecision.CancelOrder) strategyDecision).getOrderId();
+                context.cancelOrder(orderId).thenApply(plo -> {
+                    logger.fine("Заявка успешно отменена.");
+
+                    return null;
+                }).exceptionally(ex -> {
+                    logger.log(Level.WARNING, "Заявка не отменена.", ex);
+                    return null;
+                });
             }
         }
 
@@ -88,56 +122,4 @@ public class StrategyExecutor {
         }
     }
 
-    private class LimitOrderSubscriber implements Flow.Subscriber<LimitOrder> {
-
-        @Override
-        public void onSubscribe(Flow.Subscription subscription) {
-            subscription.request(Long.MAX_VALUE);
-        }
-
-        @Override
-        public void onNext(LimitOrder item) {
-            logger.info("Стратегия решила разместить " + item.getOperation() + " заявку на " + item.getLots() +
-                    " лотов по цене " + item.getPrice() + " " + strategy.getInstrument().getCurrency());
-            context.placeLimitOrder(item).thenApply(plo -> {
-                strategy.consumePlacedLimitOrder(plo);
-                return null;
-            }).exceptionally(ex -> {
-                logger.log(Level.WARNING, "Заявка не размещена.", ex);
-                strategy.consumeRejectedLimitOrder(item.getOperation());
-                return null;
-            });
-        }
-
-        @Override
-        public void onError(Throwable throwable) {
-            logger.log(Level.SEVERE, "Что-то пошло не так в подписке на стрим LimitOrder.", throwable);
-        }
-
-        @Override
-        public void onComplete() {
-        }
-    }
-
-    private class CancelSubscriber implements Flow.Subscriber<String> {
-
-        @Override
-        public void onSubscribe(Flow.Subscription subscription) {
-            subscription.request(Long.MAX_VALUE);
-        }
-
-        @Override
-        public void onNext(String item) {
-            context.cancelOrder(item);
-        }
-
-        @Override
-        public void onError(Throwable throwable) {
-            logger.log(Level.SEVERE, "Что-то пошло не так в подписке на стрим Cancel.", throwable);
-        }
-
-        @Override
-        public void onComplete() {
-        }
-    }
 }

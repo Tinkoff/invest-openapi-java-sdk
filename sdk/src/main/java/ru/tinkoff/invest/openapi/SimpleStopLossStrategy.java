@@ -4,9 +4,6 @@ import ru.tinkoff.invest.openapi.data.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.List;
-import java.util.concurrent.Flow;
-import java.util.concurrent.SubmissionPublisher;
 import java.util.logging.Logger;
 
 public class SimpleStopLossStrategy implements Strategy {
@@ -14,9 +11,6 @@ public class SimpleStopLossStrategy implements Strategy {
     private enum LastOrderResult { Profit, Loss, None }
     private enum CurrentPositionStatus { Exists, Processing, None }
 
-    private final List<Order> placedOrders;
-    private final SubmissionPublisher<LimitOrder> placeLimitOrderPublisher;
-    private final SubmissionPublisher<String> cancelLimitOrderPublisher;
     private final Instrument operatingInstrument;
     private final BigDecimal maxOperationValue;
     private final int maxOperationOrderbookDepth;
@@ -34,17 +28,16 @@ public class SimpleStopLossStrategy implements Strategy {
     private BigDecimal initialPrice;
     private boolean canTrade;
 
-    public SimpleStopLossStrategy(PortfolioCurrencies.PortfolioCurrency currencyPosition,
-                                  List<Order> placedOrders,
-                                  Instrument operatingInstrument,
-                                  BigDecimal maxOperationValue,
-                                  int maxOperationOrderbookDepth,
-                                  CandleInterval candlesOperationInterval,
-                                  BigDecimal growToFallInterest,
-                                  BigDecimal fallToGrowInterest,
-                                  BigDecimal profitInterest,
-                                  BigDecimal stopLossInterest,
-                                  Logger logger) {
+    public SimpleStopLossStrategy(final PortfolioCurrencies.PortfolioCurrency currencyPosition,
+                                  final Instrument operatingInstrument,
+                                  final BigDecimal maxOperationValue,
+                                  final int maxOperationOrderbookDepth,
+                                  final CandleInterval candlesOperationInterval,
+                                  final BigDecimal growToFallInterest,
+                                  final BigDecimal fallToGrowInterest,
+                                  final BigDecimal profitInterest,
+                                  final BigDecimal stopLossInterest,
+                                  final Logger logger) {
 
         if (!(maxOperationValue.compareTo(BigDecimal.ZERO) > 0)) {
             throw new IllegalArgumentException("maxOperationValue должно быть положительным");
@@ -65,7 +58,6 @@ public class SimpleStopLossStrategy implements Strategy {
             throw new IllegalArgumentException("stopLossInterest должно быть положительным");
         }
 
-        this.placedOrders = placedOrders;
         this.currencyPosition = currencyPosition;
         this.operatingInstrument = operatingInstrument;
         this.maxOperationValue = maxOperationValue;
@@ -76,9 +68,6 @@ public class SimpleStopLossStrategy implements Strategy {
         this.profitInterest = profitInterest;
         this.stopLossInterest = stopLossInterest;
         this.logger = logger;
-
-        this.placeLimitOrderPublisher = new SubmissionPublisher<>();
-        this.cancelLimitOrderPublisher = new SubmissionPublisher<>();
 
         this.currentPositionStatus = CurrentPositionStatus.None;
         this.lastOrderResult = LastOrderResult.None;
@@ -101,56 +90,68 @@ public class SimpleStopLossStrategy implements Strategy {
     }
 
     @Override
-    public void consumeCandle(StreamingEvent.Candle candle) {
+    public StrategyDecision reactOnMarketChange(final TradingState tradingState) {
+        final var candle = tradingState.getCandle();
+        final var instrumentInfo = tradingState.getInstrumentInfo();
+
+        chackCanTrade(instrumentInfo);
+
+        if (candle == null) {
+            return StrategyDecision.Pass.instance();
+        }
+
         final var price = candle.getHighestPrice().add(candle.getLowestPrice())
                 .divide(BigDecimal.valueOf(2), RoundingMode.HALF_EVEN);
 
         if (currentPositionStatus == CurrentPositionStatus.None && lastOrderResult == LastOrderResult.None) {
             if (!canTrade) {
-                logger.fine("Новая свечка получена. Текущая цена = " + price + ". Отсчётная цена = " + initialPrice +
-                        ". Экстремум = " + extremum + ". Сейчас нет позиции и до этого не было. Нельзя торговать. " +
-                        "Ничего не делаем.");
-                return;
+                logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
+                        initialPrice + ". Экстремум = " + extremum + ". Сейчас нет позиции и до этого не было. " +
+                        "Нельзя торговать. Ничего не делаем.");
+                return StrategyDecision.Pass.instance();
             }
 
-            logger.fine("Новая свечка получена. Текущая цена = " + price + ". Отсчётная цена = " + initialPrice +
+            logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " + initialPrice +
                     ". Экстремум = " + extremum + ". Сейчас нет позиции и до этого не было. Можно торговать. " +
                     "Размещаем лимитную заявку на покупку.");
-            placeLimitOrder(price, OperationType.Buy);
+            return placeLimitOrder(price, OperationType.Buy);
         } else if (currentPositionStatus == CurrentPositionStatus.None) {
             if (price.compareTo(extremum) <= 0) {
-                logger.fine("Новая свечка получена. Текущая цена = " + price + ". Отсчётная цена = " + initialPrice +
-                        ". Экстремум = " + extremum + ". Сейчас нет позиции, но до этого была. Текущая цена <= экстремуму. " +
-                        "Обновляем экстремум ценой.");
+                logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
+                        initialPrice + ". Экстремум = " + extremum + ". Сейчас нет позиции, но до этого была. " +
+                        "Текущая цена <= экстремуму. Обновляем экстремум ценой.");
                 extremum = price;
             } else {
-                final var delta = price.subtract(extremum); // always positive
+                final var delta = price.subtract(extremum); // результат всегда положительный
                 final var percent = delta.divide(
                         extremum.divide(BigDecimal.valueOf(100), RoundingMode.HALF_EVEN),
                         RoundingMode.HALF_EVEN);
                 if (percent.compareTo(fallToGrowInterest) > 0) {
                     if (canTrade) {
-                        logger.fine("Новая свечка получена. Текущая цена = " + price + ". Отсчётная цена = " + initialPrice +
-                                ". Экстремум = " + extremum + ". Сейчас нет позиции, но до этого была. Текущая цена > экстремума. " +
-                                "Цена поднялась значительно относительно экстремума. Можно торговать. Размещаем лимитную заявку на покупку.");
-                        placeLimitOrder(price, OperationType.Buy);
+                        logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
+                                initialPrice + ". Экстремум = " + extremum + ". Сейчас нет позиции, но до этого " +
+                                "была. Текущая цена > экстремума. Цена поднялась значительно относительно " +
+                                "экстремума. Можно торговать. Размещаем лимитную заявку на покупку.");
+                        return placeLimitOrder(price, OperationType.Buy);
                     } else {
-                        logger.fine("Новая свечка получена. Текущая цена = " + price + ". Отсчётная цена = " + initialPrice +
-                                ". Экстремум = " + extremum + ". Сейчас нет позиции, но до этого была. Текущая цена > экстремума. " +
-                                "Цена поднялась значительно относительно экстремума. Нельзя торговать. Ничего не делаем.");
+                        logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
+                                initialPrice + ". Экстремум = " + extremum + ". Сейчас нет позиции, но до этого " +
+                                "была. Текущая цена > экстремума. Цена поднялась значительно относительно " +
+                                "экстремума. Нельзя торговать. Ничего не делаем.");
                     }
                 } else {
-                    logger.fine("Новая свечка получена. Текущая цена = " + price + ". Отсчётная цена = " + initialPrice +
-                            ". Экстремум = " + extremum + ". Сейчас нет позиции, но до этого была. Текущая цена > экстремума. " +
-                            "Цена поднялась незначительно относительно экстремума. Ничего не делаем.");
+                    logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
+                            initialPrice + ". Экстремум = " + extremum + ". Сейчас нет позиции, но до этого была. " +
+                            "Текущая цена > экстремума. Цена поднялась незначительно относительно экстремума. " +
+                            "Ничего не делаем.");
                 }
             }
         } else if (currentPositionStatus == CurrentPositionStatus.Exists) {
             if (extremum.compareTo(initialPrice) > 0) {
                 if (price.compareTo(extremum) >= 0) {
-                    logger.fine("Новая свечка получена. Текущая цена = " + price + ". Отсчётная цена = " + initialPrice +
-                            ". Экстремум = " + extremum + ". Сейчас есть позиция. Экстремум > отсчётной цены. " +
-                            "Текущая цена >= экстремуму. Обновляем экстремум ценой.");
+                    logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
+                            initialPrice + ". Экстремум = " + extremum + ". Сейчас есть позиция. Экстремум > " +
+                            "отсчётной цены. Текущая цена >= экстремуму. Обновляем экстремум ценой.");
                     extremum = price;
                 } else {
                     final var extrAndInitDelta = extremum.subtract(initialPrice);
@@ -158,34 +159,37 @@ public class SimpleStopLossStrategy implements Strategy {
                             initialPrice.divide(BigDecimal.valueOf(100), RoundingMode.HALF_EVEN),
                             RoundingMode.HALF_EVEN);
                     if (extrAndInitPercent.compareTo(profitInterest) >= 0) {
-                        final var extrAndPriceDelta = extremum.subtract(price); // always positive
+                        final var extrAndPriceDelta = extremum.subtract(price); // результат всегда положительный
                         final var extrAndPricePercent = extrAndPriceDelta.divide(
                                 extremum.divide(BigDecimal.valueOf(100), RoundingMode.HALF_EVEN),
                                 RoundingMode.HALF_EVEN);
                         if (extrAndPricePercent.compareTo(growToFallInterest) >= 0) {
-                            logger.fine("Новая свечка получена. Текущая цена = " + price + ". Отсчётная цена = " + initialPrice +
-                                    ". Экстремум = " + extremum + ". Сейчас есть позиция. Экстремум > отсчётной цены. " +
-                                    "Текущая цена < экстремума. Экстремум поднялся значительно относительно отсчётной цены. " +
-                                    "Цена опустилась значительно ниже экстремума. Размещаем лимитную заявку на продажу (фиксация прибыли).");
+                            logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
+                                    initialPrice + ". Экстремум = " + extremum + ". Сейчас есть позиция. Экстремум > " +
+                                    "отсчётной цены. Текущая цена < экстремума. Экстремум поднялся значительно " +
+                                    "относительно отсчётной цены. Цена опустилась значительно ниже экстремума. " +
+                                    "Размещаем лимитную заявку на продажу (фиксация прибыли).");
                             lastOrderResult = LastOrderResult.Profit;
-                            placeLimitOrder(price, OperationType.Sell);
+                            return placeLimitOrder(price, OperationType.Sell);
                         } else {
-                            logger.fine("Новая свечка получена. Текущая цена = " + price + ". Отсчётная цена = " + initialPrice +
-                                    ". Экстремум = " + extremum + ". Сейчас есть позиция. Экстремум > отсчётной цены. " +
-                                    "Текущая цена < экстремума. Цена опустилась незначительно ниже экстремума. Ничего не делаем.");
+                            logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
+                                    initialPrice + ". Экстремум = " + extremum + ". Сейчас есть позиция. Экстремум > " +
+                                    "отсчётной цены. Текущая цена < экстремума. Цена опустилась незначительно ниже " +
+                                    "экстремума. Ничего не делаем.");
                         }
                     } else {
-                        logger.fine("Новая свечка получена. Текущая цена = " + price + ". Отсчётная цена = " + initialPrice +
-                                ". Экстремум = " + extremum + ". Сейчас есть позиция. Экстремум > отсчётной цены. " +
-                                "Текущая цена < экстремума. Экстремум поднялся незначительно относительно отсчётной цены. Обновляем экстремум ценой.");
+                        logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
+                                initialPrice + ". Экстремум = " + extremum + ". Сейчас есть позиция. Экстремум > " +
+                                "отсчётной цены. Текущая цена < экстремума. Экстремум поднялся незначительно " +
+                                "относительно отсчётной цены. Обновляем экстремум ценой.");
                         extremum = price;
                     }
                 }
             } else if (extremum.compareTo(initialPrice) < 0) {
                 if (price.compareTo(extremum) >= 0) {
-                    logger.fine("Новая свечка получена. Текущая цена = " + price + ". Отсчётная цена = " + initialPrice +
-                            ". Экстремум = " + extremum + ". Сейчас есть позиция. Экстремум < отсчётной цены. " +
-                            "Текущая цена >= экстремуму. Обновляем экстремум ценой.");
+                    logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
+                            initialPrice + ". Экстремум = " + extremum + ". Сейчас есть позиция. Экстремум < " +
+                            "отсчётной цены. Текущая цена >= экстремуму. Обновляем экстремум ценой.");
                     extremum = price;
                 } else {
                     final var priceAndInitDelta = price.subtract(initialPrice).abs();
@@ -193,49 +197,33 @@ public class SimpleStopLossStrategy implements Strategy {
                             initialPrice.divide(BigDecimal.valueOf(100), RoundingMode.HALF_EVEN),
                             RoundingMode.HALF_EVEN);
                     if (priceAndInitPercent.compareTo(stopLossInterest) >= 0) {
-                        logger.fine("Новая свечка получена. Текущая цена = " + price + ". Отсчётная цена = " + initialPrice +
-                                ". Экстремум = " + extremum + ". Сейчас есть позиция. Экстремум < отсчётной цены. " +
-                                "Текущая цена < экстремума. Цена опустилась значительно относительно отсчётной цены. " +
-                                "Размещаем лимитную заявку на продажу (остановка потерь).");
+                        logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
+                                initialPrice + ". Экстремум = " + extremum + ". Сейчас есть позиция. Экстремум < " +
+                                "отсчётной цены. екущая цена < экстремума. Цена опустилась значительно относительно " +
+                                "отсчётной цены. Размещаем лимитную заявку на продажу (остановка потерь).");
                         lastOrderResult = LastOrderResult.Loss;
-                        placeLimitOrder(price, OperationType.Sell);
+                        return placeLimitOrder(price, OperationType.Sell);
                     } else {
-                        logger.fine("Новая свечка получена. Текущая цена = " + price + ". Отсчётная цена = " + initialPrice +
-                                ". Экстремум = " + extremum + ". Сейчас есть позиция. Экстремум < отсчётной цены. " +
-                                "Текущая цена < экстремума. Цена опустилась незначительно относительно отсчётной цены. " +
-                                "Обновляем экстремум ценой.");
+                        logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
+                                initialPrice + ". Экстремум = " + extremum + ". Сейчас есть позиция. Экстремум < " +
+                                "отсчётной цены. Текущая цена < экстремума. Цена опустилась незначительно " +
+                                "относительно отсчётной цены. Обновляем экстремум ценой.");
                         extremum = price;
                     }
                 }
             } else {
-                logger.fine("Новая свечка получена. Текущая цена = " + price + ". Отсчётная цена = " + initialPrice +
-                        ". Экстремум = " + extremum + ". Сейчас есть позиция. Экстремум = отсчётной цене. " +
-                        "Обновляем экстремум ценой.");
+                logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
+                        initialPrice + ". Экстремум = " + extremum + ". Сейчас есть позиция. Экстремум = отсчётной " +
+                        "цене. Обновляем экстремум ценой.");
                 extremum = price;
             }
         }
+
+        return StrategyDecision.Pass.instance();
     }
 
     @Override
-    public void consumeOrderbook(StreamingEvent.Orderbook orderbook) {
-    }
-
-    @Override
-    public void consumeInstrumentInfo(StreamingEvent.InstrumentInfo instrumentInfo) {
-        final var newCanTrade = instrumentInfo.canTrade();
-        if (newCanTrade != this.canTrade)
-            logger.fine("Изменился торговый статус инструмента: " + instrumentInfo.getTradeStatus());
-        this.canTrade = newCanTrade;
-    }
-
-    @Override
-    public Flow.Publisher<LimitOrder> getLimitOrderPublisher() {
-        return this.placeLimitOrderPublisher;
-    }
-
-    @Override
-    public Flow.Publisher<String> getCancelPublisher() {
-        return this.cancelLimitOrderPublisher;
+    public void init() {
     }
 
     @Override
@@ -252,14 +240,16 @@ public class SimpleStopLossStrategy implements Strategy {
                 : CurrentPositionStatus.Exists;
     }
 
-    @Override
-    public void init() {
-        placedOrders.stream()
-                .filter(placedOrder -> placedOrder.getFigi().equals(operatingInstrument.getFigi()))
-                .forEach(placedOrder -> cancelLimitOrderPublisher.submit(placedOrder.getId()));
+    private void chackCanTrade(final StreamingEvent.InstrumentInfo instrumentInfo) {
+        if (instrumentInfo != null) {
+            final var newCanTrade = instrumentInfo.canTrade();
+            if (newCanTrade != this.canTrade)
+                logger.fine("Изменился торговый статус инструмента: " + instrumentInfo.getTradeStatus());
+            this.canTrade = newCanTrade;
+        }
     }
 
-    private void placeLimitOrder(BigDecimal price, OperationType operationType) {
+    private StrategyDecision placeLimitOrder(final BigDecimal price, final OperationType operationType) {
         currentPositionStatus = CurrentPositionStatus.Processing;
         initialPrice = price;
         extremum = price;
@@ -274,12 +264,13 @@ public class SimpleStopLossStrategy implements Strategy {
                 : maxOperationValue;
         final var lots = maxValue.divide(
                 price.multiply(BigDecimal.valueOf(operatingInstrument.getLot())), RoundingMode.DOWN);
-        final var firstLimitOrder = new LimitOrder(
+        final var limitOrder = new LimitOrder(
                 operatingInstrument.getFigi(),
                 lots.intValue(),
                 operationType,
                 price
         );
-        placeLimitOrderPublisher.submit(firstLimitOrder);
+
+        return new StrategyDecision.PlaceLimitOrder(limitOrder);
     }
 }

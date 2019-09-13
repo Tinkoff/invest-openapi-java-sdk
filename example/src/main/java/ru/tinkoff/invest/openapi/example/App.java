@@ -4,6 +4,7 @@ import ru.tinkoff.invest.openapi.SimpleStopLossStrategy;
 import ru.tinkoff.invest.openapi.StrategyExecutor;
 import ru.tinkoff.invest.openapi.data.CandleInterval;
 import ru.tinkoff.invest.openapi.data.Instrument;
+import ru.tinkoff.invest.openapi.data.PortfolioCurrencies;
 import ru.tinkoff.invest.openapi.wrapper.Connection;
 import ru.tinkoff.invest.openapi.wrapper.Context;
 import ru.tinkoff.invest.openapi.wrapper.SandboxContext;
@@ -72,9 +73,6 @@ public class App {
                 initPrepareSandbox((SandboxContext)context, instrument, logger);
             }
 
-            logger.fine("Получаем активные заявки... ");
-            final var orders = context.getOrders().join();
-
             logger.fine("Получаем валютные балансы... ");
             final var portfolioCurrencies = context.getPortfolioCurrencies().join();
 
@@ -82,16 +80,18 @@ public class App {
                     .filter(pc -> pc.getCurrency() == instrument.getCurrency())
                     .findFirst();
 
+            final PortfolioCurrencies.PortfolioCurrency portfolioCurrency;
             if (portfolioCurrencyOpt.isEmpty()) {
                 logger.severe("Не нашлось нужной валютной позиции.");
                 return;
+            } else {
+                portfolioCurrency = portfolioCurrencyOpt.get();
             }
 
             logger.fine("Запускаем робота... ");
             final CompletableFuture<Void> result = new CompletableFuture<>();
             final var strategy = new SimpleStopLossStrategy(
-                    portfolioCurrencyOpt.get(),
-                    orders,
+                    portfolioCurrency,
                     instrument,
                     maxVolume,
                     5,
