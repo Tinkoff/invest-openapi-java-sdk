@@ -45,13 +45,18 @@ public class App {
             if (useSandbox) {
                 logger.fine("Создаём подключение в режиме \"песочницы\"... ");
                 connection = ConnectionFactory.connectSandbox(ssoToken, logger).join();
-                context = connection.context();
-                // ОБЯЗАТЕЛЬНО нужно выполнить регистрацию в "песочнице"
-                ((SandboxContext)context).performRegistration();
             } else {
                 logger.fine("Создаём подключение в биржевом режиме... ");
                 connection = ConnectionFactory.connect(ssoToken, logger).join();
-                context = connection.context();
+            }
+
+            initCleanupProcedure(connection, logger);
+
+            context = connection.context();
+
+            if (useSandbox) {
+                // ОБЯЗАТЕЛЬНО нужно выполнить регистрацию в "песочнице"
+                ((SandboxContext)context).performRegistration();
             }
 
             logger.fine("Ищём по тикеру " + ticker + "... ");
@@ -179,5 +184,21 @@ public class App {
 
         logger.fine("Ставим на баланс немного " + instrument.getCurrency() + "... ");
         context.setCurrencyBalance(instrument.getCurrency(), maxVolume).join();
+    }
+
+    private static void initCleanupProcedure(final Connection connection, final Logger logger) {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                Thread.sleep(200);
+                logger.info("Подчищаем за собой...");
+                connection.close();
+
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }));
     }
 }

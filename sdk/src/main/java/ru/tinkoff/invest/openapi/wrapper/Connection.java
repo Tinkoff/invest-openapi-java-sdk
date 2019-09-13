@@ -8,7 +8,7 @@ import java.net.http.WebSocket;
  *
  * @param <C> Вариант контекста.
  */
-public interface Connection<C extends Context> {
+public interface Connection<C extends Context> extends AutoCloseable {
 
     /**
      * Получение контекста.

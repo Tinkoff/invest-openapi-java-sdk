@@ -60,4 +60,9 @@ class ConnectionImpl implements Connection<Context> {
     public WebSocketListener getListener() {
         return listener;
     }
+
+    @Override
+    public void close() throws Exception {
+        webSocket.sendClose(WebSocket.NORMAL_CLOSURE, "Session closed");
+    }
 }
