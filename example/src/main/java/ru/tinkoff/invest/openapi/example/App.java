@@ -189,15 +189,10 @@ public class App {
     private static void initCleanupProcedure(final Connection connection, final Logger logger) {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
-                Thread.sleep(200);
-                logger.info("Подчищаем за собой...");
+                logger.info("Закрываем соединение... ");
                 connection.close();
-
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                e.printStackTrace();
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.log(Level.SEVERE, "Что-то произошло при закрытии соединения!", e);
             }
         }));
     }
