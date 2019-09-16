@@ -108,6 +108,6 @@ public interface Context extends Flow.Publisher<StreamingEvent> {
      * @param figi Идентификатор инструмента.
      * @return Список операций.
      */
-    CompletableFuture<List<Operation>> getOperations(LocalDate from, OperationInterval interval, String figi);
+    CompletableFuture<OperationsList> getOperations(LocalDate from, OperationInterval interval, String figi);
 
 }
