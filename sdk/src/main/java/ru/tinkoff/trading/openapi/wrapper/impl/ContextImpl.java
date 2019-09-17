@@ -170,12 +170,12 @@ class ContextImpl implements Context {
     }
 
     @Override
-    public CompletableFuture<List<Operation>> getOperations(LocalDate from, OperationInterval interval, String figi) {
+    public CompletableFuture<OperationsList> getOperations(LocalDate from, OperationInterval interval, String figi) {
         final var pathWithParam = OPERATIONS_PATH + "?from=" +
                 URLEncoder.encode(from.toString(), StandardCharsets.UTF_8)
                 + "&interval=" + URLEncoder.encode(interval.toParamString(), StandardCharsets.UTF_8)
                 + "&figi=" + URLEncoder.encode(figi, StandardCharsets.UTF_8);
-        return sendGetRequest(pathWithParam, new TypeReference<OpenApiResponse<List<Operation>>>(){})
+        return sendGetRequest(pathWithParam, new TypeReference<OpenApiResponse<OperationsList>>(){})
                 .thenApply(oar -> oar.payload);
     }
 
