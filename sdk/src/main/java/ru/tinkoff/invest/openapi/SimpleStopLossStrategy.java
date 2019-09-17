@@ -97,7 +97,7 @@ public class SimpleStopLossStrategy implements Strategy {
         checkCanTrade(instrumentInfo);
 
         if (candle == null) {
-            return StrategyDecision.Pass.instance();
+            return StrategyDecision.pass();
         }
 
         final var price = candle.getHighestPrice().add(candle.getLowestPrice())
@@ -108,7 +108,7 @@ public class SimpleStopLossStrategy implements Strategy {
                 logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
                         initialPrice + ". Экстремум = " + extremum + ". Сейчас нет позиции и до этого не было. " +
                         "Нельзя торговать. Ничего не делаем.");
-                return StrategyDecision.Pass.instance();
+                return StrategyDecision.pass();
             }
 
             logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " + initialPrice +
@@ -219,7 +219,7 @@ public class SimpleStopLossStrategy implements Strategy {
             }
         }
 
-        return StrategyDecision.Pass.instance();
+        return StrategyDecision.pass();
     }
 
     @Override
@@ -281,6 +281,6 @@ public class SimpleStopLossStrategy implements Strategy {
                 price
         );
 
-        return new StrategyDecision.PlaceLimitOrder(limitOrder);
+        return StrategyDecision.placeLimitOrder(limitOrder);
     }
 }

@@ -4,10 +4,22 @@ import ru.tinkoff.invest.openapi.data.LimitOrder;
 
 public abstract class StrategyDecision {
 
+    public static StrategyDecision placeLimitOrder(LimitOrder limitOrder) {
+        return new PlaceLimitOrder(limitOrder);
+    }
+
+    public static StrategyDecision cancelOrder(String orderId) {
+        return new CancelOrder(orderId);
+    }
+
+    public static StrategyDecision pass() {
+        return Pass.instance();
+    }
+
     public static class PlaceLimitOrder extends StrategyDecision {
         private final LimitOrder limitOrder;
 
-        public PlaceLimitOrder(LimitOrder limitOrder) {
+        private PlaceLimitOrder(LimitOrder limitOrder) {
             this.limitOrder = limitOrder;
         }
 
@@ -19,7 +31,7 @@ public abstract class StrategyDecision {
     public static class CancelOrder extends StrategyDecision {
         private final String orderId;
 
-        public CancelOrder(String orderId) {
+        private CancelOrder(String orderId) {
             this.orderId = orderId;
         }
 
@@ -35,7 +47,7 @@ public abstract class StrategyDecision {
             singleton = new Pass();
         }
 
-        public static Pass instance() {
+        private static Pass instance() {
             return singleton;
         }
 
