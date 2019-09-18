@@ -647,7 +647,7 @@ class ContextImplTest {
         final String json = "{" +
                 "  \"trackingId\": \"trackingId\"," +
                 "  \"status\": \"Ok\"," +
-                "  \"payload\": [" +
+                "  \"payload\": { \"operations\": [" +
                 "    {" +
                 "      \"id\": \"id\"," +
                 "      \"status\": \"Done\"," +
@@ -673,7 +673,7 @@ class ContextImplTest {
                 "      \"date\": \"2019-08-19T18:38:33.131642+03:00\"," +
                 "      \"operationType\": \"Buy\"" +
                 "    }" +
-                "  ]" +
+                "  ]}" +
                 "}";
         when(response.body()).thenReturn(json);
         when(response.statusCode()).thenReturn(200);
@@ -683,8 +683,9 @@ class ContextImplTest {
         final var from = LocalDate.of(2019, 8, 30);
         final var interval = OperationInterval.WEEK;
         final var actualResponse = context.getOperations(from, interval, someOperation.getFigi()).get();
-        assertEquals(actualResponse.size(), expectedOperations.size());
-        final var operation = actualResponse.get(0);
+        final var operations = actualResponse.getOperations();
+        assertEquals(operations.size(), expectedOperations.size());
+        final var operation = operations.get(0);
         assertEquals(operation.getId(), someOperation.getId());
         assertEquals(operation.getStatus(), someOperation.getStatus());
         assertEquals(operation.getTrades(), someOperation.getTrades());
