@@ -1,13 +1,27 @@
 subprojects {
     apply plugin: 'java'
 
-    group 'ru.tinkoff.trading'
-    version '0.1.1'
+    group 'ru.tinkoff.invest'
+    version '0.2'
 
     sourceCompatibility = 1.11
     targetCompatibility = 1.11
 
     repositories {
         mavenCentral()
+    }
+
+    compileJava {
+        options.encoding = 'UTF-8'
+    }
+
+    compileTestJava {
+        options.encoding = 'UTF-8'
+    }
+
+    javadoc {
+        options.addStringOption('encoding', 'UTF-8')
+        options.addStringOption('docencoding', 'UTF-8')
+        options.addStringOption('charset', 'UTF-8')
     }
 }
