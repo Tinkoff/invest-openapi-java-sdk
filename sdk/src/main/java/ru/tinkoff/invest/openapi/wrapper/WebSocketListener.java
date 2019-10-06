@@ -1,6 +1,7 @@
 package ru.tinkoff.invest.openapi.wrapper;
 
 import java.net.http.WebSocket;
+import java.util.concurrent.Flow;
 import java.util.function.Consumer;
 
 /**
@@ -9,10 +10,24 @@ import java.util.function.Consumer;
 public interface WebSocketListener extends WebSocket.Listener {
 
     /**
-     * Установка отдельного потребителя текстовых сообщений.
+     * Подписка на событие получения очередного сообщения.
      *
-     * @param messageHandler Потребитель текстовых сообщений.
+     * @param subscriber Подписчик.
      */
-    void setMessageHandler(Consumer<String> messageHandler);
+    void subscribeOnMessage(Flow.Subscriber<String> subscriber);
+
+    /**
+     * Подписывание на событие закрытия WebSocket-соединения.
+     *
+     * @param subscriber Подписчик.
+     */
+    void subscribeOnClose(Flow.Subscriber<Void> subscriber);
+
+    /**
+     * Подписывание на событие ошибки в работе WebSocket-соединения.
+     *
+     * @param subscriber Подписчик.
+     */
+    void subscribeOnError(Flow.Subscriber<Void> subscriber);
 
 }
