@@ -327,6 +327,54 @@ public abstract class StreamingEvent {
         }
     }
 
+    @JsonDeserialize
+    public static class Error extends StreamingEvent {
+        private final String error;
+        private final String requestId;
+
+        @JsonCreator
+        public Error(@JsonProperty("error")
+                     String error,
+                     @JsonProperty("request_id")
+                     String requestId) {
+            this.error = error;
+            this.requestId = requestId;
+        }
+
+        public String geError() {
+            return error;
+        }
+
+        public String getRequestId() {
+            return requestId;
+        }
+
+        @Override
+        public String toString() {
+            return "Error(error = " + error +
+                    ", requestId = " + requestId +
+                    ")";
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof Error)) {
+                return false;
+            }
+
+            final var other = (Error)o;
+
+            if (!this.error.equals(other.error)) {
+                return false;
+            }
+            if (!this.requestId.equals(other.requestId)) {
+                return false;
+            }
+
+            return true;
+        }
+    }
+
     static class StreamingEventDeserializer extends StdDeserializer<StreamingEvent> {
 
         public StreamingEventDeserializer() {
@@ -368,6 +416,9 @@ public abstract class StreamingEvent {
                     break;
                 case "instrument_info":
                     result = mapper.readValue(mapper.writeValueAsString(payloadNode), InstrumentInfo.class);
+                    break;
+                case "error":
+                    result = mapper.readValue(mapper.writeValueAsString(payloadNode), Error.class);
                     break;
                 default:
                     throw new JsonParseException(p, "Unknown event type.");
