@@ -77,10 +77,13 @@ public class StrategyExecutor {
                 final var orderbook = (StreamingEvent.Orderbook)item;
                 currentState.setOrderbook(orderbook);
                 strategyDecision = strategy.reactOnMarketChange(currentState);
-            } else {
+            } else if (item instanceof StreamingEvent.InstrumentInfo) {
                 final var instrumentInfo = (StreamingEvent.InstrumentInfo)item;
                 currentState.setInstrumentInfo(instrumentInfo);
                 strategyDecision = strategy.reactOnMarketChange(currentState);
+            } else {
+                logger.severe("Что-то пошло не так в подписке на стрим StreamingEvent. " + item);
+                strategyDecision = StrategyDecision.pass();
             }
 
             if (strategyDecision instanceof StrategyDecision.PlaceLimitOrder) {
