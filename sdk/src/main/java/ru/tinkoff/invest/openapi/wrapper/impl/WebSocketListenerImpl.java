@@ -7,12 +7,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.function.Consumer;
+import java.util.concurrent.Flow;
+import java.util.concurrent.SubmissionPublisher;
 
 public class WebSocketListenerImpl implements WebSocketListener {
     private List<CharSequence> parts = new ArrayList<>();
     private CompletableFuture<?> accumulatedMessage = new CompletableFuture<>();
-    private Consumer<String> messageHandler;
+    private final SubmissionPublisher<String> streamingOnMessage;
+    private final SubmissionPublisher<Void> streamingOnClose;
+    private final SubmissionPublisher<Void> streamingOnError;
+
+    public WebSocketListenerImpl() {
+        streamingOnMessage = new SubmissionPublisher<>();
+        streamingOnClose = new SubmissionPublisher<>();
+        streamingOnError = new SubmissionPublisher<>();
+    }
 
     public CompletionStage<?> onText(WebSocket webSocket,
                                      CharSequence data,
@@ -35,12 +44,22 @@ public class WebSocketListenerImpl implements WebSocketListener {
     }
 
     private void processWholeText(String message) {
-        if (this.messageHandler != null) {
-            this.messageHandler.accept(message);
-        }
+        this.streamingOnMessage.submit(message);
     }
 
-    public void setMessageHandler(Consumer<String> messageHandler) {
-        this.messageHandler = messageHandler;
+    @Override
+    public void subscribeOnMessage(Flow.Subscriber<String> subscriber) {
+        this.streamingOnMessage.subscribe(subscriber);
     }
+
+    @Override
+    public void subscribeOnClose(Flow.Subscriber<Void> subscriber) {
+        this.streamingOnClose.subscribe(subscriber);
+    }
+
+    @Override
+    public void subscribeOnError(Flow.Subscriber<Void> subscriber) {
+        this.streamingOnError.subscribe(subscriber);
+    }
+
 }

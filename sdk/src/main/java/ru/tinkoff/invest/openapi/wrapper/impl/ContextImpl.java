@@ -68,7 +68,7 @@ class ContextImpl implements Context {
     ContextImpl(Connection connection, Logger logger) {
         this.connection = connection;
         this.streaming = new SubmissionPublisher<>();
-        this.connection.getListener().setMessageHandler(this::handleStreamMessage);
+        this.connection.getListener().subscribeOnMessage(new OnMessageSubscriber());
         this.logger = logger;
     }
 
@@ -243,14 +243,35 @@ class ContextImpl implements Context {
         }
     }
 
-    private void handleStreamMessage(String message) {
-        try {
-            final var mapper = new ObjectMapper();
-            mapper.registerModule(new JavaTimeModule());
-            final var event = mapper.<StreamingEvent>readValue(message, new TypeReference<StreamingEvent>(){});
-            streaming.submit(event);
-        } catch (Exception ex) {
-            logger.log(Level.SEVERE, "При обработке собыйтия из WebSocket что-то произошло.", ex);
+    private class OnMessageSubscriber implements Flow.Subscriber<String> {
+        @Override
+        public void onSubscribe(Flow.Subscription subscription) {
+            subscription.request(Long.MAX_VALUE);
+        }
+
+        @Override
+        public void onNext(String item) {
+            try {
+                final var mapper = new ObjectMapper();
+                mapper.registerModule(new JavaTimeModule());
+                final var event = mapper.<StreamingEvent>readValue(item, new TypeReference<StreamingEvent>(){});
+                streaming.submit(event);
+            } catch (Exception ex) {
+                logger.log(Level.SEVERE, "При обработке собыйтия из WebSocket что-то произошло.", ex);
+            }
+        }
+
+        @Override
+        public void onError(Throwable throwable) {
+            logger.log(
+                    Level.SEVERE,
+                    "Что-то пошло не так в подписке на стрим собыйтий из WebSocket.",
+                    throwable
+            );
+        }
+
+        @Override
+        public void onComplete() {
         }
     }
 }

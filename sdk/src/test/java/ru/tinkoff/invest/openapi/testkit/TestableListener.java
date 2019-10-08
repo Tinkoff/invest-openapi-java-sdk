@@ -6,19 +6,30 @@ import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.function.Consumer;
+import java.util.concurrent.Flow;
+import java.util.concurrent.SubmissionPublisher;
 
 public class TestableListener implements WebSocketListener {
 
-    private Consumer<String> messageHandler;
+    private final SubmissionPublisher<String> streamingOnMessage = new SubmissionPublisher<>();
 
     public void receiveText(CharSequence data) {
-        this.messageHandler.accept(data.toString());
+        this.streamingOnMessage.submit(data.toString());
     }
 
     @Override
-    public void setMessageHandler(Consumer<String> messageHandler) {
-        this.messageHandler = messageHandler;
+    public void subscribeOnMessage(Flow.Subscriber<String> subscriber) {
+        this.streamingOnMessage.subscribe(subscriber);
+    }
+
+    @Override
+    public void subscribeOnClose(Flow.Subscriber<Void> subscriber) {
+
+    }
+
+    @Override
+    public void subscribeOnError(Flow.Subscriber<Void> subscriber) {
+
     }
 
     @Override
