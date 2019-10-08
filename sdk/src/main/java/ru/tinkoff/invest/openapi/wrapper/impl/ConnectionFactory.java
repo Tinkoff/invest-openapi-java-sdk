@@ -1,5 +1,6 @@
 package ru.tinkoff.invest.openapi.wrapper.impl;
 
+import ru.tinkoff.invest.openapi.exceptions.WrongTokenException;
 import ru.tinkoff.invest.openapi.wrapper.Connection;
 import ru.tinkoff.invest.openapi.wrapper.Context;
 import ru.tinkoff.invest.openapi.wrapper.SandboxContext;
@@ -9,9 +10,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.WebSocket;
+import java.net.http.WebSocketHandshakeException;
 import java.time.Duration;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -43,8 +47,12 @@ public class ConnectionFactory {
         builder.connectTimeout(Duration.ofSeconds(10));
         final var listener = new WebSocketListenerImpl();
 
-        return builder.buildAsync(URI.create(streamingHost), listener).thenApply(
-                webSocket -> new ConnectionImpl(host, authToken, httpClient, webSocket, listener, logger));
+        return createAllStuff(
+                builder,
+                streamingHost,
+                listener,
+                webSocket -> new ConnectionImpl(host, authToken, httpClient, webSocket, listener, logger)
+        );
     }
 
     /**
@@ -68,8 +76,27 @@ public class ConnectionFactory {
         builder.connectTimeout(Duration.ofSeconds(10));
         final var listener = new WebSocketListenerImpl();
 
-        return builder.buildAsync(URI.create(streamingHost), listener).thenApply(
-                webSocket -> new SandboxConnectionImpl(host, authToken, httpClient, webSocket, listener, logger));
+        return createAllStuff(
+                builder,
+                streamingHost,
+                listener,
+                webSocket -> new SandboxConnectionImpl(host, authToken, httpClient, webSocket, listener, logger)
+        );
+    }
+
+    private static <T> CompletableFuture<T> createAllStuff(WebSocket.Builder builder,
+                                                        String streamingHost,
+                                                        WebSocket.Listener listener,
+                                                        Function<WebSocket, T> connectionCreator) {
+        return builder.buildAsync(URI.create(streamingHost), listener)
+                .thenApply(connectionCreator)
+                .exceptionallyCompose(th -> {
+                    if (th.getCause() instanceof WebSocketHandshakeException) {
+                        return CompletableFuture.failedFuture(new WrongTokenException());
+                    } else {
+                        return CompletableFuture.failedFuture(th);
+                    }
+                });
     }
 
     /**
