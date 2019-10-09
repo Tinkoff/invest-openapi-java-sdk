@@ -13,13 +13,28 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = StreamingRequest.InstrumentInfoUnsubscribeRequest.class, name = "instrument_info:unsubscribe")
 })
 public abstract class StreamingRequest {
+    protected final String requestId;
+
+    protected StreamingRequest(String requestId) {
+        this.requestId = requestId;
+    }
+
+    public String getRequestId() {
+        return requestId;
+    }
+
     public static class CandleSubscribeRequest extends StreamingRequest {
         private final String figi;
         private final CandleInterval interval;
 
-        CandleSubscribeRequest(String figi, CandleInterval interval) {
+        CandleSubscribeRequest(String figi, CandleInterval interval, String requestId) {
+            super(requestId);
             this.figi = figi;
             this.interval = interval;
+        }
+
+        CandleSubscribeRequest(String figi, CandleInterval interval) {
+            this(figi, interval, null);
         }
 
         public String getFigi() {
@@ -35,9 +50,14 @@ public abstract class StreamingRequest {
         private final String figi;
         private final CandleInterval interval;
 
-        CandleUnsubscribeRequest(String figi, CandleInterval interval) {
+        CandleUnsubscribeRequest(String figi, CandleInterval interval, String requestId) {
+            super(requestId);
             this.figi = figi;
             this.interval = interval;
+        }
+
+        CandleUnsubscribeRequest(String figi, CandleInterval interval) {
+            this(figi, interval, null);
         }
 
         public String getFigi() {
@@ -52,8 +72,13 @@ public abstract class StreamingRequest {
     public static class InstrumentInfoSubscribeRequest extends StreamingRequest {
         private final String figi;
 
-        InstrumentInfoSubscribeRequest(String figi) {
+        InstrumentInfoSubscribeRequest(String figi, String requestId) {
+            super(requestId);
             this.figi = figi;
+        }
+
+        InstrumentInfoSubscribeRequest(String figi) {
+            this(figi,null);
         }
 
         public String getFigi() {
@@ -64,8 +89,13 @@ public abstract class StreamingRequest {
     public static class InstrumentInfoUnsubscribeRequest extends StreamingRequest {
         private final String figi;
 
-        InstrumentInfoUnsubscribeRequest(String figi) {
+        InstrumentInfoUnsubscribeRequest(String figi, String requestId) {
+            super(requestId);
             this.figi = figi;
+        }
+
+        InstrumentInfoUnsubscribeRequest(String figi) {
+            this(figi, null);
         }
 
         public String getFigi() {
@@ -77,10 +107,15 @@ public abstract class StreamingRequest {
         private final String figi;
         private final int depth;
 
-        OrderbookSubscribeRequest(String figi, int depth) {
-            this.figi = figi;
+        OrderbookSubscribeRequest(String figi, int depth, String requestId) {
+            super(requestId);
             if (depth < 0  || depth > 20) throw new IllegalArgumentException("Глубина должна быть от 1 до 20");
+            this.figi = figi;
             this.depth = depth;
+        }
+
+        OrderbookSubscribeRequest(String figi, int depth) {
+            this(figi, depth, null);
         }
 
         public String getFigi() {
@@ -96,10 +131,15 @@ public abstract class StreamingRequest {
         private final String figi;
         private final int depth;
 
-        OrderbookUnsubscribeRequest(String figi, int depth) {
-            this.figi = figi;
+        OrderbookUnsubscribeRequest(String figi, int depth, String requestId) {
+            super(requestId);
             if (depth < 0  || depth > 20) throw new IllegalArgumentException("Глубина должна быть от 1 до 20");
+            this.figi = figi;
             this.depth = depth;
+        }
+
+        OrderbookUnsubscribeRequest(String figi, int depth) {
+            this(figi, depth, null);
         }
 
         public String getFigi() {
