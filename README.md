@@ -12,7 +12,7 @@ gradlew build
 ```
 Или с помощью docker
 ```
-docker run --rm -u gradle -v "$PWD":/home/gradle/project -w /home/gradle/project gradle:5.6.2-jdk11 gradle build
+docker run --rm -u gradle -v "$PWD":/home/gradle/project -w /home/gradle/project gradle:jdk11 gradle build
 ```
 После успешной сборки в поддиректории `sdk/build/libs` появится jar-файл, который можно подключить к любому другому
 Java-проекту (или Java-совместимому, например, на таких языках, как Kotlin и Scala).
@@ -36,7 +36,7 @@ gradlew javadoc
 ```
 Или с помощью docker
 ```
-docker run --rm -u gradle -v "$PWD":/home/gradle/project -w /home/gradle/project gradle:5.6.2-jdk11 gradle javadoc
+docker run --rm -u gradle -v "$PWD":/home/gradle/project -w /home/gradle/project gradle:jdk11 gradle javadoc
 ```
 Единственной зависимостью в проекте явлется библиотека Jackson для работы с JSON.
 

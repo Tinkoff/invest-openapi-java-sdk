@@ -22,4 +22,5 @@ jar {
                 'Class-Path': configurations.runtime.files.collect { "lib/$it.name" }.join(' ')
         )
     }
+    archiveFileName = 'example.jar'
 }
