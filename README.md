@@ -77,7 +77,7 @@ strategyExecutor.run();
 сборки проекта постройте docker-образ и запустите его.
 ```bash
 docker build --tag=openapi-example .
-docker run --mount source=openapi_volume,target=/app/logs \
+docker run -ti --mount source=openapi_volume,target=/app/logs \
     -e "token=<auth_token>" \
     -e "ticker=<ticker>" \
     -e "interval=<candle_interval>" \
