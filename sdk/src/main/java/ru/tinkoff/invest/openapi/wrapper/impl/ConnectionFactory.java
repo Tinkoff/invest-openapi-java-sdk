@@ -15,6 +15,7 @@ import java.net.http.WebSocketHandshakeException;
 import java.time.Duration;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -90,11 +91,11 @@ public class ConnectionFactory {
                                                         Function<WebSocket, T> connectionCreator) {
         return builder.buildAsync(URI.create(streamingHost), listener)
                 .thenApply(connectionCreator)
-                .exceptionallyCompose(th -> {
+                .exceptionally(th -> {
                     if (th.getCause() instanceof WebSocketHandshakeException) {
-                        return CompletableFuture.failedFuture(new WrongTokenException());
+                        throw new CompletionException(new WrongTokenException());
                     } else {
-                        return CompletableFuture.failedFuture(th);
+                        throw new CompletionException(th);
                     }
                 });
     }
