@@ -227,6 +227,10 @@ public class SimpleStopLossStrategy implements Strategy {
     }
 
     @Override
+    public void cleanup() {
+    }
+
+    @Override
     public void consumePlacedLimitOrder(PlacedLimitOrder placedLimitOrder) {
         currentPositionStatus = placedLimitOrder.getOperation() == OperationType.Buy
                 ? CurrentPositionStatus.Exists

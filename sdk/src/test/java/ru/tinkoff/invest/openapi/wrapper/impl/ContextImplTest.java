@@ -723,7 +723,7 @@ class ContextImplTest {
             fail("Future failed");
         }
 
-        final var expectedMessage = "{\"event\":\"candle:subscribe\",\"figi\":\"figi\",\"interval\":\"5min\"}";
+        final var expectedMessage = "{\"event\":\"candle:subscribe\",\"requestId\":null,\"figi\":\"figi\",\"interval\":\"5min\"}";
         verify(webSocket).sendText(expectedMessage, true);
     }
 
@@ -742,7 +742,7 @@ class ContextImplTest {
             fail("Future failed");
         }
 
-        final var expectedMessage = "{\"event\":\"candle:unsubscribe\",\"figi\":\"figi\",\"interval\":\"5min\"}";
+        final var expectedMessage = "{\"event\":\"candle:unsubscribe\",\"requestId\":null,\"figi\":\"figi\",\"interval\":\"5min\"}";
         verify(webSocket).sendText(expectedMessage, true);
     }
 
@@ -761,7 +761,7 @@ class ContextImplTest {
             fail("Future failed");
         }
 
-        final var expectedMessage = "{\"event\":\"orderbook:subscribe\",\"figi\":\"figi\",\"depth\":3}";
+        final var expectedMessage = "{\"event\":\"orderbook:subscribe\",\"requestId\":null,\"figi\":\"figi\",\"depth\":3}";
         verify(webSocket).sendText(expectedMessage, true);
     }
 
@@ -780,7 +780,7 @@ class ContextImplTest {
             fail("Future failed");
         }
 
-        final var expectedMessage = "{\"event\":\"orderbook:unsubscribe\",\"figi\":\"figi\",\"depth\":3}";
+        final var expectedMessage = "{\"event\":\"orderbook:unsubscribe\",\"requestId\":null,\"figi\":\"figi\",\"depth\":3}";
         verify(webSocket).sendText(expectedMessage, true);
     }
 
@@ -798,7 +798,7 @@ class ContextImplTest {
             fail("Future failed");
         }
 
-        final var expectedMessage = "{\"event\":\"instrument_info:subscribe\",\"figi\":\"figi\"}";
+        final var expectedMessage = "{\"event\":\"instrument_info:subscribe\",\"requestId\":null,\"figi\":\"figi\"}";
         verify(webSocket).sendText(expectedMessage, true);
     }
 
@@ -816,7 +816,7 @@ class ContextImplTest {
             fail("Future failed");
         }
 
-        final var expectedMessage = "{\"event\":\"instrument_info:unsubscribe\",\"figi\":\"figi\"}";
+        final var expectedMessage = "{\"event\":\"instrument_info:unsubscribe\",\"requestId\":null,\"figi\":\"figi\"}";
         verify(webSocket).sendText(expectedMessage, true);
     }
 

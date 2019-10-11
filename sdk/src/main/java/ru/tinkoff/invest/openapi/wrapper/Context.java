@@ -110,4 +110,9 @@ public interface Context extends Flow.Publisher<StreamingEvent> {
      */
     CompletableFuture<OperationsList> getOperations(LocalDate from, OperationInterval interval, String figi);
 
+    /**
+     * Убирает рассылку для всех подписанных по {@link Flow.Publisher#subscribe}.
+     */
+    void unsubscribe();
+
 }

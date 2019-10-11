@@ -35,6 +35,13 @@ public class StrategyExecutor {
     }
 
     /**
+     * Возвращает признак того, запущена ли стратегия.
+     */
+    public boolean isRunning() {
+        return hasRun;
+    }
+
+    /**
      * Запускает процесс торговли. Если запуск уже был произведён, то ничего не происходит.
      *
      * Вызывает {@link Strategy#init}.
@@ -43,6 +50,7 @@ public class StrategyExecutor {
         if (hasRun) return;
 
         strategy.init();
+        currentState = new TradingState(null, null ,null);
 
         context.subscribe(new ContextSubscriber());
 
@@ -55,7 +63,28 @@ public class StrategyExecutor {
                 StreamingRequest.subscribeCandle(figi, strategy.getCandleInterval()));
 
         hasRun = true;
-        currentState = new TradingState(null, null ,null);
+    }
+
+    /**
+     * Останавливает процесс торговли. Если остановка уже была произведена, то ничего не происходит.
+     */
+    public void stop() {
+        if (!hasRun) return;
+
+        final var figi = strategy.getInstrument().getFigi();
+        context.sendStreamingRequest(
+                StreamingRequest.unsubscribeInstrumentInfo(figi));
+        context.sendStreamingRequest(
+                StreamingRequest.unsubscribeCandle(figi, strategy.getCandleInterval()));
+        context.sendStreamingRequest(
+                StreamingRequest.unsubscribeOrderbook(figi, strategy.getOrderbookDepth()));
+
+        context.unsubscribe();
+
+        currentState = null;
+        strategy.cleanup();
+
+        hasRun = false;
     }
 
     private class ContextSubscriber implements Flow.Subscriber<StreamingEvent> {
