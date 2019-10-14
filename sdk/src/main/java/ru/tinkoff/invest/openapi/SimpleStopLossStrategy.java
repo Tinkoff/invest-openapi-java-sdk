@@ -4,12 +4,14 @@ import ru.tinkoff.invest.openapi.data.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.concurrent.Flow;
+import java.util.concurrent.SubmissionPublisher;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class SimpleStopLossStrategy implements Strategy {
 
     private enum LastOrderResult { Profit, Loss, None }
-    private enum CurrentPositionStatus { Exists, Processing, None }
 
     private final Instrument operatingInstrument;
     private final BigDecimal maxOperationValue;
@@ -20,13 +22,14 @@ public class SimpleStopLossStrategy implements Strategy {
     private final BigDecimal profitInterest;
     private final BigDecimal stopLossInterest;
     private final Logger logger;
+    private final SubmissionPublisher<StrategyDecision> streaming;
 
     private PortfolioCurrencies.PortfolioCurrency currencyPosition;
-    private volatile CurrentPositionStatus currentPositionStatus;
     private LastOrderResult lastOrderResult;
     private BigDecimal extremum;
     private BigDecimal initialPrice;
     private boolean canTrade;
+    private TradingState currentState;
 
     public SimpleStopLossStrategy(final PortfolioCurrencies.PortfolioCurrency currencyPosition,
                                   final Instrument operatingInstrument,
@@ -69,9 +72,9 @@ public class SimpleStopLossStrategy implements Strategy {
         this.stopLossInterest = stopLossInterest;
         this.logger = logger;
 
-        this.currentPositionStatus = CurrentPositionStatus.None;
         this.lastOrderResult = LastOrderResult.None;
         this.canTrade = false;
+        this.streaming = new SubmissionPublisher<>();
     }
 
     @Override
@@ -90,9 +93,42 @@ public class SimpleStopLossStrategy implements Strategy {
     }
 
     @Override
-    public StrategyDecision reactOnMarketChange(final TradingState tradingState) {
-        final var candle = tradingState.getCandle();
-        final var instrumentInfo = tradingState.getInstrumentInfo();
+    public TradingState getCurrentState() {
+        return this.currentState;
+    }
+
+    @Override
+    public void subscribe(Flow.Subscriber<? super StrategyDecision> subscriber) {
+        streaming.subscribe(subscriber);
+    }
+
+    @Override
+    public void onSubscribe(Flow.Subscription subscription) {
+        subscription.request(Long.MAX_VALUE);
+    }
+
+    @Override
+    public void onNext(TradingState item) {
+        this.streaming.submit(reactOnMarketChange(item));
+    }
+
+    @Override
+    public void onError(Throwable throwable) {
+        logger.log(
+                Level.SEVERE,
+                "Что-то пошло не так в подписке на стрим TradingState.",
+                throwable
+        );
+    }
+
+    @Override
+    public void onComplete() {
+    }
+
+    private StrategyDecision reactOnMarketChange(final TradingState tradingState) {
+        currentState = tradingState;
+        final var candle = currentState.getCandle();
+        final var instrumentInfo = currentState.getInstrumentInfo();
 
         checkCanTrade(instrumentInfo);
 
@@ -103,7 +139,12 @@ public class SimpleStopLossStrategy implements Strategy {
         final var price = candle.getHighestPrice().add(candle.getLowestPrice())
                 .divide(BigDecimal.valueOf(2), RoundingMode.HALF_EVEN);
 
-        if (currentPositionStatus == CurrentPositionStatus.None && lastOrderResult == LastOrderResult.None) {
+        if (currentState.getOrderStatus() != TradingState.OrderStatus.None) {
+            logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
+                    initialPrice + ". Экстремум = " + extremum + ". Сейчас есть активная заявка. Ничего не делаем.");
+            return StrategyDecision.pass();
+        } else if (currentState.getPositionStatus() == TradingState.PositionStatus.None &&
+                lastOrderResult == LastOrderResult.None) {
             if (!canTrade) {
                 logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
                         initialPrice + ". Экстремум = " + extremum + ". Сейчас нет позиции и до этого не было. " +
@@ -115,7 +156,8 @@ public class SimpleStopLossStrategy implements Strategy {
                     ". Экстремум = " + extremum + ". Сейчас нет позиции и до этого не было. Можно торговать. " +
                     "Размещаем лимитную заявку на покупку.");
             return placeLimitOrder(price, OperationType.Buy);
-        } else if (currentPositionStatus == CurrentPositionStatus.None) {
+        } else if (currentState.getPositionStatus() == TradingState.PositionStatus.None &&
+                lastOrderResult != LastOrderResult.None) {
             if (price.compareTo(extremum) <= 0) {
                 logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
                         initialPrice + ". Экстремум = " + extremum + ". Сейчас нет позиции, но до этого была. " +
@@ -146,7 +188,7 @@ public class SimpleStopLossStrategy implements Strategy {
                             "Ничего не делаем.");
                 }
             }
-        } else if (currentPositionStatus == CurrentPositionStatus.Exists) {
+        } else if (currentState.getPositionStatus() == TradingState.PositionStatus.Exists) {
             if (extremum.compareTo(initialPrice) > 0) {
                 if (price.compareTo(extremum) >= 0) {
                     logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
@@ -224,34 +266,18 @@ public class SimpleStopLossStrategy implements Strategy {
 
     @Override
     public void init() {
+        currentState = new TradingState(
+                null,
+                null ,
+                null,
+                TradingState.PositionStatus.None,
+                TradingState.OrderStatus.None
+        );
     }
 
     @Override
     public void cleanup() {
-    }
-
-    @Override
-    public void consumePlacedLimitOrder(PlacedLimitOrder placedLimitOrder) {
-        currentPositionStatus = placedLimitOrder.getOperation() == OperationType.Buy
-                ? CurrentPositionStatus.Exists
-                : CurrentPositionStatus.None;
-    }
-
-    @Override
-    public void consumeRejectedLimitOrder(LimitOrder limitOrder) {
-        currentPositionStatus = limitOrder.getOperation() == OperationType.Buy
-                ? CurrentPositionStatus.None
-                : CurrentPositionStatus.Exists;
-    }
-
-    @Override
-    public void consumeCanceledOrder(String orderId) {
-
-    }
-
-    @Override
-    public void consumeFailedCancellingOrder(String orderId) {
-
+        this.streaming.close();
     }
 
     private void checkCanTrade(final StreamingEvent.InstrumentInfo instrumentInfo) {
@@ -264,7 +290,6 @@ public class SimpleStopLossStrategy implements Strategy {
     }
 
     private StrategyDecision placeLimitOrder(final BigDecimal price, final OperationType operationType) {
-        currentPositionStatus = CurrentPositionStatus.Processing;
         initialPrice = price;
         extremum = price;
         currencyPosition = new PortfolioCurrencies.PortfolioCurrency(

@@ -2,11 +2,13 @@ package ru.tinkoff.invest.openapi;
 
 import ru.tinkoff.invest.openapi.data.*;
 
+import java.util.concurrent.Flow;
+
 /**
  * Интерфейс стратегии торгового робота. Стратегия это чёрный ящщик, который на вход принимает исследуемый инструмент
  * и поток биржевых данных, а на выходе подаёт сигналы о размещении или отмене лимитных заявок.
  */
-public interface Strategy {
+public interface Strategy extends Flow.Processor<TradingState, StrategyDecision> {
 
     /**
      * Получение исследуемого инструмента.
@@ -30,34 +32,6 @@ public interface Strategy {
     int getOrderbookDepth();
 
     /**
-     * Обработка размещённой заявки.
-     *
-     * @param placedLimitOrder Размещённая заяка.
-     */
-    void consumePlacedLimitOrder(PlacedLimitOrder placedLimitOrder);
-
-    /**
-     * Обработка неразмещённой заявки.
-     *
-     * @param limitOrder Неразмещённая заявка.
-     */
-    void consumeRejectedLimitOrder(LimitOrder limitOrder);
-
-    /**
-     * Обработка отменённой заявки.
-     *
-     * @param orderId Идентификатор заявки.
-     */
-    void consumeCanceledOrder(String orderId);
-
-    /**
-     * Обработка неотменённой заявки.
-     *
-     * @param orderId Идентификатор заявки.
-     */
-    void consumeFailedCancellingOrder(String orderId);
-
-    /**
      * Выполнение подготовительных действий.
      */
     void init();
@@ -68,11 +42,10 @@ public interface Strategy {
     void cleanup();
 
     /**
-     * Формирование реакции на изменение рыночной ситуации.
+     * Получение текущего состояния торговой ситуации.
      *
-     * @param state Информация о состоянии рынка.
-     * @return Решение по ситуации.
+     * @return Состояние торговой ситуации.
      */
-    StrategyDecision reactOnMarketChange(TradingState state);
+    TradingState getCurrentState();
 
 }
