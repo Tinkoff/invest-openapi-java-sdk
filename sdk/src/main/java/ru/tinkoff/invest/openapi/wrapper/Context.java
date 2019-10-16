@@ -3,6 +3,7 @@ package ru.tinkoff.invest.openapi.wrapper;
 import ru.tinkoff.invest.openapi.data.*;
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -103,12 +104,12 @@ public interface Context extends Flow.Publisher<StreamingEvent> {
     /**
      * Получение списка прошедших операций по заданному инструменту за определённый промежуток времени.
      *
-     * @param from Дата начала промежутка времени.
-     * @param interval Продолжительность промежутка времени.
-     * @param figi Идентификатор инструмента.
+     * @param from Дата/время начала промежутка времени.
+     * @param to Дата/время конца промежутка времени.
+     * @param figi Идентификатор инструмента. Может быть пустым или null.
      * @return Список операций.
      */
-    CompletableFuture<OperationsList> getOperations(LocalDate from, OperationInterval interval, String figi);
+    CompletableFuture<OperationsList> getOperations(OffsetDateTime from, OffsetDateTime to, String figi);
 
     /**
      * Убирает рассылку для всех подписанных по {@link Flow.Publisher#subscribe}.

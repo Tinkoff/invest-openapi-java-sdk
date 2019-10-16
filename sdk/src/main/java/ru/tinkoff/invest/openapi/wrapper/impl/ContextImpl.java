@@ -19,6 +19,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -189,11 +190,12 @@ class ContextImpl implements Context {
     }
 
     @Override
-    public CompletableFuture<OperationsList> getOperations(LocalDate from, OperationInterval interval, String figi) {
-        final var pathWithParam = OPERATIONS_PATH + "?from=" +
+    public CompletableFuture<OperationsList> getOperations(OffsetDateTime from, OffsetDateTime to, String figi) {
+        var pathWithParam = OPERATIONS_PATH + "?from=" +
                 URLEncoder.encode(from.toString(), StandardCharsets.UTF_8)
-                + "&interval=" + URLEncoder.encode(interval.toParamString(), StandardCharsets.UTF_8)
-                + "&figi=" + URLEncoder.encode(figi, StandardCharsets.UTF_8);
+                + "&to=" + URLEncoder.encode(to.toString(), StandardCharsets.UTF_8);
+        if (figi != null && !figi.isBlank())
+            pathWithParam += "&figi=" + URLEncoder.encode(figi, StandardCharsets.UTF_8);
         return sendGetRequest(pathWithParam, new TypeReference<OpenApiResponse<OperationsList>>(){})
                 .thenApply(oar -> oar.payload);
     }

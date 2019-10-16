@@ -16,6 +16,8 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.*;
 
@@ -92,6 +94,16 @@ public class App {
             } else {
                 portfolioCurrency = portfolioCurrencyOpt.get();
             }
+
+            logger.fine("Получаем операции за сентябрь... ");
+            final var first09 = OffsetDateTime.of(2019, 9, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+            final var first10 = first09.plusMonths(1);
+            final var operations = context.getOperations(first09, first10, null).join();
+            logger.fine("Операций за сентябрь " + operations.getOperations().size() + " штук");
+
+            logger.fine("Получаем балансы по инструментам... ");
+            final var portfolio = context.getPortfolio().join();
+            logger.fine("Инструментов в портфеле " + portfolio.getPositions().size() + " штук");
 
             logger.fine("Запускаем робота... ");
             final CompletableFuture<Void> result = new CompletableFuture<>();

@@ -19,6 +19,8 @@ public class Portfolio {
         private final BigDecimal blocked;
         private final MoneyAmount expectedYield;
         private final int lots;
+        private final MoneyAmount averagePositionPrice;
+        private final MoneyAmount averagePositionPriceNoNkd;
 
         @JsonCreator
         public PortfolioPosition(@JsonProperty("positions")
@@ -36,7 +38,11 @@ public class Portfolio {
                                  @JsonProperty("expectedYield")
                                  MoneyAmount expectedYield,
                                  @JsonProperty("lots")
-                                 int lots) {
+                                 int lots,
+                                 @JsonProperty("averagePositionPrice")
+                                 MoneyAmount averagePositionPrice,
+                                 @JsonProperty("averagePositionPriceNoNkd")
+                                 MoneyAmount averagePositionPriceNoNkd) {
             this.figi = figi;
             this.ticker = ticker;
             this.isin = isin;
@@ -45,6 +51,8 @@ public class Portfolio {
             this.blocked = blocked;
             this.expectedYield = expectedYield;
             this.lots = lots;
+            this.averagePositionPrice = averagePositionPrice;
+            this.averagePositionPriceNoNkd = averagePositionPriceNoNkd;
         }
 
         public String getFigi() {
@@ -77,6 +85,14 @@ public class Portfolio {
 
         public int getLots() {
             return lots;
+        }
+
+        public MoneyAmount getAveragePositionPrice() {
+            return averagePositionPrice;
+        }
+
+        public MoneyAmount getAveragePositionPriceNoNkd() {
+            return averagePositionPriceNoNkd;
         }
     }
 

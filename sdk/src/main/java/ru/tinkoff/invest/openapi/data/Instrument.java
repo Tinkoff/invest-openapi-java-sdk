@@ -12,6 +12,7 @@ public class Instrument {
     private final BigDecimal minPriceIncrement;
     private final int lot;
     private final Currency currency;
+    private final String name;
 
     @JsonCreator
     public Instrument(@JsonProperty("figi")
@@ -25,13 +26,16 @@ public class Instrument {
                       @JsonProperty("lot")
                       int lot,
                       @JsonProperty("currency")
-                      Currency currency) {
+                      Currency currency,
+                      @JsonProperty("name")
+                      String name) {
         this.figi = figi;
         this.ticker = ticker;
         this.isin = isin;
         this.minPriceIncrement = minPriceIncrement;
         this.lot = lot;
         this.currency = currency;
+        this.name = name;
     }
 
     public String getFigi() {
@@ -56,5 +60,9 @@ public class Instrument {
 
     public Currency getCurrency() {
         return currency;
+    }
+
+    public String getName() {
+        return name;
     }
 }
