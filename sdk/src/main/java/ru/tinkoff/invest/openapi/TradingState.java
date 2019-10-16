@@ -6,25 +6,31 @@ import ru.tinkoff.invest.openapi.data.StreamingEvent;
  * Объект представляющий для стратегии информацию о ситуации на рынке.
  */
 public class TradingState {
-    private StreamingEvent.Orderbook orderbook;
-    private StreamingEvent.Candle candle;
-    private StreamingEvent.InstrumentInfo instrumentInfo;
+    private final StreamingEvent.Orderbook orderbook;
+    private final StreamingEvent.Candle candle;
+    private final StreamingEvent.InstrumentInfo instrumentInfo;
+    private final PositionStatus positionStatus;
+    private final OrderStatus orderStatus;
 
     /**
      * Создаёт новое состояние из "стакана", "свечи" и информации по рассматриваемому инструменту.
      *
-     * Все входные данные допускают содержать null.
-     *
-     * @param orderbook Состояние "стакана" (книги заявок).
-     * @param candle Ценовая "свеча".
-     * @param instrumentInfo Информация по инструменту.
+     * @param orderbook Состояние "стакана" (книги заявок). Может быть null.
+     * @param candle Ценовая "свеча". Может быть null.
+     * @param instrumentInfo Информация по инструменту. Может быть null.
+     * @param positionStatus Статус позиции по инструменту.
+     * @param orderStatus Статус заявки по инструменту.
      */
-    public TradingState(StreamingEvent.Orderbook orderbook,
-                        StreamingEvent.Candle candle,
-                        StreamingEvent.InstrumentInfo instrumentInfo) {
+    public TradingState(final StreamingEvent.Orderbook orderbook,
+                        final StreamingEvent.Candle candle,
+                        final StreamingEvent.InstrumentInfo instrumentInfo,
+                        final PositionStatus positionStatus,
+                        final OrderStatus orderStatus) {
         this.orderbook = orderbook;
         this.candle = candle;
         this.instrumentInfo = instrumentInfo;
+        this.positionStatus = positionStatus;
+        this.orderStatus = orderStatus;
     }
 
     /**
@@ -52,29 +58,39 @@ public class TradingState {
     }
 
     /**
-     * Установка нового значения "стакана".
-     *
-     * @param orderbook Новое значение "стакана".
+     * Получение статуса позиции.
      */
-    public void setOrderbook(StreamingEvent.Orderbook orderbook) {
-        this.orderbook = orderbook;
+    public PositionStatus getPositionStatus() {
+        return positionStatus;
     }
 
     /**
-     * Установка нового значения "свечи".
-     *
-     * @param candle Новое значение "стакана".
+     * Получение статуса заявки.
      */
-    public void setCandle(StreamingEvent.Candle candle) {
-        this.candle = candle;
+    public OrderStatus getOrderStatus() {
+        return orderStatus;
     }
 
-    /**
-     * Установка нового значения информации по инструменту.
-     *
-     * @param instrumentInfo Новое значение информации по инструменту.
-     */
-    public void setInstrumentInfo(StreamingEvent.InstrumentInfo instrumentInfo) {
-        this.instrumentInfo = instrumentInfo;
+    public TradingState copy(final StreamingEvent.Orderbook orderbook) {
+        return new TradingState(orderbook, this.candle, this.instrumentInfo, this.positionStatus, this.orderStatus);
     }
+
+    public TradingState copy(final StreamingEvent.Candle candle) {
+        return new TradingState(this.orderbook, candle, this.instrumentInfo, this.positionStatus, this.orderStatus);
+    }
+
+    public TradingState copy(final StreamingEvent.InstrumentInfo instrumentInfo) {
+        return new TradingState(this.orderbook, this.candle, instrumentInfo, this.positionStatus, this.orderStatus);
+    }
+
+    public TradingState copy(final PositionStatus positionStatus) {
+        return new TradingState(this.orderbook, this.candle, this.instrumentInfo, positionStatus, this.orderStatus);
+    }
+
+    public TradingState copy(OrderStatus orderStatus) {
+        return new TradingState(this.orderbook, this.candle, this.instrumentInfo, this.positionStatus, orderStatus);
+    }
+
+    public enum PositionStatus { Exists, None }
+    public enum OrderStatus { WaitingBuy, WaitingSell, None }
 }

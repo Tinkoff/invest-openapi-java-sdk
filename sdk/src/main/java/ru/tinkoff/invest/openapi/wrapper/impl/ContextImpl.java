@@ -47,7 +47,7 @@ class ContextImpl implements Context {
             new TypeReference<>(){};
 
     private final Connection connection;
-    private final SubmissionPublisher<StreamingEvent> streaming;
+    private SubmissionPublisher<StreamingEvent> streaming;
     private final Logger logger;
 
     protected static class EmptyPayload {
@@ -182,6 +182,12 @@ class ContextImpl implements Context {
     @Override
     public void subscribe(Flow.Subscriber<? super StreamingEvent> subscriber) {
         this.streaming.subscribe(subscriber);
+    }
+
+    @Override
+    public void unsubscribe() {
+        this.streaming.close();
+        this.streaming = new SubmissionPublisher<>();
     }
 
     protected <In> CompletableFuture<In> sendGetRequest(String path, TypeReference<In> tr) {
