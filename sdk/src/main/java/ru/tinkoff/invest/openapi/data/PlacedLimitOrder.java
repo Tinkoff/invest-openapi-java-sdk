@@ -11,6 +11,7 @@ public class PlacedLimitOrder {
     final private int requestedLots;
     final private int executedLots;
     final private MoneyAmount commission;
+    final private String figi;
 
     @JsonCreator
     public PlacedLimitOrder(@JsonProperty("orderId")
@@ -26,7 +27,9 @@ public class PlacedLimitOrder {
                             @JsonProperty("executedLots")
                             int executedLots,
                             @JsonProperty("commission")
-                            MoneyAmount commission) {
+                            MoneyAmount commission,
+                            @JsonProperty("figi")
+                            String figi) {
         this.id = id;
         this.operation = operation;
         this.status = status;
@@ -34,6 +37,7 @@ public class PlacedLimitOrder {
         this.requestedLots = requestedLots;
         this.executedLots = executedLots;
         this.commission = commission;
+        this.figi = figi;
     }
 
     public String getId() {
@@ -62,5 +66,9 @@ public class PlacedLimitOrder {
 
     public MoneyAmount getCommission() {
         return commission;
+    }
+
+    public String getFigi() {
+        return figi;
     }
 }

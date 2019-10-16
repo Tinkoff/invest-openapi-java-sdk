@@ -117,7 +117,8 @@ class ContextImplTest {
                 "",
                 someLimitOrder.getLots(),
                 someLimitOrder.getLots(),
-                new MoneyAmount(Currency.RUB, BigDecimal.ZERO)
+                new MoneyAmount(Currency.RUB, BigDecimal.ZERO),
+                "figi"
         );
 
         final HttpResponse<String> response = mock(HttpStringResponse.class);
@@ -151,6 +152,7 @@ class ContextImplTest {
         assertEquals(result.getExecutedLots(), expectedOrder.getExecutedLots());
         assertEquals(result.getCommission().getCurrency(), expectedOrder.getCommission().getCurrency());
         assertEquals(result.getCommission().getValue(), expectedOrder.getCommission().getValue());
+        assertEquals(result.getFigi(), expectedOrder.getFigi());
 
         final var requestBody = "{\"lots\":10,\"operation\":\"Buy\",\"price\":1000}";
         final var request = HttpRequest.newBuilder()

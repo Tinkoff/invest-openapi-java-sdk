@@ -91,7 +91,19 @@ class ContextImpl implements Context {
         final var pathWithParam = ORDERS_LIMITORDER_PATH + "?figi="
                 + URLEncoder.encode(limitOrder.getFigi(), StandardCharsets.UTF_8);
         return sendPostRequest(pathWithParam, payload, new TypeReference<OpenApiResponse<PlacedLimitOrder>>(){})
-                .thenApply(oar -> oar.payload);
+                .thenApply(oar -> {
+                    final var plo = oar.payload;
+                    return new PlacedLimitOrder(
+                            plo.getId(),
+                            plo.getOperation(),
+                            plo.getStatus(),
+                            plo.getRejectReason(),
+                            plo.getRequestedLots(),
+                            plo.getExecutedLots(),
+                            plo.getCommission(),
+                            limitOrder.getFigi()
+                    );
+                });
     }
 
     @Override
