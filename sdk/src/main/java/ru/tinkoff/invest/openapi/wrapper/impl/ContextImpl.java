@@ -2,6 +2,7 @@ package ru.tinkoff.invest.openapi.wrapper.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -49,6 +50,7 @@ class ContextImpl implements Context {
     private final Connection connection;
     private SubmissionPublisher<StreamingEvent> streaming;
     private final Logger logger;
+    private final ObjectMapper mapper;
 
     protected static class EmptyPayload {
     }
@@ -70,6 +72,11 @@ class ContextImpl implements Context {
         this.streaming = new SubmissionPublisher<>();
         this.connection.getListener().subscribeOnMessage(new OnMessageSubscriber());
         this.logger = logger;
+        this.mapper = new ObjectMapper();
+
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        mapper.registerModule(new JavaTimeModule());
+        mapper.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
     }
 
     @Override
@@ -225,9 +232,7 @@ class ContextImpl implements Context {
     }
 
     private <D> CompletableFuture<D> handleResponse(HttpResponse<String> response, TypeReference<D> tr) {
-        final var mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        mapper.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
+
         try {
             switch (response.statusCode()) {
                 case 200:
