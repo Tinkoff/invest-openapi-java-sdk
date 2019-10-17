@@ -79,6 +79,20 @@ public interface Context extends Flow.Publisher<StreamingEvent> {
     CompletableFuture<InstrumentsList> getMarketCurrencies();
 
     /**
+     * Получение исторических данных по свечам.
+     *
+     * @param figi Идентификатор инструмента.
+     * @param from Начальный момент рассматриваемого отрезка временного интервала.
+     * @param to Конечный момент рассматриваемого отрезка временного интервала.
+     * @param interval Разрешающий интервал свечей.
+     * @return Данные по свечам.
+     */
+    CompletableFuture<HistoricalCandles> getMarketCandles(String figi,
+                                                          OffsetDateTime from,
+                                                          OffsetDateTime to,
+                                                          CandleInterval interval);
+
+    /**
      * Поиск инструментов по тикеру.
      *
      * @param ticker Искомый тикер.

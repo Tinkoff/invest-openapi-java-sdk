@@ -39,6 +39,7 @@ class ContextImpl implements Context {
     private static final String MARKET_BONDS_PATH = "/market/bonds";
     private static final String MARKET_ETFS_PATH = "/market/etfs";
     private static final String MARKET_CURRENCIES_PATH = "/market/currencies";
+    private static final String MARKET_CANDLES_PATH = "/market/candles";
     private static final String MARKET_SEARCH_BYTICKER_PATH = "/market/search/by-ticker";
     private static final String MARKET_SEARCH_BYFIGI_PATH = "/market/search/by-figi";
     private static final String OPERATIONS_PATH = "/operations";
@@ -149,6 +150,27 @@ class ContextImpl implements Context {
     public CompletableFuture<InstrumentsList> getMarketCurrencies() {
         return sendGetRequest(MARKET_CURRENCIES_PATH, new TypeReference<OpenApiResponse<InstrumentsList>>(){})
                 .thenApply(oar -> oar.payload);
+    }
+
+    @Override
+    public CompletableFuture<HistoricalCandles> getMarketCandles(String figi,
+                                                                 OffsetDateTime from,
+                                                                 OffsetDateTime to,
+                                                                 CandleInterval interval) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            var renderedInterval = objectMapper.writeValueAsString(interval);
+            renderedInterval = renderedInterval.substring(1, renderedInterval.length()-1);
+
+            final var pathWithParam = MARKET_CANDLES_PATH + "?figi=" + figi + "&from="
+                    + URLEncoder.encode(from.toString(), StandardCharsets.UTF_8)
+                    + "&to=" + URLEncoder.encode(to.toString(), StandardCharsets.UTF_8)
+                    + "&interval=" + renderedInterval;
+            return sendGetRequest(pathWithParam, new TypeReference<OpenApiResponse<HistoricalCandles>>(){})
+                    .thenApply(oar -> oar.payload);
+        } catch (JsonProcessingException ex) {
+            return CompletableFuture.failedFuture(ex);
+        }
     }
 
     @Override

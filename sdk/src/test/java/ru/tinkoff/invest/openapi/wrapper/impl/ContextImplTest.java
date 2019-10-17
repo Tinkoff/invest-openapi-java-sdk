@@ -506,6 +506,67 @@ class ContextImplTest {
     }
 
     @Test
+    void gettingMarketCandles() throws ExecutionException, InterruptedException {
+        final var someCandle = new Candle(
+                "figi",
+                CandleInterval.DAY,
+                BigDecimal.valueOf(1),
+                BigDecimal.valueOf(2),
+                BigDecimal.valueOf(3),
+                BigDecimal.valueOf(4),
+                BigDecimal.valueOf(5),
+                OffsetDateTime.of(2019, 10, 17, 0, 0, 0, 0, ZoneOffset.UTC)
+        );
+        final var expectedCandles = new HistoricalCandles("figi",CandleInterval.DAY, List.of(someCandle));
+
+        final HttpResponse<String> response = mock(HttpStringResponse.class);
+        final String json = "{" +
+                "\"trackingId\":\"trackingId\"," +
+                "\"status\":\"Ok\"," +
+                "\"payload\": {" +
+                "\"figi\":\"figi\"," +
+                "\"interval\":\"day\"," +
+                "\"candles\":[{" +
+                "\"figi\":\"figi\"," +
+                "\"interval\":\"day\"," +
+                "\"o\":1," +
+                "\"c\":2," +
+                "\"h\":3," +
+                "\"l\":4," +
+                "\"v\":5," +
+                "\"time\":\"2019-10-17T00:00:00.000000+00:00\"" +
+                "}]}" +
+                "}";
+        when(response.body()).thenReturn(json);
+        when(response.statusCode()).thenReturn(200);
+        final var from = OffsetDateTime.of(2019, 10, 17, 0, 0, 0, 0, ZoneOffset.UTC);
+        final var to = OffsetDateTime.of(2019, 10, 18, 0, 0, 0, 0, ZoneOffset.UTC);
+
+        when(httpClient.<String>sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(response));
+
+        final var actualResponse = context.getMarketCandles("figi", from, to, CandleInterval.DAY).get();
+        assertEquals(actualResponse.getFigi(), expectedCandles.getFigi());
+        assertEquals(actualResponse.getInterval(), expectedCandles.getInterval());
+        assertEquals(actualResponse.getCandles().size(), expectedCandles.getCandles().size());
+        final var currency = actualResponse.getCandles().get(0);
+        assertEquals(currency.getFigi(), someCandle.getFigi());
+        assertEquals(currency.getInterval(), someCandle.getInterval());
+        assertEquals(currency.getO(), someCandle.getO());
+        assertEquals(currency.getC(), someCandle.getC());
+        assertEquals(currency.getH(), someCandle.getH());
+        assertEquals(currency.getL(), someCandle.getL());
+        assertEquals(currency.getV(), someCandle.getV());
+        assertEquals(currency.getTime(), someCandle.getTime());
+
+        final var request = HttpRequest.newBuilder()
+                .uri(URI.create(host + "/market/candles?figi=figi&from=" + URLEncoder.encode(from.toString(), StandardCharsets.UTF_8) + "&to=" + URLEncoder.encode(to.toString(), StandardCharsets.UTF_8) + "&interval=day"))
+                .header("Authorization", token)
+                .GET()
+                .build();
+        verify(httpClient).sendAsync(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    @Test
     void searchingMarketInstrumentsByTicker() throws ExecutionException, InterruptedException {
         final var someInstrument = new Instrument(
                 "figi",
