@@ -3,14 +3,51 @@ package ru.tinkoff.invest.openapi.data;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * Модель размещённой биржевой заявки.
+ */
 public class PlacedLimitOrder {
+
+    /**
+     * Идентификатор заявки.
+     */
     final private String id;
+
+    /**
+     * Тип операции.
+     */
     final private OperationType operation;
-    final private String status;
+
+    /**
+     * Текущий статус.
+     */
+    final private OrderStatus status;
+
+    /**
+     * Причина отказа в размещении.
+     * Может быть null.
+     */
     final private String rejectReason;
+
+    /**
+     * Желаемое количество лотов.
+     */
     final private int requestedLots;
+
+    /**
+     * Реально исполненное количество лотов.
+     */
     final private int executedLots;
+
+    /**
+     * Размер коммиссии.
+     *
+     */
     final private MoneyAmount commission;
+
+    /**
+     * Идентификатор инструмента.
+     */
     final private String figi;
 
     @JsonCreator
@@ -19,7 +56,7 @@ public class PlacedLimitOrder {
                             @JsonProperty("operation")
                             OperationType operation,
                             @JsonProperty("status")
-                            String status,
+                            OrderStatus status,
                             @JsonProperty("rejectReason")
                             String rejectReason,
                             @JsonProperty("requestedLots")
@@ -48,7 +85,7 @@ public class PlacedLimitOrder {
         return operation;
     }
 
-    public String getStatus() {
+    public OrderStatus getStatus() {
         return status;
     }
 

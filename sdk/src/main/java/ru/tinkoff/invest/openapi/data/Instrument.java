@@ -5,13 +5,44 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.math.BigDecimal;
 
+/**
+ * Модель биржевого инструмента.
+ */
 public class Instrument {
+
+    /**
+     * Идентификатор инструмента.
+     */
     private final String figi;
+
+    /**
+     * Краткий биржевой идентификатор ("тикер").
+     */
     private final String ticker;
+
+    /**
+     * Международный идентификационный код ценной бумаги.
+     */
     private final String isin;
+
+    /**
+     * Минимальный шаг цены.
+     */
     private final BigDecimal minPriceIncrement;
+
+    /**
+     * Размер лота.
+     */
     private final int lot;
+
+    /**
+     * Валюта цены инструмента.
+     */
     private final Currency currency;
+
+    /**
+     * Название компании-эмитента
+     */
     private final String name;
 
     @JsonCreator

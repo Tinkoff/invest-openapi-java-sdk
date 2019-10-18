@@ -113,7 +113,7 @@ class ContextImplTest {
         final var expectedOrder = new PlacedLimitOrder(
                 "id",
                 someLimitOrder.getOperation(),
-                "status",
+                OrderStatus.Fill,
                 "",
                 someLimitOrder.getLots(),
                 someLimitOrder.getLots(),
@@ -128,7 +128,7 @@ class ContextImplTest {
                 "\"payload\": {" +
                     "\"orderId\": \"id\"," +
                     "\"operation\": \"Buy\"," +
-                    "\"status\": \"status\"," +
+                    "\"status\": \"Fill\"," +
                     "\"rejectReason\": \"\"," +
                     "\"requestedLots\": 10," +
                     "\"executedLots\": 10," +
@@ -768,7 +768,7 @@ class ContextImplTest {
                 List.of(
                         new OperationTrade(
                                 "tradeId",
-                                ZonedDateTime.of(2019, 8, 30, 14, 22, 21, 66000000, ZoneId.of("UTC")),
+                                OffsetDateTime.of(2019, 8, 30, 14, 22, 21, 66000000, ZoneOffset.UTC),
                                 BigDecimal.TEN,
                                 1
                         )
@@ -781,7 +781,7 @@ class ContextImplTest {
                 "figi",
                 InstrumentType.Stock,
                 true,
-                ZonedDateTime.of(2019, 8, 19, 15, 38, 33, 131642000, ZoneId.of("UTC")),
+                OffsetDateTime.of(2019, 8, 19, 15, 38, 33, 131642000, ZoneOffset.UTC),
                 ExtendedOperationType.Buy
         );
         final var expectedOperations = List.of(someOperation);

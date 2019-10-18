@@ -6,16 +6,59 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * Модель биржевого "стакана".
+ */
 public class Orderbook {
+
+    /**
+     * Глубина стакана.
+     */
     private final int depth;
+
+    /**
+     * Список выставленных заявок на продажу.
+     */
     private final List<OrderbookItem> bids;
+
+    /**
+     * Список выставленных заявок на покупку.
+     */
     private final List<OrderbookItem> asks;
+
+    /**
+     * Идентификатор инструмента.
+     */
     private final String figi;
+
+    /**
+     * Текущий торговый статус инструмента.
+     */
     private final TradeStatus tradeStatus;
+
+    /**
+     * Минимальный шаг цены по инструменту.
+     */
     private final BigDecimal minPriceIncrement;
+
+    /**
+     * Цена последней совершённой сделки.
+     */
     private final BigDecimal lastPrice;
+
+    /**
+     * Цена закрытия.
+     */
     private final BigDecimal closePrice;
+
+    /**
+     * Верхний предел цены.
+     */
     private final BigDecimal limitUp;
+
+    /**
+     * Нижний предел цены.
+     */
     private final BigDecimal limitDown;
 
     @JsonCreator
@@ -115,8 +158,19 @@ public class Orderbook {
         return true;
     }
 
+    /**
+     * Модель элемента стакана.
+     */
     public static class OrderbookItem {
+
+        /**
+         * Цена предложения.
+         */
         private final BigDecimal price;
+
+        /**
+         * Количество предложений по цене.
+         */
         private final BigDecimal quantity;
 
         @JsonCreator
@@ -147,6 +201,9 @@ public class Orderbook {
         }
     }
 
+    /**
+     * Возможные торговые статусы.
+     */
     public enum TradeStatus {
         @JsonProperty("NormalTrading")
         NormalTrading,

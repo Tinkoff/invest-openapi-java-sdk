@@ -5,14 +5,49 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.math.BigDecimal;
 
+/**
+ * Модель биржевой заявки.
+ */
 public class Order {
+
+    /**
+     * Идентификатор заявки.
+     */
     final private String id;
+
+    /**
+     * Идентификатор инструмента.
+     */
     final private String figi;
+
+    /**
+     * Тип операции.
+     */
     final private OperationType operation;
+
+    /**
+     * Текущий статус.
+     */
     final private OrderStatus status;
+
+    /**
+     * Запрашиваемое количество лотов.
+     */
     final private int requestedLots;
+
+    /**
+     * Фактически исполненное количество лотов.
+     */
     final private int executedLots;
+
+    /**
+     * Тип заявки.
+     */
     final private OrderType type;
+
+    /**
+     * Желаемая цена.
+     */
     final private BigDecimal price;
 
     @JsonCreator

@@ -4,19 +4,40 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 
+
+/**
+ * Модель сделки в рамках операции.
+ */
 public class OperationTrade {
+
+    /**
+     * Идентификатор сделки.
+     */
     private final String tradeId;
-    private final ZonedDateTime date;
+
+    /**
+     * Дата/время совершения сделки.
+     */
+    private final OffsetDateTime date;
+
+    /**
+     * Цена за единицу.
+     */
     private final BigDecimal price;
+
+    /**
+     * Объём сделки.
+     */
     private final int quantity;
 
     @JsonCreator
     public OperationTrade(@JsonProperty("tradeId")
                           String tradeId,
                           @JsonProperty("date")
-                          ZonedDateTime date,
+                          OffsetDateTime date,
                           @JsonProperty("price")
                           BigDecimal price,
                           @JsonProperty("quantity")
@@ -31,7 +52,7 @@ public class OperationTrade {
         return tradeId;
     }
 
-    public ZonedDateTime getDate() {
+    public OffsetDateTime getDate() {
         return date;
     }
 

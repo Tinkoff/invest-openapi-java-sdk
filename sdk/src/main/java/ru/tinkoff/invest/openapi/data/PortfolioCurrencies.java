@@ -6,13 +6,34 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * Модель валютного портфеля возвращаемая OpenAPI.
+ */
 public class PortfolioCurrencies {
 
+    /**
+     * Список валютных позиций.
+     */
     private final List<PortfolioCurrency> currencies;
 
+    /**
+     * Модель валютной позиции.
+     */
     public static class PortfolioCurrency {
+
+        /**
+         * Валюта.
+         */
         private final Currency currency;
+
+        /**
+         * Объём позиции.
+         */
         private final BigDecimal balance;
+
+        /**
+         * Заблокированный объём.
+         */
         private final BigDecimal blocked;
 
         @JsonCreator

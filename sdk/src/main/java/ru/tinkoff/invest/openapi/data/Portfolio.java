@@ -6,20 +6,69 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * Модель портфеля возвращаемая OpenAPI.
+ */
 public class Portfolio {
 
+    /**
+     * Список позиций.
+     */
     private final List<PortfolioPosition> positions;
 
+    /**
+     * Модель позиции в портфеле.
+     */
     public static class PortfolioPosition {
+
+        /**
+         * Идентификатор инструмента.
+         */
         private final String figi;
+
+        /**
+         * Краткий биржевой идентификатор ("тикер").
+         */
         private final String ticker;
+
+        /**
+         * Международный идентификационный код ценной бумаги.
+         */
         private final String isin;
+
+        /**
+         * Тип инструмента.
+         */
         private final InstrumentType instrumentType;
+
+        /**
+         * Объём позиции.
+         */
         private final BigDecimal balance;
+
+        /**
+         * Заблокированный объём.
+         */
         private final BigDecimal blocked;
+
+        /**
+         * Ожидаемая доходность.
+         */
         private final MoneyAmount expectedYield;
+
+        /**
+         * Количество лотов.
+         */
         private final int lots;
+
+        /**
+         * Средняя цена позиции.
+         */
         private final MoneyAmount averagePositionPrice;
+
+        /**
+         * Средняя цена без учёта НКД.
+         */
         private final MoneyAmount averagePositionPriceNoNkd;
 
         @JsonCreator

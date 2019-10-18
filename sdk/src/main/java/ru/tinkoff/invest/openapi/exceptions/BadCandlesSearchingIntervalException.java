@@ -4,6 +4,9 @@ import ru.tinkoff.invest.openapi.data.CandleInterval;
 
 import java.time.OffsetDateTime;
 
+/**
+ * Исключение возникающее при указании недопустимого отрезка времени для поиска на исторических данных свечей.
+ */
 public class BadCandlesSearchingIntervalException extends Exception {
     public BadCandlesSearchingIntervalException(OffsetDateTime allowedStart,
                                                 OffsetDateTime allowedEnd,
