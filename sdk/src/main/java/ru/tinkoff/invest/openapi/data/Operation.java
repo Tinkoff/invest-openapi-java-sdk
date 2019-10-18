@@ -4,25 +4,78 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.List;
 
 /**
- * Операция с инструментов производимая брокером.
+ * Операция с инструментом производённая брокером.
  */
 public class Operation {
+
+    /**
+     * Идентификатор операции.
+     */
     private final String id;
+
+    /**
+     * Статус операции.
+     */
     private final OperationStatus status;
+
+    /**
+     * Сделки, произведённые в рамках операции.
+     */
     private final List<OperationTrade> trades;
+
+    /**
+     * Размер коммиссии.
+     */
     private final MoneyAmount commission;
+
+    /**
+     * Валюта, в которой производится операция.
+     */
     private final Currency currency;
+
+    /**
+     * Полная сумма операции.
+     */
     private final BigDecimal payment;
+
+    /**
+     * Цена за единицу.
+     */
     private final BigDecimal price;
+
+    /**
+     * Объём операции.
+     */
     private final int quantity;
+
+    /**
+     * Идентификатор инструмента.
+     */
     private final String figi;
+
+    /**
+     * Тип инструмента.
+     */
     private final InstrumentType instrumentType;
+
+    /**
+     * Флаг маржинальной торговли.
+     */
     private final boolean isMarginCall;
-    private final ZonedDateTime date;
+
+    /**
+     * Дата/время исполнения операции.
+     */
+    private final OffsetDateTime date;
+
+    /**
+     * Тип операции.
+     */
     private final ExtendedOperationType operationType;
 
     @JsonCreator
@@ -49,7 +102,7 @@ public class Operation {
                      @JsonProperty("isMarginCall")
                      boolean isMarginCall,
                      @JsonProperty("date")
-                     ZonedDateTime date,
+                     OffsetDateTime date,
                      @JsonProperty("operationType")
                      ExtendedOperationType operationType) {
         this.id = id;
@@ -152,7 +205,7 @@ public class Operation {
     /**
      * Получение даты/времени исполнения операции.
      */
-    public ZonedDateTime getDate() {
+    public OffsetDateTime getDate() {
         return date;
     }
 

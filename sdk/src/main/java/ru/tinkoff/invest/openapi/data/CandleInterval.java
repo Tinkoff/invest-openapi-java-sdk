@@ -2,6 +2,9 @@ package ru.tinkoff.invest.openapi.data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * Возможные интервалы времени у свечей.
+ */
 public enum CandleInterval {
     @JsonProperty("1min")
     ONE_MIN,

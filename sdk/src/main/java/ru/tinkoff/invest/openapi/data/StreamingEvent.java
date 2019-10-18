@@ -18,17 +18,56 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Общий класс для моделей событий приходящих из streaming.
+ */
 @JsonDeserialize(using = StreamingEvent.StreamingEventDeserializer.class)
 public abstract class StreamingEvent {
+
+    /**
+     * Модель события с изменением свечи.
+     */
     @JsonDeserialize
     public static class Candle extends StreamingEvent {
+
+        /**
+         * Цена открытия.
+         */
         private final BigDecimal openPrice;
+
+        /**
+         * Цена закрытия.
+         */
         private final BigDecimal closingPrice;
+
+        /**
+         * Цена макисмальная цена.
+         */
         private final BigDecimal highestPrice;
+
+        /**
+         * Минимальная цена.
+         */
         private final BigDecimal lowestPrice;
+
+        /**
+         * Объём торгов.
+         */
         private final BigDecimal tradingValue;
+
+        /**
+         * Дата/время формирования свечи.
+         */
         private final ZonedDateTime dateTime;
+
+        /**
+         * Временной интервал свечи.
+         */
         private final CandleInterval interval;
+
+        /**
+         * Идентификатор инструмента.
+         */
         private final String figi;
 
         @JsonCreator
@@ -137,11 +176,30 @@ public abstract class StreamingEvent {
         }
     }
 
+    /**
+     * Модель события с изменением стакана.
+     */
     @JsonDeserialize
     public static class Orderbook extends StreamingEvent {
+
+        /**
+         * Глубина стакана.
+         */
         private final int depth;
+
+        /**
+         * Список размещённых предложений о продаже.
+         */
         private final List<BigDecimal[]> bids;
+
+        /**
+         * Список размещённых предложений о покупке.
+         */
         private final List<BigDecimal[]> asks;
+
+        /**
+         * Идентификатор инструмента.
+         */
         private final String figi;
 
         @JsonCreator
@@ -215,14 +273,48 @@ public abstract class StreamingEvent {
         }
     }
 
+    /**
+     * Модель события с изменением состояния инструмента.
+     */
     @JsonDeserialize
     public static class InstrumentInfo extends StreamingEvent {
+
+        /**
+         * Текущий торговый статус инструмента.
+         */
         private final String tradeStatus;
+
+        /**
+         * Минимальный шаг цены.
+         */
         private final BigDecimal minPriceIncrement;
+
+        /**
+         * Размер лота.
+         */
         private final int lot;
+
+        /**
+         * Накопленный купонный доход (НКД).
+         * Только у бондов не null.
+         */
         private final BigDecimal accruedInterest;
+
+        /**
+         * Верхняя граница заявки.
+         * Не null только для RTS инструментов.
+         */
         private final BigDecimal limitUp;
+
+        /**
+         * Нижняя граница заявки.
+         * Не null только для RTS инструментов.
+         */
         private final BigDecimal limitDown;
+
+        /**
+         * Идентификатор инструмента.
+         */
         private final String figi;
 
         @JsonCreator
@@ -327,9 +419,21 @@ public abstract class StreamingEvent {
         }
     }
 
+    /**
+     * Модель сообщения об ошибке пришедшей из streaming.
+     */
     @JsonDeserialize
     public static class Error extends StreamingEvent {
+
+        /**
+         * Текст ошибки.
+         */
         private final String error;
+
+        /**
+         * Идентификатор подписки.
+         * Может быть null.
+         */
         private final String requestId;
 
         @JsonCreator

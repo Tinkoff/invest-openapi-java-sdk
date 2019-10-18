@@ -5,8 +5,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.math.BigDecimal;
 
+/**
+ * Модель денежных средств.
+ */
 public class MoneyAmount {
+
+    /**
+     * Валюта средств.
+     */
     private final Currency currency;
+
+    /**
+     * Размер средств.
+     */
     private final BigDecimal value;
 
     @JsonCreator
