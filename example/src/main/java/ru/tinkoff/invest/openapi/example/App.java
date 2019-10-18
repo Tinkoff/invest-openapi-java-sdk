@@ -105,6 +105,15 @@ public class App {
             final var portfolio = context.getPortfolio().join();
             logger.fine("Инструментов в портфеле " + portfolio.getPositions().size() + " штук");
 
+            logger.fine("Получаем свечи по инструменту... ");
+            final var candles = context.getMarketCandles(
+                    instrument.getFigi(),
+                    OffsetDateTime.now(),
+                    OffsetDateTime.now().plusMinutes(1),
+                    CandleInterval.HOUR
+            ).join();
+            logger.fine("Свечей у инструмента " + candles.getCandles().size() + " штук");
+
             logger.fine("Запускаем робота... ");
             final CompletableFuture<Void> result = new CompletableFuture<>();
             final var strategy = new SimpleStopLossStrategy(

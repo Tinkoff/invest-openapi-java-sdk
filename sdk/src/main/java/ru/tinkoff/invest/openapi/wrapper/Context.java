@@ -2,7 +2,6 @@ package ru.tinkoff.invest.openapi.wrapper;
 
 import ru.tinkoff.invest.openapi.data.*;
 
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;

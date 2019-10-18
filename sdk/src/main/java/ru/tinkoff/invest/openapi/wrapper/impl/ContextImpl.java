@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import ru.tinkoff.invest.openapi.exceptions.BadCandlesSearchingIntervalException;
 import ru.tinkoff.invest.openapi.wrapper.Connection;
 import ru.tinkoff.invest.openapi.wrapper.Context;
 import ru.tinkoff.invest.openapi.data.*;
@@ -27,6 +28,7 @@ import java.util.concurrent.Flow;
 import java.util.concurrent.SubmissionPublisher;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 class ContextImpl implements Context {
 
@@ -45,6 +47,7 @@ class ContextImpl implements Context {
     private static final String OPERATIONS_PATH = "/operations";
 
     private static final String NOT_FOUND_MESSAGE_CODE = "ACCESS_DENIED";
+    private static final String CANDLE_INTERVAL_ERROR_CODE = "CANDLE_INTERVAL_ERROR";
 
     private static final TypeReference<OpenApiResponse<OpenApiException>> openApiExceptionTypeReference =
             new TypeReference<>(){};
@@ -53,6 +56,7 @@ class ContextImpl implements Context {
     private SubmissionPublisher<StreamingEvent> streaming;
     private final Logger logger;
     private final ObjectMapper mapper;
+    private static final Pattern badCandleErrorExtractor = Pattern.compile("Bad candle interval: from=(\\d+-\\d+-\\d+T\\d+:\\d+:\\d+Z) to=(\\d+-\\d+-\\d+T\\d+:\\d+:\\d+Z) expected");
 
     protected static class EmptyPayload {
     }
@@ -167,7 +171,23 @@ class ContextImpl implements Context {
                     + "&to=" + URLEncoder.encode(to.toString(), StandardCharsets.UTF_8)
                     + "&interval=" + renderedInterval;
             return sendGetRequest(pathWithParam, new TypeReference<OpenApiResponse<HistoricalCandles>>(){})
-                    .thenApply(oar -> oar.payload);
+                    .handle((oar, ex) -> {
+                        if (ex == null) {
+                            return CompletableFuture.completedFuture(oar.payload);
+                        } else {
+                            final var realEx = ex.getCause();
+                            if (realEx instanceof OpenApiException &&
+                                    ((OpenApiException) realEx).getCode().equals(CANDLE_INTERVAL_ERROR_CODE)) {
+                                final var matcher = badCandleErrorExtractor.matcher(realEx.getMessage());
+                                matcher.find();
+                                final var fromExpected = OffsetDateTime.parse(matcher.group(1));
+                                final var toExpected = OffsetDateTime.parse(matcher.group(2));
+                                return CompletableFuture.<HistoricalCandles>failedFuture(new BadCandlesSearchingIntervalException(fromExpected, toExpected, interval));
+                            } else {
+                                return CompletableFuture.<HistoricalCandles>failedFuture(realEx);
+                            }
+                        }
+                    }).thenCompose(x -> x);
         } catch (JsonProcessingException ex) {
             return CompletableFuture.failedFuture(ex);
         }
@@ -190,11 +210,12 @@ class ContextImpl implements Context {
                     if (ex == null) {
                         return CompletableFuture.completedFuture(Optional.of(oar.payload));
                     } else {
-                        if (ex instanceof OpenApiException &&
-                                ((OpenApiException) ex).getCode().equals(NOT_FOUND_MESSAGE_CODE)) {
+                        final var realEx = ex.getCause();
+                        if (realEx instanceof OpenApiException &&
+                                ((OpenApiException) realEx).getCode().equals(NOT_FOUND_MESSAGE_CODE)) {
                             return CompletableFuture.completedFuture(Optional.<Instrument>empty());
                         } else {
-                            return CompletableFuture.<Optional<Instrument>>failedFuture(ex);
+                            return CompletableFuture.<Optional<Instrument>>failedFuture(realEx);
                         }
                     }
                 }).thenCompose(x -> x);
