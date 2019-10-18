@@ -2,7 +2,7 @@ package ru.tinkoff.invest.openapi.wrapper;
 
 import ru.tinkoff.invest.openapi.data.*;
 
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -71,11 +71,32 @@ public interface Context extends Flow.Publisher<StreamingEvent> {
     CompletableFuture<InstrumentsList> getMarketEtfs();
 
     /**
+     * Получение текущего состояния торгового "стакана".
+     *
+     * @return "Стакан".
+     */
+    CompletableFuture<Orderbook> getMarketOrderbook(String figi, int depth);
+
+    /**
      * Получение списка валют, доступных для торговли.
      *
      * @return Список валют.
      */
     CompletableFuture<InstrumentsList> getMarketCurrencies();
+
+    /**
+     * Получение исторических данных по свечам.
+     *
+     * @param figi Идентификатор инструмента.
+     * @param from Начальный момент рассматриваемого отрезка временного интервала.
+     * @param to Конечный момент рассматриваемого отрезка временного интервала.
+     * @param interval Разрешающий интервал свечей.
+     * @return Данные по свечам.
+     */
+    CompletableFuture<HistoricalCandles> getMarketCandles(String figi,
+                                                          OffsetDateTime from,
+                                                          OffsetDateTime to,
+                                                          CandleInterval interval);
 
     /**
      * Поиск инструментов по тикеру.
@@ -103,12 +124,12 @@ public interface Context extends Flow.Publisher<StreamingEvent> {
     /**
      * Получение списка прошедших операций по заданному инструменту за определённый промежуток времени.
      *
-     * @param from Дата начала промежутка времени.
-     * @param interval Продолжительность промежутка времени.
-     * @param figi Идентификатор инструмента.
+     * @param from Дата/время начала промежутка времени.
+     * @param to Дата/время конца промежутка времени.
+     * @param figi Идентификатор инструмента. Может быть пустым или null.
      * @return Список операций.
      */
-    CompletableFuture<OperationsList> getOperations(LocalDate from, OperationInterval interval, String figi);
+    CompletableFuture<OperationsList> getOperations(OffsetDateTime from, OffsetDateTime to, String figi);
 
     /**
      * Убирает рассылку для всех подписанных по {@link Flow.Publisher#subscribe}.

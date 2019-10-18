@@ -45,7 +45,7 @@ public abstract class StreamingEvent {
                       @JsonProperty("time")
                       ZonedDateTime dateTime,
                       @JsonProperty("interval")
-                              CandleInterval interval,
+                      CandleInterval interval,
                       @JsonProperty("figi")
                       String figi) {
             this.openPrice = openPrice;

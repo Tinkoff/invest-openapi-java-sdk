@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import ru.tinkoff.invest.openapi.exceptions.BadCandlesSearchingIntervalException;
 import ru.tinkoff.invest.openapi.wrapper.Connection;
 import ru.tinkoff.invest.openapi.wrapper.Context;
 import ru.tinkoff.invest.openapi.data.*;
@@ -19,6 +20,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -26,6 +28,7 @@ import java.util.concurrent.Flow;
 import java.util.concurrent.SubmissionPublisher;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 class ContextImpl implements Context {
 
@@ -38,11 +41,14 @@ class ContextImpl implements Context {
     private static final String MARKET_BONDS_PATH = "/market/bonds";
     private static final String MARKET_ETFS_PATH = "/market/etfs";
     private static final String MARKET_CURRENCIES_PATH = "/market/currencies";
+    private static final String MARKET_ORDERBOOK_PATH = "/market/orderbook";
+    private static final String MARKET_CANDLES_PATH = "/market/candles";
     private static final String MARKET_SEARCH_BYTICKER_PATH = "/market/search/by-ticker";
     private static final String MARKET_SEARCH_BYFIGI_PATH = "/market/search/by-figi";
     private static final String OPERATIONS_PATH = "/operations";
 
     private static final String NOT_FOUND_MESSAGE_CODE = "ACCESS_DENIED";
+    private static final String CANDLE_INTERVAL_ERROR_CODE = "CANDLE_INTERVAL_ERROR";
 
     private static final TypeReference<OpenApiResponse<OpenApiException>> openApiExceptionTypeReference =
             new TypeReference<>(){};
@@ -51,6 +57,8 @@ class ContextImpl implements Context {
     private SubmissionPublisher<StreamingEvent> streaming;
     private final Logger logger;
     private final ObjectMapper mapper;
+    private static final Pattern badCandleErrorExtractor =
+            Pattern.compile("Bad candle interval: from=(\\d+-\\d+-\\d+T\\d+:\\d+:\\d+Z) to=(\\d+-\\d+-\\d+T\\d+:\\d+:\\d+Z) expected");
 
     protected static class EmptyPayload {
     }
@@ -151,6 +159,64 @@ class ContextImpl implements Context {
     }
 
     @Override
+    public CompletableFuture<Orderbook> getMarketOrderbook(String figi, int depth) {
+        if (depth < 1 || depth > 20) {
+            return CompletableFuture.failedFuture(
+                    new IllegalArgumentException("Глубина стакана должна быть от 1 до 20.")
+            );
+        }
+
+        final var pathWithParam = MARKET_ORDERBOOK_PATH + "?figi=" + figi + "&depth=" + depth;
+        return sendGetRequest(pathWithParam, new TypeReference<OpenApiResponse<Orderbook>>(){})
+                .thenApply(oar -> oar.payload);
+    }
+
+    @Override
+    public CompletableFuture<HistoricalCandles> getMarketCandles(String figi,
+                                                                 OffsetDateTime from,
+                                                                 OffsetDateTime to,
+                                                                 CandleInterval interval) {
+        if (interval == CandleInterval.TWO_HOUR || interval == CandleInterval.FOUR_HOUR) {
+            return CompletableFuture.failedFuture(
+                    new IllegalArgumentException("2-х и 4-х часовые свечные интервалы пока не поддерживаются.")
+            );
+        }
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            var renderedInterval = objectMapper.writeValueAsString(interval);
+            renderedInterval = renderedInterval.substring(1, renderedInterval.length()-1);
+
+            final var pathWithParam = MARKET_CANDLES_PATH + "?figi=" + figi + "&from="
+                    + URLEncoder.encode(from.toString(), StandardCharsets.UTF_8)
+                    + "&to=" + URLEncoder.encode(to.toString(), StandardCharsets.UTF_8)
+                    + "&interval=" + renderedInterval;
+            return sendGetRequest(pathWithParam, new TypeReference<OpenApiResponse<HistoricalCandles>>(){})
+                    .handle((oar, ex) -> {
+                        if (ex == null) {
+                            return CompletableFuture.completedFuture(oar.payload);
+                        } else {
+                            final var realEx = ex.getCause();
+                            if (realEx instanceof OpenApiException &&
+                                    ((OpenApiException) realEx).getCode().equals(CANDLE_INTERVAL_ERROR_CODE)) {
+                                final var matcher = badCandleErrorExtractor.matcher(realEx.getMessage());
+                                matcher.find();
+                                final var fromExpected = OffsetDateTime.parse(matcher.group(1));
+                                final var toExpected = OffsetDateTime.parse(matcher.group(2));
+                                return CompletableFuture.<HistoricalCandles>failedFuture(
+                                        new BadCandlesSearchingIntervalException(fromExpected, toExpected, interval)
+                                );
+                            } else {
+                                return CompletableFuture.<HistoricalCandles>failedFuture(realEx);
+                            }
+                        }
+                    }).thenCompose(x -> x);
+        } catch (JsonProcessingException ex) {
+            return CompletableFuture.failedFuture(ex);
+        }
+    }
+
+    @Override
     public CompletableFuture<InstrumentsList> searchMarketInstrumentsByTicker(String ticker) {
         final var pathWithParam = MARKET_SEARCH_BYTICKER_PATH + "?ticker=" +
                 URLEncoder.encode(ticker, StandardCharsets.UTF_8);
@@ -167,11 +233,12 @@ class ContextImpl implements Context {
                     if (ex == null) {
                         return CompletableFuture.completedFuture(Optional.of(oar.payload));
                     } else {
-                        if (ex instanceof OpenApiException &&
-                                ((OpenApiException) ex).getCode().equals(NOT_FOUND_MESSAGE_CODE)) {
+                        final var realEx = ex.getCause();
+                        if (realEx instanceof OpenApiException &&
+                                ((OpenApiException) realEx).getCode().equals(NOT_FOUND_MESSAGE_CODE)) {
                             return CompletableFuture.completedFuture(Optional.<Instrument>empty());
                         } else {
-                            return CompletableFuture.<Optional<Instrument>>failedFuture(ex);
+                            return CompletableFuture.<Optional<Instrument>>failedFuture(realEx);
                         }
                     }
                 }).thenCompose(x -> x);
@@ -189,11 +256,12 @@ class ContextImpl implements Context {
     }
 
     @Override
-    public CompletableFuture<OperationsList> getOperations(LocalDate from, OperationInterval interval, String figi) {
-        final var pathWithParam = OPERATIONS_PATH + "?from=" +
+    public CompletableFuture<OperationsList> getOperations(OffsetDateTime from, OffsetDateTime to, String figi) {
+        var pathWithParam = OPERATIONS_PATH + "?from=" +
                 URLEncoder.encode(from.toString(), StandardCharsets.UTF_8)
-                + "&interval=" + URLEncoder.encode(interval.toParamString(), StandardCharsets.UTF_8)
-                + "&figi=" + URLEncoder.encode(figi, StandardCharsets.UTF_8);
+                + "&to=" + URLEncoder.encode(to.toString(), StandardCharsets.UTF_8);
+        if (figi != null && !figi.isBlank())
+            pathWithParam += "&figi=" + URLEncoder.encode(figi, StandardCharsets.UTF_8);
         return sendGetRequest(pathWithParam, new TypeReference<OpenApiResponse<OperationsList>>(){})
                 .thenApply(oar -> oar.payload);
     }

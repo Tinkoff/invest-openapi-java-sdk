@@ -13,13 +13,13 @@ import ru.tinkoff.invest.openapi.testkit.TestableListener;
 
 import java.math.BigDecimal;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.WebSocket;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.nio.charset.StandardCharsets;
+import java.time.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.CompletableFuture;
@@ -200,7 +200,9 @@ class ContextImplTest {
                 BigDecimal.valueOf(1000),
                 BigDecimal.valueOf(100),
                 new MoneyAmount(Currency.RUB, BigDecimal.TEN),
-                1
+                1,
+                new MoneyAmount(Currency.RUB, BigDecimal.valueOf(146)),
+                new MoneyAmount(Currency.RUB, BigDecimal.valueOf(123))
         );
         final var expectedPortfolio = new Portfolio(List.of(somePortfolioPosition));
 
@@ -216,7 +218,9 @@ class ContextImplTest {
                 "\"balance\":1000," +
                 "\"blocked\":100," +
                 "\"expectedYield\":{\"currency\":\"RUB\",\"value\":10}," +
-                "\"lots\":1" +
+                "\"lots\":1," +
+                "\"averagePositionPrice\":{\"currency\":\"RUB\",\"value\":146}," +
+                "\"averagePositionPriceNoNkd\":{\"currency\":\"RUB\",\"value\":123}" +
                 "}]}" +
                 "}";
         when(response.body()).thenReturn(json);
@@ -233,9 +237,10 @@ class ContextImplTest {
         assertEquals(position.getInstrumentType(), somePortfolioPosition.getInstrumentType());
         assertEquals(position.getBalance(), somePortfolioPosition.getBalance());
         assertEquals(position.getBlocked(), somePortfolioPosition.getBlocked());
-        assertEquals(position.getExpectedYield().getValue(), somePortfolioPosition.getExpectedYield().getValue());
-        assertEquals(position.getExpectedYield().getCurrency(), somePortfolioPosition.getExpectedYield().getCurrency());
+        assertEquals(position.getExpectedYield(), somePortfolioPosition.getExpectedYield());
         assertEquals(position.getLots(), somePortfolioPosition.getLots());
+        assertEquals(position.getAveragePositionPrice(), somePortfolioPosition.getAveragePositionPrice());
+        assertEquals(position.getAveragePositionPriceNoNkd(), somePortfolioPosition.getAveragePositionPriceNoNkd());
 
         final var request = HttpRequest.newBuilder()
                 .uri(URI.create(host + "/portfolio"))
@@ -292,7 +297,8 @@ class ContextImplTest {
                 "isin",
                 BigDecimal.TEN,
                 1,
-                Currency.RUB
+                Currency.RUB,
+                "name"
         );
         final var expectedStocks = new InstrumentsList(1, List.of(someStock));
 
@@ -308,7 +314,8 @@ class ContextImplTest {
                 "\"isin\":\"isin\"," +
                 "\"minPriceIncrement\":10," +
                 "\"lot\":1," +
-                "\"currency\":\"RUB\"" +
+                "\"currency\":\"RUB\"," +
+                "\"name\":\"name\"" +
                 "}]}" +
                 "}";
         when(response.body()).thenReturn(json);
@@ -326,6 +333,7 @@ class ContextImplTest {
         assertEquals(stock.getMinPriceIncrement(), someStock.getMinPriceIncrement());
         assertEquals(stock.getLot(), someStock.getLot());
         assertEquals(stock.getCurrency(), someStock.getCurrency());
+        assertEquals(stock.getName(), someStock.getName());
 
         final var request = HttpRequest.newBuilder()
                 .uri(URI.create(host + "/market/stocks"))
@@ -343,7 +351,8 @@ class ContextImplTest {
                 "isin",
                 BigDecimal.TEN,
                 1,
-                Currency.RUB
+                Currency.RUB,
+                "name"
         );
         final var expectedBonds = new InstrumentsList(1, List.of(someBond));
 
@@ -359,7 +368,8 @@ class ContextImplTest {
                 "\"isin\":\"isin\"," +
                 "\"minPriceIncrement\":10," +
                 "\"lot\":1," +
-                "\"currency\":\"RUB\"" +
+                "\"currency\":\"RUB\"," +
+                "\"name\":\"name\"" +
                 "}]}" +
                 "}";
         when(response.body()).thenReturn(json);
@@ -377,6 +387,7 @@ class ContextImplTest {
         assertEquals(bond.getMinPriceIncrement(), someBond.getMinPriceIncrement());
         assertEquals(bond.getLot(), someBond.getLot());
         assertEquals(bond.getCurrency(), someBond.getCurrency());
+        assertEquals(bond.getName(), someBond.getName());
 
         final var request = HttpRequest.newBuilder()
                 .uri(URI.create(host + "/market/bonds"))
@@ -394,7 +405,8 @@ class ContextImplTest {
                 "isin",
                 BigDecimal.TEN,
                 1,
-                Currency.RUB
+                Currency.RUB,
+                "name"
         );
         final var expectedEtfs = new InstrumentsList(1, List.of(someEtf));
 
@@ -410,7 +422,8 @@ class ContextImplTest {
                 "\"isin\":\"isin\"," +
                 "\"minPriceIncrement\":10," +
                 "\"lot\":1," +
-                "\"currency\":\"RUB\"" +
+                "\"currency\":\"RUB\"," +
+                "\"name\":\"name\"" +
                 "}]}" +
                 "}";
         when(response.body()).thenReturn(json);
@@ -428,6 +441,7 @@ class ContextImplTest {
         assertEquals(etf.getMinPriceIncrement(), someEtf.getMinPriceIncrement());
         assertEquals(etf.getLot(), someEtf.getLot());
         assertEquals(etf.getCurrency(), someEtf.getCurrency());
+        assertEquals(etf.getName(), someEtf.getName());
 
         final var request = HttpRequest.newBuilder()
                 .uri(URI.create(host + "/market/etfs"))
@@ -445,7 +459,8 @@ class ContextImplTest {
                 "isin",
                 BigDecimal.TEN,
                 1,
-                Currency.RUB
+                Currency.RUB,
+                "name"
         );
         final var expectedCurrencies = new InstrumentsList(1, List.of(someCurrency));
 
@@ -461,7 +476,8 @@ class ContextImplTest {
                 "\"isin\":\"isin\"," +
                 "\"minPriceIncrement\":10," +
                 "\"lot\":1," +
-                "\"currency\":\"RUB\"" +
+                "\"currency\":\"RUB\"," +
+                "\"name\":\"name\"" +
                 "}]}" +
                 "}";
         when(response.body()).thenReturn(json);
@@ -479,9 +495,128 @@ class ContextImplTest {
         assertEquals(currency.getMinPriceIncrement(), someCurrency.getMinPriceIncrement());
         assertEquals(currency.getLot(), someCurrency.getLot());
         assertEquals(currency.getCurrency(), someCurrency.getCurrency());
+        assertEquals(currency.getName(), someCurrency.getName());
 
         final var request = HttpRequest.newBuilder()
                 .uri(URI.create(host + "/market/currencies"))
+                .header("Authorization", token)
+                .GET()
+                .build();
+        verify(httpClient).sendAsync(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    @Test
+    void gettingMarketOrderbook() throws ExecutionException, InterruptedException {
+        final var expectedOrderbook = new Orderbook(
+                10,
+                List.of(new Orderbook.OrderbookItem(BigDecimal.valueOf(1), BigDecimal.valueOf(2))),
+                List.of(new Orderbook.OrderbookItem(BigDecimal.valueOf(3), BigDecimal.valueOf(4))),
+                "figi",
+                Orderbook.TradeStatus.NormalTrading,
+                BigDecimal.valueOf(5),
+                BigDecimal.valueOf(6),
+                BigDecimal.valueOf(7),
+                BigDecimal.valueOf(8),
+                BigDecimal.valueOf(9)
+        );
+
+        final HttpResponse<String> response = mock(HttpStringResponse.class);
+        final String json = "{" +
+                "\"trackingId\":\"trackingId\"," +
+                "\"status\":\"Ok\"," +
+                "\"payload\": {" +
+                    "\"figi\": \"figi\"," +
+                    "\"depth\": 10," +
+                    "\"bids\": [{\"price\": 1, \"quantity\": 2}]," +
+                    "\"asks\": [{\"price\": 3, \"quantity\": 4}]," +
+                    "\"tradeStatus\": \"NormalTrading\"," +
+                    "\"minPriceIncrement\": 5," +
+                    "\"lastPrice\": 6," +
+                    "\"closePrice\": 7," +
+                    "\"limitUp\": 8," +
+                    "\"limitDown\": 9" +
+                "}" +
+                "}";
+        when(response.body()).thenReturn(json);
+        when(response.statusCode()).thenReturn(200);
+
+        when(httpClient.<String>sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(response));
+
+        final var actualResponse = context.getMarketOrderbook(expectedOrderbook.getFigi(), expectedOrderbook.getDepth()).get();
+        assertEquals(actualResponse.getFigi(), expectedOrderbook.getFigi());
+        assertEquals(actualResponse.getDepth(), expectedOrderbook.getDepth());
+        assertEquals(actualResponse.getTradeStatus(), expectedOrderbook.getTradeStatus());
+        assertEquals(actualResponse.getMinPriceIncrement(), expectedOrderbook.getMinPriceIncrement());
+        assertEquals(actualResponse.getLastPrice(), expectedOrderbook.getLastPrice());
+        assertEquals(actualResponse.getClosePrice(), expectedOrderbook.getClosePrice());
+        assertEquals(actualResponse.getLimitUp(), expectedOrderbook.getLimitUp());
+        assertEquals(actualResponse.getLimitDown(), expectedOrderbook.getLimitDown());
+        assertEquals(actualResponse.getBids(), expectedOrderbook.getBids());
+        assertEquals(actualResponse.getAsks(), expectedOrderbook.getAsks());
+
+        final var request = HttpRequest.newBuilder()
+                .uri(URI.create(host + "/market/orderbook?figi=" + expectedOrderbook.getFigi() + "&depth=" + expectedOrderbook.getDepth()))
+                .header("Authorization", token)
+                .GET()
+                .build();
+        verify(httpClient).sendAsync(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    @Test
+    void gettingMarketCandles() throws ExecutionException, InterruptedException {
+        final var someCandle = new Candle(
+                "figi",
+                CandleInterval.DAY,
+                BigDecimal.valueOf(1),
+                BigDecimal.valueOf(2),
+                BigDecimal.valueOf(3),
+                BigDecimal.valueOf(4),
+                BigDecimal.valueOf(5),
+                OffsetDateTime.of(2019, 10, 17, 0, 0, 0, 0, ZoneOffset.UTC)
+        );
+        final var expectedCandles = new HistoricalCandles("figi",CandleInterval.DAY, List.of(someCandle));
+
+        final HttpResponse<String> response = mock(HttpStringResponse.class);
+        final String json = "{" +
+                "\"trackingId\":\"trackingId\"," +
+                "\"status\":\"Ok\"," +
+                "\"payload\": {" +
+                "\"figi\":\"figi\"," +
+                "\"interval\":\"day\"," +
+                "\"candles\":[{" +
+                "\"figi\":\"figi\"," +
+                "\"interval\":\"day\"," +
+                "\"o\":1," +
+                "\"c\":2," +
+                "\"h\":3," +
+                "\"l\":4," +
+                "\"v\":5," +
+                "\"time\":\"2019-10-17T00:00:00.000000+00:00\"" +
+                "}]}" +
+                "}";
+        when(response.body()).thenReturn(json);
+        when(response.statusCode()).thenReturn(200);
+        final var from = OffsetDateTime.of(2019, 10, 17, 0, 0, 0, 0, ZoneOffset.UTC);
+        final var to = OffsetDateTime.of(2019, 10, 18, 0, 0, 0, 0, ZoneOffset.UTC);
+
+        when(httpClient.<String>sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(response));
+
+        final var actualResponse = context.getMarketCandles("figi", from, to, CandleInterval.DAY).get();
+        assertEquals(actualResponse.getFigi(), expectedCandles.getFigi());
+        assertEquals(actualResponse.getInterval(), expectedCandles.getInterval());
+        assertEquals(actualResponse.getCandles().size(), expectedCandles.getCandles().size());
+        final var currency = actualResponse.getCandles().get(0);
+        assertEquals(currency.getFigi(), someCandle.getFigi());
+        assertEquals(currency.getInterval(), someCandle.getInterval());
+        assertEquals(currency.getO(), someCandle.getO());
+        assertEquals(currency.getC(), someCandle.getC());
+        assertEquals(currency.getH(), someCandle.getH());
+        assertEquals(currency.getL(), someCandle.getL());
+        assertEquals(currency.getV(), someCandle.getV());
+        assertEquals(currency.getTime(), someCandle.getTime());
+
+        final var request = HttpRequest.newBuilder()
+                .uri(URI.create(host + "/market/candles?figi=figi&from=" + URLEncoder.encode(from.toString(), StandardCharsets.UTF_8) + "&to=" + URLEncoder.encode(to.toString(), StandardCharsets.UTF_8) + "&interval=day"))
                 .header("Authorization", token)
                 .GET()
                 .build();
@@ -496,7 +631,8 @@ class ContextImplTest {
                 "isin",
                 BigDecimal.TEN,
                 1,
-                Currency.RUB
+                Currency.RUB,
+                "name"
         );
         final var expectedInstruments = new InstrumentsList(1, List.of(someInstrument));
 
@@ -512,7 +648,8 @@ class ContextImplTest {
                 "\"isin\":\"isin\"," +
                 "\"minPriceIncrement\":10," +
                 "\"lot\":1," +
-                "\"currency\":\"RUB\"" +
+                "\"currency\":\"RUB\"," +
+                "\"name\":\"name\"" +
                 "}]}" +
                 "}";
         when(response.body()).thenReturn(json);
@@ -530,6 +667,7 @@ class ContextImplTest {
         assertEquals(stock.getMinPriceIncrement(), someInstrument.getMinPriceIncrement());
         assertEquals(stock.getLot(), someInstrument.getLot());
         assertEquals(stock.getCurrency(), someInstrument.getCurrency());
+        assertEquals(stock.getName(), someInstrument.getName());
 
         final var request = HttpRequest.newBuilder()
                 .uri(URI.create(host + "/market/search/by-ticker?ticker=" + someInstrument.getTicker()))
@@ -547,7 +685,8 @@ class ContextImplTest {
                 "isin",
                 BigDecimal.TEN,
                 1,
-                Currency.RUB
+                Currency.RUB,
+                "name"
         );
 
         final HttpResponse<String> response = mock(HttpStringResponse.class);
@@ -560,7 +699,8 @@ class ContextImplTest {
                 "\"isin\":\"isin\"," +
                 "\"minPriceIncrement\":10," +
                 "\"lot\":1," +
-                "\"currency\":\"RUB\"" +
+                "\"currency\":\"RUB\"," +
+                "\"name\":\"name\"" +
                 "}" +
                 "}";
         when(response.body()).thenReturn(json);
@@ -576,6 +716,7 @@ class ContextImplTest {
         assertEquals(actualResponse.get().getMinPriceIncrement(), expectedInstrument.getMinPriceIncrement());
         assertEquals(actualResponse.get().getLot(), expectedInstrument.getLot());
         assertEquals(actualResponse.get().getCurrency(), expectedInstrument.getCurrency());
+        assertEquals(actualResponse.get().getName(), expectedInstrument.getName());
 
         final var request = HttpRequest.newBuilder()
                 .uri(URI.create(host + "/market/search/by-figi?figi=" + expectedInstrument.getFigi()))
@@ -682,9 +823,9 @@ class ContextImplTest {
 
         when(httpClient.<String>sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(response));
 
-        final var from = LocalDate.of(2019, 8, 30);
-        final var interval = OperationInterval.WEEK;
-        final var actualResponse = context.getOperations(from, interval, someOperation.getFigi()).get();
+        final var from = OffsetDateTime.of(2019, 8, 30, 0, 0, 0 ,0, ZoneOffset.UTC);
+        final var to = from.plusWeeks(1);
+        final var actualResponse = context.getOperations(from, to, someOperation.getFigi()).get();
         final var operations = actualResponse.getOperations();
         assertEquals(operations.size(), expectedOperations.size());
         final var operation = operations.get(0);
@@ -703,7 +844,7 @@ class ContextImplTest {
         assertEquals(operation.getOperationType(), someOperation.getOperationType());
 
         final var request = HttpRequest.newBuilder()
-                .uri(URI.create(host + "/operations?from=" + from.toString() + "&interval=7days&figi=" + operation.getFigi()))
+                .uri(URI.create(host + "/operations?from=" + URLEncoder.encode(from.toString(), StandardCharsets.UTF_8) + "&to=" + URLEncoder.encode(to.toString(), StandardCharsets.UTF_8) + "&figi=" + operation.getFigi()))
                 .header("Authorization", token)
                 .GET()
                 .build();
