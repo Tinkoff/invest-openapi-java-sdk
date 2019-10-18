@@ -41,6 +41,7 @@ class ContextImpl implements Context {
     private static final String MARKET_BONDS_PATH = "/market/bonds";
     private static final String MARKET_ETFS_PATH = "/market/etfs";
     private static final String MARKET_CURRENCIES_PATH = "/market/currencies";
+    private static final String MARKET_ORDERBOOK_PATH = "/market/orderbook";
     private static final String MARKET_CANDLES_PATH = "/market/candles";
     private static final String MARKET_SEARCH_BYTICKER_PATH = "/market/search/by-ticker";
     private static final String MARKET_SEARCH_BYFIGI_PATH = "/market/search/by-figi";
@@ -154,6 +155,19 @@ class ContextImpl implements Context {
     @Override
     public CompletableFuture<InstrumentsList> getMarketCurrencies() {
         return sendGetRequest(MARKET_CURRENCIES_PATH, new TypeReference<OpenApiResponse<InstrumentsList>>(){})
+                .thenApply(oar -> oar.payload);
+    }
+
+    @Override
+    public CompletableFuture<Orderbook> getMarketOrderbook(String figi, int depth) {
+        if (depth < 1 || depth > 20) {
+            return CompletableFuture.failedFuture(
+                    new IllegalArgumentException("Глубина стакана должна быть от 1 до 20.")
+            );
+        }
+
+        final var pathWithParam = MARKET_ORDERBOOK_PATH + "?figi=" + figi + "&depth=" + depth;
+        return sendGetRequest(pathWithParam, new TypeReference<OpenApiResponse<Orderbook>>(){})
                 .thenApply(oar -> oar.payload);
     }
 

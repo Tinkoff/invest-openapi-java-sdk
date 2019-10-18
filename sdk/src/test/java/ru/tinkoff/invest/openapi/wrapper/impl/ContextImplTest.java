@@ -506,6 +506,63 @@ class ContextImplTest {
     }
 
     @Test
+    void gettingMarketOrderbook() throws ExecutionException, InterruptedException {
+        final var expectedOrderbook = new Orderbook(
+                10,
+                List.of(new Orderbook.OrderbookItem(BigDecimal.valueOf(1), BigDecimal.valueOf(2))),
+                List.of(new Orderbook.OrderbookItem(BigDecimal.valueOf(3), BigDecimal.valueOf(4))),
+                "figi",
+                Orderbook.TradeStatus.NormalTrading,
+                BigDecimal.valueOf(5),
+                BigDecimal.valueOf(6),
+                BigDecimal.valueOf(7),
+                BigDecimal.valueOf(8),
+                BigDecimal.valueOf(9)
+        );
+
+        final HttpResponse<String> response = mock(HttpStringResponse.class);
+        final String json = "{" +
+                "\"trackingId\":\"trackingId\"," +
+                "\"status\":\"Ok\"," +
+                "\"payload\": {" +
+                    "\"figi\": \"figi\"," +
+                    "\"depth\": 10," +
+                    "\"bids\": [{\"price\": 1, \"quantity\": 2}]," +
+                    "\"asks\": [{\"price\": 3, \"quantity\": 4}]," +
+                    "\"tradeStatus\": \"NormalTrading\"," +
+                    "\"minPriceIncrement\": 5," +
+                    "\"lastPrice\": 6," +
+                    "\"closePrice\": 7," +
+                    "\"limitUp\": 8," +
+                    "\"limitDown\": 9" +
+                "}" +
+                "}";
+        when(response.body()).thenReturn(json);
+        when(response.statusCode()).thenReturn(200);
+
+        when(httpClient.<String>sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(response));
+
+        final var actualResponse = context.getMarketOrderbook(expectedOrderbook.getFigi(), expectedOrderbook.getDepth()).get();
+        assertEquals(actualResponse.getFigi(), expectedOrderbook.getFigi());
+        assertEquals(actualResponse.getDepth(), expectedOrderbook.getDepth());
+        assertEquals(actualResponse.getTradeStatus(), expectedOrderbook.getTradeStatus());
+        assertEquals(actualResponse.getMinPriceIncrement(), expectedOrderbook.getMinPriceIncrement());
+        assertEquals(actualResponse.getLastPrice(), expectedOrderbook.getLastPrice());
+        assertEquals(actualResponse.getClosePrice(), expectedOrderbook.getClosePrice());
+        assertEquals(actualResponse.getLimitUp(), expectedOrderbook.getLimitUp());
+        assertEquals(actualResponse.getLimitDown(), expectedOrderbook.getLimitDown());
+        assertEquals(actualResponse.getBids(), expectedOrderbook.getBids());
+        assertEquals(actualResponse.getAsks(), expectedOrderbook.getAsks());
+
+        final var request = HttpRequest.newBuilder()
+                .uri(URI.create(host + "/market/orderbook?figi=" + expectedOrderbook.getFigi() + "&depth=" + expectedOrderbook.getDepth()))
+                .header("Authorization", token)
+                .GET()
+                .build();
+        verify(httpClient).sendAsync(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    @Test
     void gettingMarketCandles() throws ExecutionException, InterruptedException {
         final var someCandle = new Candle(
                 "figi",

@@ -71,6 +71,13 @@ public interface Context extends Flow.Publisher<StreamingEvent> {
     CompletableFuture<InstrumentsList> getMarketEtfs();
 
     /**
+     * Получение текущего состояния торгового "стакана".
+     *
+     * @return "Стакан".
+     */
+    CompletableFuture<Orderbook> getMarketOrderbook(String figi, int depth);
+
+    /**
      * Получение списка валют, доступных для торговли.
      *
      * @return Список валют.
