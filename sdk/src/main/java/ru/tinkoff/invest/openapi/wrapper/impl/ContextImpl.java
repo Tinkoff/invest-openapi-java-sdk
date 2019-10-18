@@ -56,7 +56,8 @@ class ContextImpl implements Context {
     private SubmissionPublisher<StreamingEvent> streaming;
     private final Logger logger;
     private final ObjectMapper mapper;
-    private static final Pattern badCandleErrorExtractor = Pattern.compile("Bad candle interval: from=(\\d+-\\d+-\\d+T\\d+:\\d+:\\d+Z) to=(\\d+-\\d+-\\d+T\\d+:\\d+:\\d+Z) expected");
+    private static final Pattern badCandleErrorExtractor =
+            Pattern.compile("Bad candle interval: from=(\\d+-\\d+-\\d+T\\d+:\\d+:\\d+Z) to=(\\d+-\\d+-\\d+T\\d+:\\d+:\\d+Z) expected");
 
     protected static class EmptyPayload {
     }
@@ -161,6 +162,12 @@ class ContextImpl implements Context {
                                                                  OffsetDateTime from,
                                                                  OffsetDateTime to,
                                                                  CandleInterval interval) {
+        if (interval == CandleInterval.TWO_HOUR || interval == CandleInterval.FOUR_HOUR) {
+            return CompletableFuture.failedFuture(
+                    new IllegalArgumentException("2-х и 4-х часовые свечные интервалы пока не поддерживаются.")
+            );
+        }
+
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             var renderedInterval = objectMapper.writeValueAsString(interval);
@@ -182,7 +189,9 @@ class ContextImpl implements Context {
                                 matcher.find();
                                 final var fromExpected = OffsetDateTime.parse(matcher.group(1));
                                 final var toExpected = OffsetDateTime.parse(matcher.group(2));
-                                return CompletableFuture.<HistoricalCandles>failedFuture(new BadCandlesSearchingIntervalException(fromExpected, toExpected, interval));
+                                return CompletableFuture.<HistoricalCandles>failedFuture(
+                                        new BadCandlesSearchingIntervalException(fromExpected, toExpected, interval)
+                                );
                             } else {
                                 return CompletableFuture.<HistoricalCandles>failedFuture(realEx);
                             }
