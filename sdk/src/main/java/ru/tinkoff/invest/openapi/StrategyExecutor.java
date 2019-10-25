@@ -21,7 +21,11 @@ public class StrategyExecutor {
     private final Logger logger;
     private boolean hasRun;
     private final Map<String, Runnable> orderTrackers;
+
+    private TradingState currentState;
     private SubmissionPublisher<TradingState> streaming;
+    private boolean locked;
+
 
     /**
      * Создаёт исполнителя заданной стратегии на заданном контексте. Процесс торговли при этом не запускается!
@@ -36,7 +40,6 @@ public class StrategyExecutor {
         this.hasRun = false;
         this.logger = logger;
         this.orderTrackers = new HashMap<>();
-        this.streaming = new SubmissionPublisher<>();
     }
 
     /**
@@ -54,10 +57,13 @@ public class StrategyExecutor {
     public void run() {
         if (hasRun) return;
 
+        this.locked = false;
+        this.currentState = new TradingState(null, null, null, null, null);
+        this.streaming = new SubmissionPublisher<>();
         strategy.init();
 
-        context.subscribe(new ContextSubscriber());
-        strategy.subscribe(new StrategyDecisionSubscriber());
+        context.subscribe(new ContextSubscriber(this));
+        strategy.subscribe(new StrategyDecisionSubscriber(this));
         streaming.subscribe(strategy);
 
         final var figi = strategy.getInstrument().getFigi();
@@ -87,13 +93,20 @@ public class StrategyExecutor {
 
         context.unsubscribe();
 
-        streaming.close();
         strategy.cleanup();
+        streaming.close();
+        this.currentState = null;
 
         hasRun = false;
     }
 
     private class ContextSubscriber implements Flow.Subscriber<StreamingEvent> {
+
+        private final StrategyExecutor owner;
+
+        ContextSubscriber(final StrategyExecutor owner) {
+            this.owner = owner;
+        }
 
         @Override
         public void onSubscribe(Flow.Subscription subscription) {
@@ -102,17 +115,27 @@ public class StrategyExecutor {
 
         @Override
         public void onNext(StreamingEvent item) {
-            if (item instanceof StreamingEvent.Candle) {
-                final var candle = (StreamingEvent.Candle)item;
-                streaming.submit(strategy.getCurrentState().copy(candle));
-            } else if (item instanceof StreamingEvent.Orderbook) {
-                final var orderbook = (StreamingEvent.Orderbook)item;
-                streaming.submit(strategy.getCurrentState().copy(orderbook));
-            } else if (item instanceof StreamingEvent.InstrumentInfo) {
-                final var instrumentInfo = (StreamingEvent.InstrumentInfo)item;
-                streaming.submit(strategy.getCurrentState().copy(instrumentInfo));
-            } else {
-                logger.severe("Что-то пошло не так в подписке на стрим StreamingEvent. " + item);
+            synchronized (this.owner) {
+                final var currentLocked = locked;
+
+                if (item instanceof StreamingEvent.Candle) {
+                    final var candle = (StreamingEvent.Candle)item;
+                    this.owner.locked = true;
+                    currentState = currentState.copy(candle);
+                } else if (item instanceof StreamingEvent.Orderbook) {
+                    final var orderbook = (StreamingEvent.Orderbook)item;
+                    this.owner.locked = true;
+                    currentState = currentState.copy(orderbook);
+                } else if (item instanceof StreamingEvent.InstrumentInfo) {
+                    final var instrumentInfo = (StreamingEvent.InstrumentInfo)item;
+                    this.owner.locked = true;
+                    currentState = currentState.copy(instrumentInfo);
+                } else {
+                    logger.severe("Что-то пошло не так в подписке на стрим StreamingEvent. " + item);
+                    return;
+                }
+
+                if (!currentLocked) streaming.submit(currentState);
             }
         }
 
@@ -127,6 +150,12 @@ public class StrategyExecutor {
     }
 
     private class StrategyDecisionSubscriber implements Flow.Subscriber<StrategyDecision> {
+
+        private final StrategyExecutor owner;
+
+        StrategyDecisionSubscriber(final StrategyExecutor owner) {
+            this.owner = owner;
+        }
 
         @Override
         public void onSubscribe(Flow.Subscription subscription) {
@@ -143,25 +172,28 @@ public class StrategyExecutor {
                         strategy.getInstrument().getCurrency());
                 context.placeLimitOrder(limitOrder).thenApply(plo -> {
                     logger.fine("Заявка успешно размещена.");
-                    final var orderStatus = plo.getOperation() == OperationType.Buy
-                            ? TradingState.OrderStatus.WaitingBuy
-                            : TradingState.OrderStatus.WaitingSell;
-                    streaming.submit(strategy.getCurrentState().copy(orderStatus));
+                    currentState = currentState.copy(plo);
+                    streaming.submit(currentState);
+                    synchronized (this.owner) { this.owner.locked = false; }
                     orderTrackers.put(plo.getId(), new OrderTracker(plo));
                     orderTrackers.get(plo.getId()).run();
                     return null;
                 }).exceptionally(ex -> {
                     logger.log(Level.WARNING, "Заявка не размещена.", ex);
+                    synchronized (this.owner) { this.owner.locked = false; }
                     return null;
                 });
             } else if (item instanceof StrategyDecision.CancelOrder) {
                 final String orderId = ((StrategyDecision.CancelOrder) item).getOrderId();
-                context.cancelOrder(orderId).thenApply(plo -> {
+                context.cancelOrder(orderId).thenApply(nothing -> {
                     logger.fine("Заявка успешно отменена.");
-                    streaming.submit(strategy.getCurrentState().copy(TradingState.OrderStatus.None));
+                    currentState = currentState.copy((PlacedLimitOrder) null);
+                    streaming.submit(currentState);
+                    synchronized (this.owner) { this.owner.locked = false; }
                     return null;
                 }).exceptionally(ex -> {
                     logger.log(Level.WARNING, "Заявка не отменена.", ex);
+                    synchronized (this.owner) { this.owner.locked = false; }
                     return null;
                 });
             }
@@ -196,15 +228,11 @@ public class StrategyExecutor {
             do {
                 final var orders = context.getOrders().join();
                 final var isOrderNotActive = orders.stream().noneMatch(o -> o.getId().equals(order.getId()));
-                if (isOrderNotActive && strategy.getCurrentState().getInstrumentInfo().canTrade()) {
+                if (isOrderNotActive && currentState.getInstrumentInfo().canTrade()) {
                     done = true;
-                    final var newState = strategy.getCurrentState().copy(TradingState.OrderStatus.None).copy(
-                            order.getOperation() == OperationType.Buy
-                                    ? TradingState.PositionStatus.Exists
-                                    : TradingState.PositionStatus.None
-                    );
-                    streaming.submit(newState);
                     orderTrackers.remove(order.getId());
+                    currentState = currentState.copy((PlacedLimitOrder) null);
+                    streaming.submit(currentState);
                 } else {
                     // получить число между rangeMin и rangeMax
                     var randomFactor = rangeMin + (rangeMax - rangeMin) * randomEngine.nextDouble();

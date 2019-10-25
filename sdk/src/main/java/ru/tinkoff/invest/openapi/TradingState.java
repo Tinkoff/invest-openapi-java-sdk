@@ -1,6 +1,10 @@
 package ru.tinkoff.invest.openapi;
 
+import ru.tinkoff.invest.openapi.data.LimitOrder;
+import ru.tinkoff.invest.openapi.data.PlacedLimitOrder;
 import ru.tinkoff.invest.openapi.data.StreamingEvent;
+
+import java.math.BigDecimal;
 
 /**
  * Объект представляющий для стратегии информацию о ситуации на рынке.
@@ -9,8 +13,8 @@ public class TradingState {
     private final StreamingEvent.Orderbook orderbook;
     private final StreamingEvent.Candle candle;
     private final StreamingEvent.InstrumentInfo instrumentInfo;
-    private final PositionStatus positionStatus;
-    private final OrderStatus orderStatus;
+    private final PositionInfo positionInfo;
+    private final PlacedLimitOrder placedLimitOrder;
 
     /**
      * Создаёт новое состояние из "стакана", "свечи" и информации по рассматриваемому инструменту.
@@ -18,19 +22,19 @@ public class TradingState {
      * @param orderbook Состояние "стакана" (книги заявок). Может быть null.
      * @param candle Ценовая "свеча". Может быть null.
      * @param instrumentInfo Информация по инструменту. Может быть null.
-     * @param positionStatus Статус позиции по инструменту.
-     * @param orderStatus Статус заявки по инструменту.
+     * @param positionInfo Информация о позиции по инструменту. Может быть null.
+     * @param placedLimitOrder Инофрмация о размещённой заявке. Может быть null.
      */
     public TradingState(final StreamingEvent.Orderbook orderbook,
                         final StreamingEvent.Candle candle,
                         final StreamingEvent.InstrumentInfo instrumentInfo,
-                        final PositionStatus positionStatus,
-                        final OrderStatus orderStatus) {
+                        final PositionInfo positionInfo,
+                        final PlacedLimitOrder placedLimitOrder) {
         this.orderbook = orderbook;
         this.candle = candle;
         this.instrumentInfo = instrumentInfo;
-        this.positionStatus = positionStatus;
-        this.orderStatus = orderStatus;
+        this.positionInfo = positionInfo;
+        this.placedLimitOrder = placedLimitOrder;
     }
 
     /**
@@ -59,38 +63,50 @@ public class TradingState {
 
     /**
      * Получение статуса позиции.
+     * Может вернуть null.
      */
-    public PositionStatus getPositionStatus() {
-        return positionStatus;
+    public PositionInfo getPositionInfo() {
+        return positionInfo;
     }
 
     /**
-     * Получение статуса заявки.
+     * Получение размещённой заявки.
+     * Может вернуть null.
      */
-    public OrderStatus getOrderStatus() {
-        return orderStatus;
+    public PlacedLimitOrder getPlacedLimitOrder() {
+        return placedLimitOrder;
     }
 
+
     public TradingState copy(final StreamingEvent.Orderbook orderbook) {
-        return new TradingState(orderbook, this.candle, this.instrumentInfo, this.positionStatus, this.orderStatus);
+        return new TradingState(orderbook, this.candle, this.instrumentInfo, this.positionInfo, this.placedLimitOrder);
     }
 
     public TradingState copy(final StreamingEvent.Candle candle) {
-        return new TradingState(this.orderbook, candle, this.instrumentInfo, this.positionStatus, this.orderStatus);
+        return new TradingState(this.orderbook, candle, this.instrumentInfo, this.positionInfo, this.placedLimitOrder);
     }
 
     public TradingState copy(final StreamingEvent.InstrumentInfo instrumentInfo) {
-        return new TradingState(this.orderbook, this.candle, instrumentInfo, this.positionStatus, this.orderStatus);
+        return new TradingState(this.orderbook, this.candle, instrumentInfo, this.positionInfo, this.placedLimitOrder);
     }
 
-    public TradingState copy(final PositionStatus positionStatus) {
-        return new TradingState(this.orderbook, this.candle, this.instrumentInfo, positionStatus, this.orderStatus);
+    public TradingState copy(final PositionInfo positionInfo) {
+        return new TradingState(this.orderbook, this.candle, this.instrumentInfo, positionInfo, this.placedLimitOrder);
     }
 
-    public TradingState copy(OrderStatus orderStatus) {
-        return new TradingState(this.orderbook, this.candle, this.instrumentInfo, this.positionStatus, orderStatus);
+    public TradingState copy(final PlacedLimitOrder placedLimitOrder) {
+        return new TradingState(this.orderbook, this.candle, this.instrumentInfo, this.positionInfo, placedLimitOrder);
     }
 
-    public enum PositionStatus { Exists, None }
-    public enum OrderStatus { WaitingBuy, WaitingSell, None }
+    public class PositionInfo {
+        private final BigDecimal enterPrice;
+
+        public PositionInfo(final BigDecimal enterPrice) {
+            this.enterPrice = enterPrice;
+        }
+
+        public BigDecimal getEnterPrice() {
+            return enterPrice;
+        }
+    }
 }
