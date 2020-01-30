@@ -1,14 +1,14 @@
 package ru.tinkoff.invest.openapi.example;
 
-import ru.tinkoff.invest.openapi.SimpleStopLossStrategy;
-import ru.tinkoff.invest.openapi.StrategyExecutor;
-import ru.tinkoff.invest.openapi.data.CandleInterval;
-import ru.tinkoff.invest.openapi.data.Instrument;
-import ru.tinkoff.invest.openapi.data.PortfolioCurrencies;
-import ru.tinkoff.invest.openapi.wrapper.Connection;
-import ru.tinkoff.invest.openapi.wrapper.Context;
-import ru.tinkoff.invest.openapi.wrapper.SandboxContext;
-import ru.tinkoff.invest.openapi.wrapper.impl.ConnectionFactory;
+import ru.tinkoff.invest.openapi.automata.EntitiesAdaptor;
+import ru.tinkoff.invest.openapi.automata.TradingAutomata;
+import ru.tinkoff.invest.openapi.automata.TradingState;
+import ru.tinkoff.invest.openapi.model.market.Instrument;
+import ru.tinkoff.invest.openapi.model.portfolio.PortfolioCurrencies;
+import ru.tinkoff.invest.openapi.model.sandbox.CurrencyBalance;
+import ru.tinkoff.invest.openapi.okhttp.OkHttpOpenApi;
+import ru.tinkoff.invest.openapi.okhttp.OkHttpOpenApiFactory;
+import ru.tinkoff.invest.openapi.okhttp.OkHttpSandboxOpenApi;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -17,12 +17,14 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 import java.util.logging.*;
+import java.util.stream.Collectors;
 
 public class App {
     private static String ssoToken;
     private static String ticker;
-    private static CandleInterval candleInterval;
+    private static TradingState.Candle.CandleInterval candleInterval;
     private static BigDecimal maxVolume;
     private static boolean useSandbox;
 
@@ -40,31 +42,20 @@ public class App {
         }
 
         try {
-            final Connection connection;
-            final Context context;
-            if (useSandbox) {
-                logger.fine("Создаём подключение в режиме \"песочницы\"... ");
-                connection = ConnectionFactory.connectSandbox(ssoToken, logger).join();
-            } else {
-                logger.fine("Создаём подключение в биржевом режиме... ");
-                connection = ConnectionFactory.connect(ssoToken, logger).join();
-            }
-
-            initCleanupProcedure(connection, logger);
-
-            context = connection.context();
+            logger.fine("Создаём подключение... ");
+            final var factory = new OkHttpOpenApiFactory(ssoToken, useSandbox, logger);
+            final var automata = new TradingAutomata(factory, Executors.newScheduledThreadPool(10), logger);
+            final var api = (OkHttpOpenApi) automata.api();
 
             if (useSandbox) {
                 // ОБЯЗАТЕЛЬНО нужно выполнить регистрацию в "песочнице"
-                ((SandboxContext)context).performRegistration();
+                ((OkHttpSandboxOpenApi) api).performRegistration().join();
             }
 
             logger.fine("Ищём по тикеру " + ticker + "... ");
-            final var instrumentsList = context.searchMarketInstrumentsByTicker(ticker).join();
+            final var instrumentsList = api.searchMarketInstrumentsByTicker(ticker).join();
 
-            final var instrumentOpt = instrumentsList.getInstruments()
-                    .stream()
-                    .findFirst();
+            final var instrumentOpt = instrumentsList.instruments.stream().findFirst();
 
             final Instrument instrument;
             if (instrumentOpt.isEmpty()) {
@@ -75,14 +66,14 @@ public class App {
             }
 
             if (useSandbox) {
-                initPrepareSandbox((SandboxContext)context, instrument, logger);
+                initPrepareSandbox((OkHttpSandboxOpenApi) api, instrument, logger);
             }
 
             logger.fine("Получаем валютные балансы... ");
-            final var portfolioCurrencies = context.getPortfolioCurrencies().join();
+            final var portfolioCurrencies = api.getPortfolioCurrencies().join();
 
-            final var portfolioCurrencyOpt = portfolioCurrencies.getCurrencies().stream()
-                    .filter(pc -> pc.getCurrency() == instrument.getCurrency())
+            final var portfolioCurrencyOpt = portfolioCurrencies.currencies.stream()
+                    .filter(pc -> pc.currency == instrument.currency)
                     .findFirst();
 
             final PortfolioCurrencies.PortfolioCurrency portfolioCurrency;
@@ -91,13 +82,18 @@ public class App {
                 return;
             } else {
                 portfolioCurrency = portfolioCurrencyOpt.get();
+                logger.fine("Нужной валюты " + portfolioCurrency.currency + " на счету " + portfolioCurrency.balance);
             }
 
-            logger.fine("Запускаем робота... ");
-            final CompletableFuture<Void> result = new CompletableFuture<>();
+            final var currentOrders = api.getOrders().join();
+            final var currentPositions = api.getPortfolio().join();
+
             final var strategy = new SimpleStopLossStrategy(
-                    portfolioCurrency,
-                    instrument,
+                    EntitiesAdaptor.convertApiEntityToTradingState(instrument),
+                    currentOrders.stream().map(EntitiesAdaptor::convertApiEntityToTradingState).collect(Collectors.toList()),
+                    portfolioCurrencies.currencies.stream()
+                        .collect(Collectors.toMap(c -> EntitiesAdaptor.convertApiEntityToTradingState(c.currency), c -> new TradingState.Position(c.balance, c.blocked))),
+                    currentPositions.positions.stream().collect(Collectors.toMap(p -> p.figi, p -> new TradingState.Position(p.balance, p.blocked))),
                     maxVolume,
                     5,
                     candleInterval,
@@ -107,8 +103,14 @@ public class App {
                     BigDecimal.valueOf(0.5),
                     logger
             );
-            final var strategyExecutor = new StrategyExecutor(context, strategy, logger);
-            strategyExecutor.run();
+
+            initCleanupProcedure(automata, logger);
+
+            logger.fine("Запускаем робота... ");
+            automata.addStrategy(strategy);
+            automata.start();
+
+            final var result = new CompletableFuture<Void>();
             result.join();
         } catch (Exception ex) {
             logger.log(Level.SEVERE, "Что-то пошло не так.", ex);
@@ -116,7 +118,7 @@ public class App {
     }
 
     private static Logger initLogger() throws IOException {
-        LogManager logManager = LogManager.getLogManager();
+        final var logManager = LogManager.getLogManager();
         final var classLoader = App.class.getClassLoader();
 
         try (InputStream input = classLoader.getResourceAsStream("logging.properties")) {
@@ -153,19 +155,19 @@ public class App {
             ticker = args[1];
             switch (args[2]) {
                 case "1min":
-                    candleInterval = CandleInterval.ONE_MIN;
+                    candleInterval = TradingState.Candle.CandleInterval.ONE_MIN;
                     break;
                 case "2min":
-                    candleInterval = CandleInterval.TWO_MIN;
+                    candleInterval = TradingState.Candle.CandleInterval.TWO_MIN;
                     break;
                 case "3min":
-                    candleInterval = CandleInterval.THREE_MIN;
+                    candleInterval = TradingState.Candle.CandleInterval.THREE_MIN;
                     break;
                 case "5min":
-                    candleInterval = CandleInterval.FIVE_MIN;
+                    candleInterval = TradingState.Candle.CandleInterval.FIVE_MIN;
                     break;
                 case "10min":
-                    candleInterval = CandleInterval.TEN_MIN;
+                    candleInterval = TradingState.Candle.CandleInterval.TEN_MIN;
                     break;
                 default:
                     logger.severe("Не распознан разрешающий интервал!");
@@ -176,21 +178,22 @@ public class App {
         }
     }
 
-    private static void initPrepareSandbox(final SandboxContext context,
+    private static void initPrepareSandbox(final OkHttpSandboxOpenApi context,
                                            final Instrument instrument,
                                            final Logger logger) {
         logger.fine("Очищаем всё позиции... ");
         context.clearAll().join();
 
-        logger.fine("Ставим на баланс немного " + instrument.getCurrency() + "... ");
-        context.setCurrencyBalance(instrument.getCurrency(), maxVolume).join();
+        logger.fine("Ставим на баланс немного " + instrument.currency + "... ");
+        final CurrencyBalance cb = new CurrencyBalance(instrument.currency, maxVolume);
+        context.setCurrencyBalance(cb).join();
     }
 
-    private static void initCleanupProcedure(final Connection connection, final Logger logger) {
+    private static void initCleanupProcedure(final TradingAutomata automata, final Logger logger) {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 logger.info("Закрываем соединение... ");
-                connection.close();
+                automata.close();
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Что-то произошло при закрытии соединения!", e);
             }

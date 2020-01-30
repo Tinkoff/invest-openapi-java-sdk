@@ -1,1 +1,4 @@
-include 'sdk', 'example'
+include 'sdk-java8'
+include 'sdk-java11'
+include 'example'
+
