@@ -88,6 +88,11 @@ class StreamingContextImpl implements StreamingContext {
         for (int i = 0; i < this.wsClients.length; i++) {
             final WebSocket wsClient = this.wsClients[i];
             if (wsClient == webSocket) {
+                logger.info("Попытка восстановления Streaming API клиента...");
+                webSocket.close(1000, null);
+
+                Thread.sleep(1000);
+
                 final WebSocket newWsClient = this.client.newWebSocket(this.wsRequest, this.streamingCallback);
                 this.wsClients[i] = newWsClient;
                 final Set<StreamingRequest.ActivatingRequest> history = this.requestsHistory.remove(wsClient);
@@ -118,6 +123,13 @@ class StreamingContextImpl implements StreamingContext {
             this.streamingErrorCallback = streamingErrorCallback;
             this.mapper = mapper;
             this.logger = logger;
+        }
+
+        @Override
+        public void onOpen(@NotNull WebSocket webSocket, @NotNull Response response) {
+            super.onOpen(webSocket, response);
+
+            logger.info("Streaming API клиент подключён");
         }
 
         @Override

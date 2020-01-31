@@ -82,7 +82,7 @@ public class App {
                 return;
             } else {
                 portfolioCurrency = portfolioCurrencyOpt.get();
-                logger.fine("Нужной валюты " + portfolioCurrency.currency + " на счету " + portfolioCurrency.balance);
+                logger.fine("Нужной валюты " + portfolioCurrency.currency + " на счету " + portfolioCurrency.balance.toPlainString());
             }
 
             final var currentOrders = api.getOrders().join();

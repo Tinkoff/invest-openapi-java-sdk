@@ -4,6 +4,7 @@ import okhttp3.OkHttpClient;
 import ru.tinkoff.invest.openapi.*;
 import ru.tinkoff.invest.openapi.model.streaming.StreamingEvent;
 
+import java.time.Duration;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,7 +21,9 @@ public class OkHttpOpenApiFactory extends OpenApiFactoryBase {
 
     @Override
     public OpenApi createOpenApiClient(Consumer<StreamingEvent> streamingEventCallback, Consumer<Throwable> streamingErrorCallback) {
-        final OkHttpClient client = new OkHttpClient();
+        final OkHttpClient client = new OkHttpClient.Builder()
+            .pingInterval(Duration.ofSeconds(5))
+            .build();
         final String apiUrl = this.sandboxMode ? this.config.sandboxApiUrl : this.config.marketApiUrl;
 
         final MarketContext marketContext = new MarketContextImpl(client, apiUrl, this.authToken, this.logger);
