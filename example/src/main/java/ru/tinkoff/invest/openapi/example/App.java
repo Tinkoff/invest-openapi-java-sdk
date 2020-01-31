@@ -99,8 +99,8 @@ public class App {
                     candleInterval,
                     BigDecimal.valueOf(0.1),
                     BigDecimal.valueOf(0.1),
-                    BigDecimal.valueOf(0.5),
-                    BigDecimal.valueOf(0.5),
+                    BigDecimal.valueOf(0.3),
+                    BigDecimal.valueOf(0.3),
                     logger
             );
 

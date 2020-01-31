@@ -64,7 +64,8 @@ public class TradingState {
         final List<Order> orders;
         final Map<Currency, Position> currencies;
         final Map<String, Position> positions;
-        if (instrumentInfo.canTrade != this.instrumentInfo.canTrade && !instrumentInfo.canTrade) {
+        final boolean currentCanTrade = Objects.nonNull(this.instrumentInfo) && this.instrumentInfo.canTrade;
+        if (instrumentInfo.canTrade != currentCanTrade && !instrumentInfo.canTrade) {
             orders = new LinkedList<>();
 
             final BigDecimal buyOrdersAmount = this.orders.stream()
