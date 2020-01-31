@@ -141,7 +141,6 @@ class StreamingContextImpl implements StreamingContext {
 
             try {
                 restore(webSocket);
-                this.streamingErrorCallback.accept(t);
             } catch (Exception ex) {
                 logger.log(Level.SEVERE, "При закрытии Streaming API что-то произошло", ex);
                 this.streamingErrorCallback.accept(ex);
