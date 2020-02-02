@@ -1,6 +1,7 @@
 package ru.tinkoff.invest.openapi.okhttp;
 
 import okhttp3.OkHttpClient;
+import org.jetbrains.annotations.NotNull;
 import ru.tinkoff.invest.openapi.*;
 import ru.tinkoff.invest.openapi.model.streaming.StreamingEvent;
 
@@ -19,8 +20,9 @@ public class OkHttpOpenApiFactory extends OpenApiFactoryBase {
         this.logger = logger;
     }
 
+    @NotNull
     @Override
-    public OpenApi createOpenApiClient(Consumer<StreamingEvent> streamingEventCallback, Consumer<Throwable> streamingErrorCallback) {
+    public OpenApi createOpenApiClient(@NotNull Consumer<StreamingEvent> streamingEventCallback, @NotNull Consumer<Throwable> streamingErrorCallback) {
         final OkHttpClient client = new OkHttpClient.Builder()
             .pingInterval(Duration.ofSeconds(5))
             .build();

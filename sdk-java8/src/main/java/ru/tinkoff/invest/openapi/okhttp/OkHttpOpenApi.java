@@ -1,5 +1,6 @@
 package ru.tinkoff.invest.openapi.okhttp;
 
+import org.jetbrains.annotations.NotNull;
 import ru.tinkoff.invest.openapi.*;
 import ru.tinkoff.invest.openapi.model.market.InstrumentsList;
 import ru.tinkoff.invest.openapi.model.orders.Order;
@@ -12,53 +13,39 @@ import java.util.concurrent.CompletableFuture;
 
 public class OkHttpOpenApi extends OpenApi {
 
-    OkHttpOpenApi(MarketContext marketContext,
-                  OperationsContext operationsContext,
-                  OrdersContext ordersContext,
-                  PortfolioContext portfolioContext,
-                  StreamingContext streamingContext) {
+    OkHttpOpenApi(@NotNull final MarketContext marketContext,
+                  @NotNull final OperationsContext operationsContext,
+                  @NotNull final OrdersContext ordersContext,
+                  @NotNull final PortfolioContext portfolioContext,
+                  @NotNull final StreamingContext streamingContext) {
         super(marketContext, operationsContext, ordersContext, portfolioContext, streamingContext);
     }
 
-    public CompletableFuture<InstrumentsList> searchMarketInstrumentsByTicker(final String ticker) {
+    @NotNull
+    public CompletableFuture<InstrumentsList> searchMarketInstrumentsByTicker(@NotNull final String ticker) {
         final CompletableFuture<InstrumentsList> future = new CompletableFuture<>();
-        this.marketContext.searchMarketInstrumentsByTicker(ticker, (result, error) -> {
-            if (Objects.isNull(error)) {
-                future.complete(result);
-            } else {
-                future.completeExceptionally(error);
-            }
-        });
+        this.marketContext.searchMarketInstrumentsByTicker(ticker, future::complete, future::completeExceptionally);
         return future;
     }
 
+    @NotNull
     public CompletableFuture<PortfolioCurrencies> getPortfolioCurrencies() {
         final CompletableFuture<PortfolioCurrencies> future = new CompletableFuture<>();
-        this.portfolioContext.getPortfolioCurrencies((result, error) -> {
-            if (Objects.isNull(error)) {
-                future.complete(result);
-            } else {
-                future.completeExceptionally(error);
-            }
-        });
+        this.portfolioContext.getPortfolioCurrencies(future::complete, future::completeExceptionally);
         return future;
     }
 
+    @NotNull
     public CompletableFuture<List<Order>> getOrders() {
         final CompletableFuture<List<Order>> future = new CompletableFuture<>();
         this.ordersContext.getOrders(future::complete, future::completeExceptionally);
         return future;
     }
 
+    @NotNull
     public CompletableFuture<Portfolio> getPortfolio() {
         final CompletableFuture<Portfolio> future = new CompletableFuture<>();
-        this.portfolioContext.getPortfolio((result, error) -> {
-            if (Objects.isNull(error)) {
-                future.complete(result);
-            } else {
-                future.completeExceptionally(error);
-            }
-        });
+        this.portfolioContext.getPortfolio(future::complete, future::completeExceptionally);
         return future;
     }
 

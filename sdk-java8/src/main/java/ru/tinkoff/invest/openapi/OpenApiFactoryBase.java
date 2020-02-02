@@ -1,5 +1,6 @@
 package ru.tinkoff.invest.openapi;
 
+import org.jetbrains.annotations.NotNull;
 import ru.tinkoff.invest.openapi.model.streaming.StreamingEvent;
 
 import java.io.FileNotFoundException;
@@ -16,24 +17,26 @@ abstract public class OpenApiFactoryBase {
     protected final OpenApiConfig config;
     protected final String authToken;
 
-    public OpenApiFactoryBase(final String token,
+    public OpenApiFactoryBase(@NotNull final String token,
                               final boolean sandboxMode,
-                              final BiConsumer<String, Throwable> failureLogger) {
+                              @NotNull final BiConsumer<String, Throwable> failureLogger) {
         this.authToken = "Bearer " + token;
         this.sandboxMode = sandboxMode;
 
         this.config = extractConfig(failureLogger);
     }
 
-    abstract public OpenApi createOpenApiClient(Consumer<StreamingEvent> streamingEventCallback,
-                                                Consumer<Throwable> streamingErrorCallback);
+    @NotNull
+    abstract public OpenApi createOpenApiClient(@NotNull Consumer<StreamingEvent> streamingEventCallback,
+                                                @NotNull Consumer<Throwable> streamingErrorCallback);
 
     /**
      * Извлечение параметров конфигурации.
      *
      * @return Параметры конфигурации.
      */
-    protected static OpenApiConfig extractConfig(final BiConsumer<String, Throwable> failureLogger) {
+    @NotNull
+    protected static OpenApiConfig extractConfig(@NotNull final BiConsumer<String, Throwable> failureLogger) {
         final Properties prop = new Properties();
 
         final ClassLoader classLoader = OpenApiFactoryBase.class.getClassLoader();

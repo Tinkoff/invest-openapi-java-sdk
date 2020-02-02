@@ -1,9 +1,12 @@
 package ru.tinkoff.invest.openapi;
 
+import org.jetbrains.annotations.NotNull;
+import ru.tinkoff.invest.openapi.model.portfolio.PortfolioCurrencies;
 import ru.tinkoff.invest.openapi.model.sandbox.CurrencyBalance;
 import ru.tinkoff.invest.openapi.model.sandbox.PositionBalance;
 
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * Интерфейс работы с OpenAPI в части касающейся режима "песочницы".
@@ -13,32 +16,42 @@ public interface SandboxContext extends Context {
     /**
      * Регистрация в системе "песочницы". Проводится один раз для клиента.
      *
-     * @param callback Функция обратного вызова
+     * @param onComplete Функция обратного вызова при упешном исполнении.
+     * @param onError Функция обратного вызова при возникновении ошибки при исполнении.
      */
-    void performRegistration(BiConsumer<Void, Throwable> callback);
+    void performRegistration(@NotNull Consumer<Void> onComplete,
+                             @NotNull Consumer<Throwable> onError);
 
     /**
      * Установка значения валютного актива.
      *
-     * @param data Параметры запроса.
-     * @param callback Функция обратного вызова.
+     * @param data Жалаемые параметры позиции.
+     * @param onComplete Функция обратного вызова при упешном исполнении.
+     * @param onError Функция обратного вызова при возникновении ошибки при исполнении.
      */
-    void setCurrencyBalance(CurrencyBalance data, BiConsumer<Void, Throwable> callback);
+    void setCurrencyBalance(@NotNull CurrencyBalance data,
+                            @NotNull Consumer<Void> onComplete,
+                            @NotNull Consumer<Throwable> onError);
 
     /**
-     * Установка позиции по инструментну.
+     * Установка позиции по инструменту.
      *
-     * @param data Параметры запроса.
-     * @param callback Функция обратного вызова.
+     * @param data Жалаемые параметры позиции.
+     * @param onComplete Функция обратного вызова при упешном исполнении.
+     * @param onError Функция обратного вызова при возникновении ошибки при исполнении.
      */
-    void setPositionBalance(PositionBalance data, BiConsumer<Void, Throwable> callback);
+    void setPositionBalance(@NotNull PositionBalance data,
+                            @NotNull Consumer<Void> onComplete,
+                            @NotNull Consumer<Throwable> onError);
 
     /**
      * Сброс всех установленных значений по активам.
      *
-     * @param callback Функция обратного вызова
+     * @param onComplete Функция обратного вызова при упешном исполнении.
+     * @param onError Функция обратного вызова при возникновении ошибки при исполнении.
      */
-    void clearAll(BiConsumer<Void, Throwable> callback);
+    void clearAll(@NotNull Consumer<Void> onComplete,
+                  @NotNull Consumer<Throwable> onError);
 
 
 }

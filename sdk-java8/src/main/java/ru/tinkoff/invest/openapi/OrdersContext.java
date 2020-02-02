@@ -1,5 +1,6 @@
 package ru.tinkoff.invest.openapi;
 
+import org.jetbrains.annotations.NotNull;
 import ru.tinkoff.invest.openapi.model.orders.LimitOrder;
 import ru.tinkoff.invest.openapi.model.orders.Order;
 import ru.tinkoff.invest.openapi.model.orders.PlacedLimitOrder;
@@ -19,7 +20,7 @@ public interface OrdersContext extends Context {
      * @param onComplete Функция обратного вызова при упешном исполнении.
      * @param onError Функция обратного вызова при возникновении ошибки при исполнении.
      */
-    void getOrders(Consumer<List<Order>> onComplete, Consumer<Throwable> onError);
+    void getOrders(@NotNull Consumer<List<Order>> onComplete, @NotNull Consumer<Throwable> onError);
 
     /**
      * Размещение лимитной заявки.
@@ -28,7 +29,9 @@ public interface OrdersContext extends Context {
      * @param onComplete Функция обратного вызова при упешном исполнении.
      * @param onError Функция обратного вызова при возникновении ошибки при исполнении.
      */
-    void placeLimitOrder(LimitOrder limitOrder, Consumer<PlacedLimitOrder> onComplete, Consumer<Throwable> onError);
+    void placeLimitOrder(@NotNull LimitOrder limitOrder,
+                         @NotNull Consumer<PlacedLimitOrder> onComplete,
+                         @NotNull Consumer<Throwable> onError);
 
     /**
      * Отзыв лимитной заявки.
@@ -37,6 +40,6 @@ public interface OrdersContext extends Context {
      * @param onComplete Функция обратного вызова при упешном исполнении.
      * @param onError Функция обратного вызова при возникновении ошибки при исполнении.
      */
-    void cancelOrder(String orderId, Consumer<Void> onComplete, Consumer<Throwable> onError);
+    void cancelOrder(@NotNull String orderId, @NotNull Consumer<Void> onComplete, @NotNull Consumer<Throwable> onError);
 
 }

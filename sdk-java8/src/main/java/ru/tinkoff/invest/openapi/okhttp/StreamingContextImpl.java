@@ -21,7 +21,8 @@ import java.util.logging.Logger;
 
 class StreamingContextImpl implements StreamingContext {
 
-    private static final TypeReference<StreamingEvent> streamingEventTypeReference = new TypeReference<StreamingEvent>() {};
+    private static final TypeReference<StreamingEvent> streamingEventTypeReference =
+            new TypeReference<StreamingEvent>() {};
 
     private final StreamingApiListener streamingCallback;
     private final WebSocket[] wsClients;
@@ -31,19 +32,22 @@ class StreamingContextImpl implements StreamingContext {
     private final OkHttpClient client;
     private final Request wsRequest;
 
-    StreamingContextImpl(final OkHttpClient client,
-                         final String streamingUrl,
-                         final String authToken,
+    StreamingContextImpl(@NotNull final OkHttpClient client,
+                         @NotNull final String streamingUrl,
+                         @NotNull final String authToken,
                          final int streamingParallelism,
-                         final Consumer<StreamingEvent> streamingEventCallback,
-                         final Consumer<Throwable> streamingErrorCallback,
-                         final Logger logger) {
+                         @NotNull final Consumer<StreamingEvent> streamingEventCallback,
+                         @NotNull final Consumer<Throwable> streamingErrorCallback,
+                         @NotNull final Logger logger) {
         this.logger = logger;
         this.client = client;
         this.mapper = new ObjectMapper();
         this.mapper.registerModule(new JavaTimeModule());
 
-        this.streamingCallback = new StreamingContextImpl.StreamingApiListener(streamingEventCallback, streamingErrorCallback, mapper, logger);
+        this.streamingCallback = new StreamingContextImpl.StreamingApiListener(streamingEventCallback,
+                                                                               streamingErrorCallback,
+                                                                               mapper,
+                                                                               logger);
         this.wsClients = new WebSocket[streamingParallelism];
         this.requestsHistory = new HashMap<>(streamingParallelism);
         this.wsRequest = new Request.Builder()
@@ -57,7 +61,7 @@ class StreamingContextImpl implements StreamingContext {
     }
 
     @Override
-    public void sendRequest(StreamingRequest request) {
+    public void sendRequest(@NotNull final StreamingRequest request) {
         int clientIndex = request.hashCode() % this.wsClients.length;
 
         try {
@@ -84,7 +88,7 @@ class StreamingContextImpl implements StreamingContext {
         }
     }
 
-    public void restore(final WebSocket webSocket) throws Exception {
+    public void restore(@NotNull final WebSocket webSocket) throws Exception {
         for (int i = 0; i < this.wsClients.length; i++) {
             final WebSocket wsClient = this.wsClients[i];
             if (wsClient == webSocket) {
@@ -115,10 +119,10 @@ class StreamingContextImpl implements StreamingContext {
         private final ObjectMapper mapper;
         private final Logger logger;
 
-        StreamingApiListener(final Consumer<StreamingEvent> streamingEventCallback,
-                             final Consumer<Throwable> streamingErrorCallback,
-                             final ObjectMapper mapper,
-                             final Logger logger) {
+        StreamingApiListener(@NotNull final Consumer<StreamingEvent> streamingEventCallback,
+                             @NotNull final Consumer<Throwable> streamingErrorCallback,
+                             @NotNull final ObjectMapper mapper,
+                             @NotNull final Logger logger) {
             this.streamingEventCallback = streamingEventCallback;
             this.streamingErrorCallback = streamingErrorCallback;
             this.mapper = mapper;
@@ -160,12 +164,12 @@ class StreamingContextImpl implements StreamingContext {
         }
 
         @Override
-        public void handleEvent(final StreamingEvent event) {
+        public void handleEvent(@NotNull final StreamingEvent event) {
             this.streamingEventCallback.accept(event);
         }
 
         @Override
-        public void handleError(final Throwable error) {
+        public void handleError(@NotNull final Throwable error) {
             this.streamingErrorCallback.accept(error);
         }
     }

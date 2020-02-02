@@ -1,14 +1,15 @@
 package ru.tinkoff.invest.openapi;
 
+import org.jetbrains.annotations.NotNull;
 import ru.tinkoff.invest.openapi.model.streaming.StreamingEvent;
 import ru.tinkoff.invest.openapi.model.streaming.StreamingRequest;
 
 public interface StreamingContext {
-    void sendRequest(StreamingRequest request);
+    void sendRequest(@NotNull StreamingRequest request);
     void close();
 
     interface StreamingEventHandler {
-        void handleEvent(StreamingEvent event);
-        void handleError(Throwable error);
+        void handleEvent(@NotNull StreamingEvent event);
+        void handleError(@NotNull Throwable error);
     }
 }

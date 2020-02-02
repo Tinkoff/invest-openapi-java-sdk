@@ -1,5 +1,7 @@
 package ru.tinkoff.invest.openapi;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Базовый интерфейс для работы с OpenAPI.
  */
@@ -10,6 +12,7 @@ public interface Context {
      *
      * @return Путь в URL.
      */
+    @NotNull
     String getPath();
 
 }
