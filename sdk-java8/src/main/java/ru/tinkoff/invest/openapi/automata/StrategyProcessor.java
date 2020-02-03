@@ -1,5 +1,6 @@
 package ru.tinkoff.invest.openapi.automata;
 
+import org.jetbrains.annotations.NotNull;
 import org.reactivestreams.Processor;
 import org.reactivestreams.Subscriber;
 import ru.tinkoff.invest.openapi.model.orders.Operation;
@@ -22,7 +23,7 @@ public class StrategyProcessor implements Processor<OutputApiSignal, InputApiSig
     private org.reactivestreams.Subscription subscription; // Obeying rule 3.1, we make this private!
     private boolean done; // It's useful to keep track of whether this Subscriber is done or not
 
-    public StrategyProcessor(final Executor executor, final Logger logger) {
+    public StrategyProcessor(@NotNull final Executor executor, @NotNull final Logger logger) {
         Objects.requireNonNull(executor);
         this.executor = executor;
 
@@ -43,6 +44,7 @@ public class StrategyProcessor implements Processor<OutputApiSignal, InputApiSig
         }
     }
 
+    @NotNull
     public List<Strategy> strategies() {
         return new LinkedList<>(this.operatingStrategies);
     }

@@ -130,14 +130,14 @@ class StreamingContextImpl implements StreamingContext {
         }
 
         @Override
-        public void onOpen(@NotNull WebSocket webSocket, @NotNull Response response) {
+        public void onOpen(@NotNull final WebSocket webSocket, @NotNull final Response response) {
             super.onOpen(webSocket, response);
 
             logger.info("Streaming API клиент подключён");
         }
 
         @Override
-        public void onMessage(@NotNull WebSocket webSocket, @NotNull String text) {
+        public void onMessage(@NotNull final WebSocket webSocket, @NotNull final String text) {
             super.onMessage(webSocket, text);
 
             try {
@@ -150,7 +150,9 @@ class StreamingContextImpl implements StreamingContext {
         }
 
         @Override
-        public void onFailure(@NotNull WebSocket webSocket, @NotNull Throwable t, @Nullable Response response) {
+        public void onFailure(@NotNull final WebSocket webSocket,
+                              @NotNull final Throwable t,
+                              @Nullable final Response response) {
             super.onFailure(webSocket, t, response);
 
             logger.log(Level.SEVERE, "Что-то произошло в Streaming API", t);

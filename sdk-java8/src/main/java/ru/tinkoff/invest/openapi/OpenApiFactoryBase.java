@@ -7,8 +7,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 abstract public class OpenApiFactoryBase {
 
@@ -16,14 +17,16 @@ abstract public class OpenApiFactoryBase {
 
     protected final OpenApiConfig config;
     protected final String authToken;
+    protected final Logger logger;
 
     public OpenApiFactoryBase(@NotNull final String token,
                               final boolean sandboxMode,
-                              @NotNull final BiConsumer<String, Throwable> failureLogger) {
+                              @NotNull final Logger logger) {
+        this.logger = logger;
         this.authToken = "Bearer " + token;
         this.sandboxMode = sandboxMode;
 
-        this.config = extractConfig(failureLogger);
+        this.config = extractConfig();
     }
 
     @NotNull
@@ -36,7 +39,7 @@ abstract public class OpenApiFactoryBase {
      * @return Параметры конфигурации.
      */
     @NotNull
-    protected static OpenApiConfig extractConfig(@NotNull final BiConsumer<String, Throwable> failureLogger) {
+    protected OpenApiConfig extractConfig() {
         final Properties prop = new Properties();
 
         final ClassLoader classLoader = OpenApiFactoryBase.class.getClassLoader();
@@ -49,7 +52,7 @@ abstract public class OpenApiFactoryBase {
             //load properties file from class path, inside static method
             prop.load(input);
         } catch (IOException ex) {
-            failureLogger.accept("Не нашёлся файл конфигурации.", ex);
+            logger.log(Level.SEVERE, "Не нашёлся файл конфигурации.", ex);
         }
 
         final String host = prop.getProperty("ru.tinkoff.invest.openapi.host");

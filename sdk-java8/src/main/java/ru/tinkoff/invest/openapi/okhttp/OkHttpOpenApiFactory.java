@@ -7,22 +7,20 @@ import ru.tinkoff.invest.openapi.model.streaming.StreamingEvent;
 
 import java.time.Duration;
 import java.util.function.Consumer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class OkHttpOpenApiFactory extends OpenApiFactoryBase {
 
-    private final Logger logger;
-
-    public OkHttpOpenApiFactory(final String token, final boolean sandboxMode, Logger logger) {
-        super(token, sandboxMode, (msg, err) -> logger.log(Level.SEVERE, msg, err));
-
-        this.logger = logger;
+    public OkHttpOpenApiFactory(@NotNull final String token,
+                                final boolean sandboxMode,
+                                @NotNull final Logger logger) {
+        super(token, sandboxMode, logger);
     }
 
     @NotNull
     @Override
-    public OpenApi createOpenApiClient(@NotNull Consumer<StreamingEvent> streamingEventCallback, @NotNull Consumer<Throwable> streamingErrorCallback) {
+    public OpenApi createOpenApiClient(@NotNull final Consumer<StreamingEvent> streamingEventCallback,
+                                       @NotNull final Consumer<Throwable> streamingErrorCallback) {
         final OkHttpClient client = new OkHttpClient.Builder()
             .pingInterval(Duration.ofSeconds(5))
             .build();

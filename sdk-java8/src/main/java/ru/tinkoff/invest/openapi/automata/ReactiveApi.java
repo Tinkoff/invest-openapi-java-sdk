@@ -1,5 +1,6 @@
 package ru.tinkoff.invest.openapi.automata;
 
+import org.jetbrains.annotations.NotNull;
 import org.reactivestreams.Processor;
 import org.reactivestreams.Subscriber;
 import ru.tinkoff.invest.openapi.OpenApi;
@@ -20,7 +21,7 @@ import java.util.logging.Logger;
 
 public class ReactiveApi implements Processor<InputApiSignal, OutputApiSignal>, Runnable {
 
-    public final OpenApi api;
+    @NotNull public final OpenApi api;
 
     private final Set<Subscription> subscriptions;
     private final Executor executor; // This is the Executor we'll use to be asynchronous, obeying rule 2.2
@@ -29,7 +30,9 @@ public class ReactiveApi implements Processor<InputApiSignal, OutputApiSignal>, 
     private org.reactivestreams.Subscription subscription; // Obeying rule 3.1, we make this private!
     private boolean done; // It's useful to keep track of whether this Subscriber is done or not
 
-    public ReactiveApi(final Executor executor, final OpenApiFactoryBase factory, final Logger logger) {
+    public ReactiveApi(@NotNull final Executor executor,
+                       @NotNull final OpenApiFactoryBase factory,
+                       @NotNull final Logger logger) {
         Objects.requireNonNull(executor);
         this.executor = executor;
         final OpenApi api = factory.createOpenApiClient(this::streamingConsumer, this::onError);

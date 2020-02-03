@@ -35,10 +35,10 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
             new TypeReference<RestResponse<Instrument>>() {
             };
 
-    public MarketContextImpl(final OkHttpClient client,
-                             final String url,
-                             final String authToken,
-                             final Logger logger) {
+    public MarketContextImpl(@NotNull final OkHttpClient client,
+                             @NotNull final String url,
+                             @NotNull final String authToken,
+                             @NotNull final Logger logger) {
         super(client, url, authToken, logger);
     }
 
