@@ -1,5 +1,6 @@
 package ru.tinkoff.invest.openapi.automata;
 
+import org.jetbrains.annotations.NotNull;
 import ru.tinkoff.invest.openapi.OpenApi;
 import ru.tinkoff.invest.openapi.OpenApiFactoryBase;
 import ru.tinkoff.invest.openapi.model.market.CandleInterval;
@@ -14,7 +15,9 @@ public class TradingAutomata implements AutoCloseable {
 
     private boolean isRunning;
 
-    public TradingAutomata(final OpenApiFactoryBase apiFactory, final Executor executor, final Logger logger) {
+    public TradingAutomata(@NotNull final OpenApiFactoryBase apiFactory,
+                           @NotNull final Executor executor,
+                           @NotNull final Logger logger) {
         this.apiProcessor = new ReactiveApi(executor, apiFactory, logger);
         this.strategyProcessor = new StrategyProcessor(executor, logger);
 
@@ -28,6 +31,7 @@ public class TradingAutomata implements AutoCloseable {
         return this.isRunning;
     }
 
+    @NotNull
     public OpenApi api() {
         return apiProcessor.api;
     }
@@ -60,7 +64,7 @@ public class TradingAutomata implements AutoCloseable {
         if (this.isRunning) this.cleanupStrategy(strategy);
     }
 
-    private void prepareStrategy(final Strategy strategy) {
+    private void prepareStrategy(@NotNull final Strategy strategy) {
         final String figi = strategy.getInstrument().figi;
         final InputApiSignal.StartInstrumentInfoStreaming instrumentInfoSignal =
                 new InputApiSignal.StartInstrumentInfoStreaming(figi);
@@ -75,7 +79,7 @@ public class TradingAutomata implements AutoCloseable {
         this.apiProcessor.onNext(orderbookSignal);
     }
 
-    private void cleanupStrategy(final Strategy strategy) {
+    private void cleanupStrategy(@NotNull final Strategy strategy) {
         final String figi = strategy.getInstrument().figi;
         final InputApiSignal.StopInstrumentInfoStreaming instrumentInfoSignal =
                 new InputApiSignal.StopInstrumentInfoStreaming(figi);

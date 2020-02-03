@@ -1,6 +1,9 @@
 package ru.tinkoff.invest.openapi.automata;
 
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -11,22 +14,22 @@ import java.util.stream.Collectors;
  */
 public class TradingState {
 
-    public final Orderbook orderbook;
-    public final Candle candle;
-    public final InstrumentInfo instrumentInfo;
-    public final List<Order> orders;
-    public final Map<Currency, Position> currencies;
-    public final Map<String, Position> positions;
+    @Nullable public final Orderbook orderbook;
+    @Nullable public final Candle candle;
+    @Nullable public final InstrumentInfo instrumentInfo;
+    @NotNull public final List<Order> orders;
+    @NotNull public final Map<Currency, Position> currencies;
+    @NotNull public final Map<String, Position> positions;
 
     private final Currency instrumentCurrency;
 
-    public TradingState(final Orderbook orderbook,
-                        final Candle candle,
-                        final InstrumentInfo instrumentInfo,
-                        final List<Order> orders,
-                        final Map<Currency, Position> currencies,
-                        final Map<String, Position> positions,
-                        final Currency instrumentCurrency) {
+    public TradingState(@Nullable final Orderbook orderbook,
+                        @Nullable final Candle candle,
+                        @Nullable final InstrumentInfo instrumentInfo,
+                        @NotNull final List<Order> orders,
+                        @NotNull final Map<Currency, Position> currencies,
+                        @NotNull final Map<String, Position> positions,
+                        @NotNull final Currency instrumentCurrency) {
         this.orderbook = orderbook;
         this.candle = candle;
         this.instrumentInfo = instrumentInfo;
@@ -36,7 +39,8 @@ public class TradingState {
         this.instrumentCurrency = instrumentCurrency;
     }
 
-    public TradingState withNewCandle(final Candle candle) {
+    @NotNull
+    public TradingState withNewCandle(@NotNull final Candle candle) {
         return new TradingState(
                 this.orderbook,
                 candle,
@@ -48,7 +52,8 @@ public class TradingState {
         );
     }
 
-    public TradingState withNewOrderbook(final Orderbook orderbook) {
+    @NotNull
+    public TradingState withNewOrderbook(@NotNull final Orderbook orderbook) {
         return new TradingState(
                 orderbook,
                 this.candle,
@@ -60,7 +65,8 @@ public class TradingState {
         );
     }
 
-    public TradingState withNewInstrumentInfo(final InstrumentInfo instrumentInfo) {
+    @NotNull
+    public TradingState withNewInstrumentInfo(@NotNull final InstrumentInfo instrumentInfo) {
         final List<Order> orders;
         final Map<Currency, Position> currencies;
         final Map<String, Position> positions;
@@ -114,7 +120,10 @@ public class TradingState {
         );
     }
 
-    public TradingState withExecutedOrder(final String id) {
+    @NotNull
+    public TradingState withExecutedOrder(@NotNull final String id) {
+        Objects.requireNonNull(instrumentInfo);
+
         Order executedOrder = null;
         for (final Order o : this.orders) {
             if (o.id.equals(id)) {
@@ -134,11 +143,6 @@ public class TradingState {
                 ? currentCurrencyPosition.withBlocked(currentCurrencyPosition.blocked.subtract(amount))
                 : currentCurrencyPosition.withBalance(currentCurrencyPosition.balance.add(amount));
             currenciesCopy.put(this.instrumentCurrency, newCurrencyValue);
-//            if (Objects.nonNull(executedOrder.commission)) {
-//                final Position current = currenciesCopy.getOrDefault(executedOrder.commission.currency, Position.empty);
-//                final Position corrected = current.withBalance(current.balance.subtract(executedOrder.commission.value));
-//                currenciesCopy.put(executedOrder.commission.currency, corrected);
-//            }
 
             final Position currentPosition = positionsCopy.getOrDefault(executedOrder.figi, Position.empty);
             final Position newPositionValue = executedOrder.operation == Operation.Buy
@@ -158,7 +162,10 @@ public class TradingState {
         );
     }
 
-    public TradingState withCancelledOrder(final String id) {
+    @NotNull
+    public TradingState withCancelledOrder(@NotNull final String id) {
+        Objects.requireNonNull(instrumentInfo);
+
         Order cancelledOrder = null;
         for (final Order o : this.orders) {
             if (o.id.equals(id)) {
@@ -197,7 +204,10 @@ public class TradingState {
         );
     }
 
-    public TradingState withChangedOrder(final String id, final Order.Status status, int executedLots) {
+    @NotNull
+    public TradingState withChangedOrder(@NotNull final String id,
+                                         @NotNull final Order.Status status,
+                                         int executedLots) {
         final List<Order> updated = this.orders.stream().map(o -> {
             if (o.id.equals(id)) {
                 return new Order(
@@ -227,7 +237,10 @@ public class TradingState {
         );
     }
 
-    public TradingState withPlacedOrder(final Order newOrder) {
+    @NotNull
+    public TradingState withPlacedOrder(@NotNull final Order newOrder) {
+        Objects.requireNonNull(instrumentInfo);
+
         final List<Order> newOrders = new LinkedList<>(this.orders);
         newOrders.add(newOrder);
 
@@ -274,23 +287,23 @@ public class TradingState {
 
     public static class Candle {
 
-        public final BigDecimal openPrice;
-        public final BigDecimal closingPrice;
-        public final BigDecimal highestPrice;
-        public final BigDecimal lowestPrice;
-        public final BigDecimal tradingValue;
-        public final ZonedDateTime dateTime;
-        public final CandleInterval interval;
-        public final String figi;
+        @NotNull public final BigDecimal openPrice;
+        @NotNull public final BigDecimal closingPrice;
+        @NotNull public final BigDecimal highestPrice;
+        @NotNull public final BigDecimal lowestPrice;
+        @NotNull public final BigDecimal tradingValue;
+        @NotNull public final ZonedDateTime dateTime;
+        @NotNull public final CandleInterval interval;
+        @NotNull public final String figi;
 
-        public Candle(final BigDecimal openPrice,
-                      final BigDecimal closingPrice,
-                      final BigDecimal highestPrice,
-                      final BigDecimal lowestPrice,
-                      final BigDecimal tradingValue,
-                      final ZonedDateTime dateTime,
-                      final CandleInterval interval,
-                      final String figi) {
+        public Candle(@NotNull final BigDecimal openPrice,
+                      @NotNull final BigDecimal closingPrice,
+                      @NotNull final BigDecimal highestPrice,
+                      @NotNull final BigDecimal lowestPrice,
+                      @NotNull final BigDecimal tradingValue,
+                      @NotNull final ZonedDateTime dateTime,
+                      @NotNull final CandleInterval interval,
+                      @NotNull final String figi) {
             this.openPrice = openPrice;
             this.closingPrice = closingPrice;
             this.highestPrice = highestPrice;
@@ -323,14 +336,14 @@ public class TradingState {
     public static class Orderbook {
 
         public final int depth;
-        public final List<StakeState> bids;
-        public final List<StakeState> asks;
-        public final String figi;
+        @NotNull public final List<StakeState> bids;
+        @NotNull public final List<StakeState> asks;
+        @NotNull public final String figi;
 
         public Orderbook(final int depth,
-                         final List<StakeState> bids,
-                         final List<StakeState> asks,
-                         final String figi) {
+                         @NotNull final List<StakeState> bids,
+                         @NotNull final List<StakeState> asks,
+                         @NotNull final String figi) {
             this.depth = depth;
             this.bids = bids;
             this.asks = asks;
@@ -338,10 +351,10 @@ public class TradingState {
         }
 
         public static class StakeState {
-            public final BigDecimal price;
+            @NotNull public final BigDecimal price;
             public final int count;
 
-            public StakeState(BigDecimal price, int count) {
+            public StakeState(@NotNull final BigDecimal price, final int count) {
                 this.price = price;
                 this.count = count;
             }
@@ -368,20 +381,20 @@ public class TradingState {
 
     public static class InstrumentInfo {
         public final boolean canTrade;
-        public final BigDecimal minPriceIncrement;
+        @NotNull public final BigDecimal minPriceIncrement;
         public final int lot;
-        public final BigDecimal accruedInterest;
-        public final BigDecimal limitUp;
-        public final BigDecimal limitDown;
-        public final String figi;
+        @Nullable public final BigDecimal accruedInterest;
+        @Nullable public final BigDecimal limitUp;
+        @Nullable public final BigDecimal limitDown;
+        @NotNull public final String figi;
 
         public InstrumentInfo(final boolean canTrade,
-                              final BigDecimal minPriceIncrement,
+                              @NotNull final BigDecimal minPriceIncrement,
                               final int lot,
-                              final BigDecimal accruedInterest,
-                              final BigDecimal limitUp,
-                              final BigDecimal limitDown,
-                              final String figi) {
+                              @Nullable final BigDecimal accruedInterest,
+                              @Nullable final BigDecimal limitUp,
+                              @Nullable final BigDecimal limitDown,
+                              @NotNull final String figi) {
             this.canTrade = canTrade;
             this.minPriceIncrement = minPriceIncrement;
             this.lot = lot;
@@ -471,19 +484,11 @@ public class TradingState {
     }
 
     public static class MoneyAmount {
+        @NotNull public final Currency currency;
+        @NotNull public final BigDecimal value;
 
-        public final Currency currency;
-        public final BigDecimal value;
-
-        public MoneyAmount(final Currency currency,
-                           final BigDecimal value) {
-            if (Objects.isNull(currency)) {
-                throw new IllegalArgumentException("Валюта не может быть null.");
-            }
-            if (Objects.isNull(value)) {
-                throw new IllegalArgumentException("Размер не может быть null.");
-            }
-
+        public MoneyAmount(@NotNull final Currency currency,
+                           @NotNull final BigDecimal value) {
             this.currency = currency;
             this.value = value;
         }
@@ -506,27 +511,24 @@ public class TradingState {
     }
 
     public static class Position {
-
-        public final BigDecimal balance;
-        public final BigDecimal blocked;
+        @NotNull public final BigDecimal balance;
+        @NotNull public final BigDecimal blocked;
 
         public static Position empty = new Position(BigDecimal.ZERO, BigDecimal.ZERO);
 
-        public Position(final BigDecimal balance,
-                        final BigDecimal blocked) {
-            if (Objects.isNull(balance)) {
-                throw new IllegalArgumentException("Баланс не может быть null.");
-            }
-
+        public Position(@NotNull final BigDecimal balance,
+                        @Nullable final BigDecimal blocked) {
             this.balance = balance;
             this.blocked = Objects.nonNull(blocked) ? blocked : BigDecimal.ZERO;
         }
 
-        public Position withBalance(final BigDecimal newBalance) {
+        @NotNull
+        public Position withBalance(@NotNull final BigDecimal newBalance) {
             return new Position(newBalance, this.blocked);
         }
 
-        public Position withBlocked(final BigDecimal newBlocked) {
+        @NotNull
+        public Position withBlocked(@NotNull final BigDecimal newBlocked) {
             return new Position(this.balance, newBlocked);
         }
 
