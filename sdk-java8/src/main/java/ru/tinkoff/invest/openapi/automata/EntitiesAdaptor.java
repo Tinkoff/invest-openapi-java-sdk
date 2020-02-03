@@ -6,10 +6,6 @@ import ru.tinkoff.invest.openapi.model.market.CandleInterval;
 import ru.tinkoff.invest.openapi.model.orders.Operation;
 import ru.tinkoff.invest.openapi.model.orders.Order;
 import ru.tinkoff.invest.openapi.model.orders.Status;
-import ru.tinkoff.invest.openapi.model.portfolio.PortfolioCurrencies;
-
-import java.math.BigDecimal;
-import java.util.Map;
 
 public class EntitiesAdaptor {
 
@@ -70,12 +66,12 @@ public class EntitiesAdaptor {
         }
     }
 
-    public static TradingState.Operation convertApiEntityToTradingState(Operation apiOperation) {
+    public static TradingState.Order.Type convertApiEntityToTradingState(Operation apiOperation) {
         switch (apiOperation) {
             case Buy:
-                return TradingState.Operation.Buy;
+                return TradingState.Order.Type.Buy;
             case Sell:
-                return TradingState.Operation.Sell;
+                return TradingState.Order.Type.Sell;
             default:
                 throw new IllegalArgumentException();
         }
@@ -127,8 +123,8 @@ public class EntitiesAdaptor {
         }
     }
 
-    public static Operation convertTradingStateToApiEntity(TradingState.Operation domainOperation) {
-        switch (domainOperation) {
+    public static Operation convertTradingStateToApiEntity(TradingState.Order.Type domainOperationType) {
+        switch (domainOperationType) {
             case Buy:
                 return Operation.Buy;
             case Sell:
@@ -152,10 +148,8 @@ public class EntitiesAdaptor {
                 apiOrder.id,
                 convertApiEntityToTradingState(apiOrder.operation),
                 convertApiEntityToTradingState(apiOrder.status),
-                null,
                 apiOrder.requestedLots,
                 apiOrder.executedLots,
-                null,
                 apiOrder.price,
                 apiOrder.figi
         );

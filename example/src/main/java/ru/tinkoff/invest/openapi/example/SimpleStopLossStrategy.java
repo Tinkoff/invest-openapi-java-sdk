@@ -140,7 +140,7 @@ public class SimpleStopLossStrategy implements Strategy {
             logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " + initialPrice +
                     ". Экстремум = " + extremum + ". Сейчас нет позиции и до этого не было. Можно торговать. " +
                     "Размещаем лимитную заявку на покупку.");
-            return placeLimitOrder(price, TradingState.Operation.Buy);
+            return placeLimitOrder(price, TradingState.Order.Type.Buy);
         } else if (!hasPosition && lastOrderResult != LastOrderResult.None) {
             if (price.compareTo(extremum) <= 0) {
                 logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
@@ -158,7 +158,7 @@ public class SimpleStopLossStrategy implements Strategy {
                                 initialPrice + ". Экстремум = " + extremum + ". Сейчас нет позиции, но до этого " +
                                 "была. Текущая цена > экстремума. Цена поднялась значительно относительно " +
                                 "экстремума. Можно торговать. Размещаем лимитную заявку на покупку.");
-                        return placeLimitOrder(price, TradingState.Operation.Buy);
+                        return placeLimitOrder(price, TradingState.Order.Type.Buy);
                     } else {
                         logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
                                 initialPrice + ". Экстремум = " + extremum + ". Сейчас нет позиции, но до этого " +
@@ -196,7 +196,7 @@ public class SimpleStopLossStrategy implements Strategy {
                                     "относительно отсчётной цены. Цена опустилась значительно ниже экстремума. " +
                                     "Размещаем лимитную заявку на продажу (фиксация прибыли).");
                             lastOrderResult = LastOrderResult.Profit;
-                            return placeLimitOrder(price, TradingState.Operation.Sell);
+                            return placeLimitOrder(price, TradingState.Order.Type.Sell);
                         } else {
                             logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
                                     initialPrice + ". Экстремум = " + extremum + ". Сейчас есть позиция. Экстремум > " +
@@ -228,7 +228,7 @@ public class SimpleStopLossStrategy implements Strategy {
                                 "отсчётной цены. екущая цена < экстремума. Цена опустилась значительно относительно " +
                                 "отсчётной цены. Размещаем лимитную заявку на продажу (остановка потерь).");
                         lastOrderResult = LastOrderResult.Loss;
-                        return placeLimitOrder(price, TradingState.Operation.Sell);
+                        return placeLimitOrder(price, TradingState.Order.Type.Sell);
                     } else {
                         logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
                                 initialPrice + ". Экстремум = " + extremum + ". Сейчас есть позиция. Экстремум < " +
@@ -267,7 +267,7 @@ public class SimpleStopLossStrategy implements Strategy {
         }
     }
 
-    private StrategyDecision placeLimitOrder(final BigDecimal price, final TradingState.Operation operationType) {
+    private StrategyDecision placeLimitOrder(final BigDecimal price, final TradingState.Order.Type operationType) {
         initialPrice = price;
         extremum = price;
 
@@ -280,7 +280,7 @@ public class SimpleStopLossStrategy implements Strategy {
 
         final BigDecimal lotSize = BigDecimal.valueOf(operatingInstrument.lot);
         final int lots;
-        if (operationType == TradingState.Operation.Buy) {
+        if (operationType == TradingState.Order.Type.Buy) {
             final var maxValue = maxOperationValue.compareTo(currentValue.balance) > 0
                     ? currentValue.balance
                     : maxOperationValue;

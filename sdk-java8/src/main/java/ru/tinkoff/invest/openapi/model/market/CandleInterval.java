@@ -22,6 +22,10 @@ public enum CandleInterval {
     HALF_HOUR,
     @JsonProperty("hour")
     HOUR,
+    @JsonProperty("2hour")
+    TWO_HOURS,
+    @JsonProperty("4hour")
+    FOUR_HOURS,
     @JsonProperty("day")
     DAY,
     @JsonProperty("week")

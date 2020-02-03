@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 public abstract class StrategyDecision {
 
-    public static StrategyDecision placeLimitOrder(String figi, int lots, TradingState.Operation operation, BigDecimal price) {
+    public static StrategyDecision placeLimitOrder(String figi, int lots, TradingState.Order.Type operation, BigDecimal price) {
         return new PlaceLimitOrder(figi, lots, operation, price);
     }
 
@@ -19,10 +19,10 @@ public abstract class StrategyDecision {
     public static class PlaceLimitOrder extends StrategyDecision {
         public final String figi;
         public final Integer lots;
-        public final TradingState.Operation operation;
+        public final TradingState.Order.Type operation;
         public final BigDecimal price;
 
-        private PlaceLimitOrder(String figi, Integer lots, TradingState.Operation operation, BigDecimal price) {
+        private PlaceLimitOrder(String figi, Integer lots, TradingState.Order.Type operation, BigDecimal price) {
             this.figi = figi;
             this.lots = lots;
             this.operation = operation;

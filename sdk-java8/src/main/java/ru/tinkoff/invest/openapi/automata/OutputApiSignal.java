@@ -1,6 +1,7 @@
 package ru.tinkoff.invest.openapi.automata;
 
-import ru.tinkoff.invest.openapi.model.MoneyAmount;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ru.tinkoff.invest.openapi.model.market.CandleInterval;
 import ru.tinkoff.invest.openapi.model.orders.*;
 import ru.tinkoff.invest.openapi.model.streaming.StreamingEvent;
@@ -12,45 +13,41 @@ import java.util.Objects;
 
 public class OutputApiSignal {
 
-    public final String figi;
+    @NotNull public final String figi;
 
-    public OutputApiSignal(String figi) {
+    public OutputApiSignal(@NotNull final String figi) {
         this.figi = figi;
     }
 
     public static final class LimitOrderPlaced extends OutputApiSignal {
-        public final String id;
-        public final Operation operation;
-        public final Status status;
-        public final String rejectReason;
+        @NotNull public final String id;
+        @NotNull public final Operation operation;
+        @NotNull public final Status status;
         public final int requestedLots;
         public final int executedLots;
-        public final MoneyAmount commission;
-        public final BigDecimal price;
+        @NotNull public final BigDecimal price;
 
-        private LimitOrderPlaced(final String id,
-                                 final Operation operation,
-                                 final Status status,
-                                 final String rejectReason,
+        private LimitOrderPlaced(@NotNull final String id,
+                                 @NotNull final Operation operation,
+                                 @NotNull final Status status,
                                  final int requestedLots,
                                  final int executedLots,
-                                 final MoneyAmount commission,
-                                 final BigDecimal price,
-                                 final String figi) {
+                                 @NotNull final BigDecimal price,
+                                 @NotNull final String figi) {
             super(figi);
 
             this.id = id;
             this.operation = operation;
             this.status = status;
-            this.rejectReason = rejectReason;
             this.requestedLots = requestedLots;
             this.executedLots = executedLots;
-            this.commission = commission;
             this.price = price;
         }
 
-        static LimitOrderPlaced fromApiEntity(PlacedLimitOrder plo, BigDecimal price, String figi) {
-            return new LimitOrderPlaced(plo.id, plo.operation, plo.status, plo.rejectReason, plo.requestedLots, plo.executedLots, plo.commission, price, figi);
+        static LimitOrderPlaced fromApiEntity(@NotNull final PlacedLimitOrder plo,
+                                              @NotNull final BigDecimal price,
+                                              @NotNull final String figi) {
+            return new LimitOrderPlaced(plo.id, plo.operation, plo.status, plo.requestedLots, plo.executedLots, price, figi);
         }
 
         @Override
@@ -59,10 +56,8 @@ public class OutputApiSignal {
                     "id='" + id + '\'' +
                     ", operation=" + operation +
                     ", status=" + status +
-                    ", rejectReason='" + rejectReason + '\'' +
                     ", requestedLots=" + requestedLots +
                     ", executedLots=" + executedLots +
-                    ", commission=" + commission +
                     ", price=" + price.toPlainString() +
                     ", figi='" + figi + '\'' +
                     '}';
@@ -70,16 +65,12 @@ public class OutputApiSignal {
     }
 
     public static final class OrderCancelled extends OutputApiSignal {
-        public final String id;
+        @NotNull public final String id;
 
-        private OrderCancelled(String id, String figi) {
+        public OrderCancelled(@NotNull final String figi, @NotNull final String id) {
             super(figi);
 
             this.id = id;
-        }
-
-        static OrderCancelled fromApiEntity(String id, String figi) {
-            return new OrderCancelled(id, figi);
         }
 
         @Override
@@ -92,15 +83,22 @@ public class OutputApiSignal {
     }
 
     public static final class CandleReceived extends OutputApiSignal {
-        public final BigDecimal openPrice;
-        public final BigDecimal closingPrice;
-        public final BigDecimal highestPrice;
-        public final BigDecimal lowestPrice;
-        public final BigDecimal tradingValue;
-        public final ZonedDateTime dateTime;
-        public final CandleInterval interval;
+        @NotNull public final BigDecimal openPrice;
+        @NotNull public final BigDecimal closingPrice;
+        @NotNull public final BigDecimal highestPrice;
+        @NotNull public final BigDecimal lowestPrice;
+        @NotNull public final BigDecimal tradingValue;
+        @NotNull public final ZonedDateTime dateTime;
+        @NotNull public final CandleInterval interval;
 
-        private CandleReceived(BigDecimal openPrice, BigDecimal closingPrice, BigDecimal highestPrice, BigDecimal lowestPrice, BigDecimal tradingValue, ZonedDateTime dateTime, CandleInterval interval, String figi) {
+        private CandleReceived(@NotNull BigDecimal openPrice,
+                               @NotNull BigDecimal closingPrice,
+                               @NotNull BigDecimal highestPrice,
+                               @NotNull BigDecimal lowestPrice,
+                               @NotNull BigDecimal tradingValue,
+                               @NotNull ZonedDateTime dateTime,
+                               @NotNull CandleInterval interval,
+                               @NotNull String figi) {
             super(figi);
 
             this.openPrice = openPrice;
@@ -133,10 +131,13 @@ public class OutputApiSignal {
 
     public static final class OrderbookReceived extends OutputApiSignal {
         public final int depth;
-        public final List<BigDecimal[]> bids;
-        public final List<BigDecimal[]> asks;
+        @NotNull public final List<BigDecimal[]> bids;
+        @NotNull public final List<BigDecimal[]> asks;
 
-        private OrderbookReceived(int depth, List<BigDecimal[]> bids, List<BigDecimal[]> asks, String figi) {
+        private OrderbookReceived(final int depth,
+                                  @NotNull final List<BigDecimal[]> bids,
+                                  @NotNull final List<BigDecimal[]> asks,
+                                  @NotNull final String figi) {
             super(figi);
 
             this.depth = depth;
@@ -144,7 +145,7 @@ public class OutputApiSignal {
             this.asks = asks;
         }
 
-        static OrderbookReceived fromApiEntity(StreamingEvent.Orderbook se) {
+        static OrderbookReceived fromApiEntity(@NotNull final StreamingEvent.Orderbook se) {
             return new OrderbookReceived(se.getDepth(), se.getBids(), se.getAsks(), se.getFigi());
         }
 
@@ -158,15 +159,20 @@ public class OutputApiSignal {
     }
 
     public static final class InstrumentInfoReceived extends OutputApiSignal {
-
         public final boolean canTrade;
-        public final BigDecimal minPriceIncrement;
+        @NotNull public final BigDecimal minPriceIncrement;
         public final int lot;
-        public final BigDecimal accruedInterest;
-        public final BigDecimal limitUp;
-        public final BigDecimal limitDown;
+        @Nullable public final BigDecimal accruedInterest;
+        @Nullable public final BigDecimal limitUp;
+        @Nullable public final BigDecimal limitDown;
 
-        private InstrumentInfoReceived(boolean canTrade, BigDecimal minPriceIncrement, int lot, BigDecimal accruedInterest, BigDecimal limitUp, BigDecimal limitDown, String figi) {
+        private InstrumentInfoReceived(final boolean canTrade,
+                                       @NotNull final BigDecimal minPriceIncrement,
+                                       final int lot,
+                                       @Nullable final BigDecimal accruedInterest,
+                                       @Nullable final BigDecimal limitUp,
+                                       @Nullable final BigDecimal limitDown,
+                                       @NotNull final String figi) {
             super(figi);
 
             this.canTrade = canTrade;
@@ -177,7 +183,7 @@ public class OutputApiSignal {
             this.limitDown = limitDown;
         }
 
-        static InstrumentInfoReceived fromApiEntity(StreamingEvent.InstrumentInfo se) {
+        static InstrumentInfoReceived fromApiEntity(@NotNull final StreamingEvent.InstrumentInfo se) {
             return new InstrumentInfoReceived(se.canTrade(), se.getMinPriceIncrement(), se.getLot(), se.getAccruedInterest(), se.getLimitUp(), se.getLimitDown(), se.getFigi());
         }
 
@@ -188,8 +194,8 @@ public class OutputApiSignal {
                     ", minPriceIncrement=" + minPriceIncrement.toPlainString() +
                     ", lot=" + lot +
                     (Objects.nonNull(accruedInterest) ? ", accruedInterest=" + accruedInterest.toPlainString() : "") +
-                    (Objects.nonNull(limitUp) ? ", limitUp=" + limitDown.toPlainString() : "") +
-                    (Objects.nonNull(limitDown) ? ", limitDown=" + limitUp.toPlainString() : "") +
+                    (Objects.nonNull(limitUp) ? ", limitUp=" + limitUp.toPlainString() : "") +
+                    (Objects.nonNull(limitDown) ? ", limitDown=" + limitDown.toPlainString() : "") +
                     ", figi='" + figi + '\'' +
                     '}';
         }
@@ -213,18 +219,13 @@ public class OutputApiSignal {
     }
 
     public static final class OrderNotPlaced extends OutputApiSignal {
+        @NotNull
         public final String reason;
-        public final BigDecimal amount;
 
-        private OrderNotPlaced(final String figi, final String reason, final BigDecimal amount) {
+        public OrderNotPlaced(@NotNull final String figi, @NotNull final String reason) {
             super(figi);
 
             this.reason = reason;
-            this.amount = amount;
-        }
-
-        static OrderNotPlaced fromApiEntity(final String figi, final String reason, final BigDecimal amount) {
-            return new OrderNotPlaced(figi, reason, amount);
         }
 
         @Override
@@ -232,22 +233,17 @@ public class OutputApiSignal {
             return "OrderNotPlaced{" +
                     "figi='" + figi + '\'' +
                     ", reason='" + reason + '\'' +
-                    ", amount=" + amount +
                     '}';
         }
     }
 
     public static final class OrderExecuted extends OutputApiSignal {
-        final public String id;
+        @NotNull final public String id;
 
-        private OrderExecuted(final String id, final String figi) {
+        public OrderExecuted(@NotNull final String figi, @NotNull final String id) {
             super(figi);
 
             this.id = id;
-        }
-
-        static OrderExecuted fromApiEntity(final String id, final String figi) {
-            return new OrderExecuted(id, figi);
         }
 
         @Override

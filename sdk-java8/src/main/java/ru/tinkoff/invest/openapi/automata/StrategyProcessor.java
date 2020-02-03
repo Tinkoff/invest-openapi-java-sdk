@@ -234,14 +234,13 @@ public class StrategyProcessor implements Processor<OutputApiSignal, InputApiSig
             return currentState.withNewInstrumentInfo(newInstrumentInfo);
         } else if (element instanceof OutputApiSignal.LimitOrderPlaced) {
             final OutputApiSignal.LimitOrderPlaced signal = (OutputApiSignal.LimitOrderPlaced) element;
+            // TODO отследить rejectReason
             final TradingState.Order newOrder = new TradingState.Order(
                     signal.id,
                     EntitiesAdaptor.convertApiEntityToTradingState(signal.operation),
                     EntitiesAdaptor.convertApiEntityToTradingState(signal.status),
-                    signal.rejectReason,
                     signal.requestedLots,
                     signal.executedLots,
-                    Objects.isNull(signal.commission) ? null : EntitiesAdaptor.convertApiEntityToTradingState(signal.commission),
                     signal.price,
                     signal.figi
             );

@@ -2,9 +2,9 @@ package ru.tinkoff.invest.openapi.model.orders;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ru.tinkoff.invest.openapi.model.MoneyAmount;
-
-import java.util.Objects;
 
 /**
  * Модель размещённой биржевой заявки.
@@ -14,75 +14,77 @@ public class PlacedLimitOrder {
     /**
      * Идентификатор заявки.
      */
+    @NotNull
     public final String id;
 
     /**
      * Тип операции.
      */
+    @NotNull
     public final Operation operation;
 
     /**
      * Текущий статус.
      */
+    @NotNull
     public final Status status;
 
     /**
-     * Причина отказа в размещении.
-     * Может быть null.
+     * Код причина отказа в размещении.
      */
+    @Nullable
     public final String rejectReason;
+
+    /**
+     * Причина отказа в размещении (человеческий текст).
+     */
+    @Nullable
+    public final String message;
 
     /**
      * Желаемое количество лотов.
      */
-    public final Integer requestedLots;
+    public final int requestedLots;
 
     /**
      * Реально исполненное количество лотов.
      */
-    public final Integer executedLots;
+    public final int executedLots;
 
     /**
      * Размер коммиссии.
-     * Может быть null.
      */
+    @Nullable
     public final MoneyAmount commission;
 
     @JsonCreator
-    public PlacedLimitOrder(@JsonProperty("orderId")
+    public PlacedLimitOrder(@JsonProperty(value = "orderId", required = true)
+                            @NotNull
                                     String id,
-                            @JsonProperty("operation")
+                            @JsonProperty(value = "operation", required = true)
+                            @NotNull
                                     Operation operation,
-                            @JsonProperty("status")
+                            @JsonProperty(value = "status", required = true)
+                            @NotNull
                                     Status status,
-                            @JsonProperty("rejectReason")
+                            @JsonProperty(value = "rejectReason")
+                            @Nullable
                                     String rejectReason,
-                            @JsonProperty("requestedLots")
-                                    Integer requestedLots,
-                            @JsonProperty("executedLots")
-                                    Integer executedLots,
+                            @JsonProperty(value = "message")
+                            @Nullable
+                                    String message,
+                            @JsonProperty(value = "requestedLots", required = true)
+                                    int requestedLots,
+                            @JsonProperty(value = "executedLots", required = true)
+                                    int executedLots,
                             @JsonProperty("commission")
+                            @Nullable
                                     MoneyAmount commission) {
-        if (Objects.isNull(id)) {
-            throw new IllegalArgumentException("Идентификатор не может быть null.");
-        }
-        if (Objects.isNull(operation)) {
-            throw new IllegalArgumentException("Тип операции не может быть null.");
-        }
-        if (Objects.isNull(status)) {
-            throw new IllegalArgumentException("Статус не может быть null.");
-        }
-        if (Objects.isNull(requestedLots)) {
-            throw new IllegalArgumentException("Желаемое количество лотов не может быть null.");
-        }
-        if (Objects.isNull(executedLots)) {
-            throw new IllegalArgumentException("Исполненное количество лотов не может быть null.");
-        }
-
         this.id = id;
         this.operation = operation;
         this.status = status;
         this.rejectReason = rejectReason;
+        this.message = message;
         this.requestedLots = requestedLots;
         this.executedLots = executedLots;
         this.commission = commission;

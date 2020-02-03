@@ -11,6 +11,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ru.tinkoff.invest.openapi.model.market.CandleInterval;
 
 import java.io.IOException;
@@ -18,6 +20,7 @@ import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -73,22 +76,30 @@ public abstract class StreamingEvent {
         private final String figi;
 
         @JsonCreator
-        public Candle(@JsonProperty("o")
-                      BigDecimal openPrice,
-                      @JsonProperty("c")
-                      BigDecimal closingPrice,
-                      @JsonProperty("h")
-                      BigDecimal highestPrice,
-                      @JsonProperty("l")
-                      BigDecimal lowestPrice,
-                      @JsonProperty("v")
-                      BigDecimal tradingValue,
-                      @JsonProperty("time")
-                      ZonedDateTime dateTime,
-                      @JsonProperty("interval")
-                      CandleInterval interval,
-                      @JsonProperty("figi")
-                      String figi) {
+        public Candle(@JsonProperty(value = "o", required = true)
+                      @NotNull
+                              BigDecimal openPrice,
+                      @JsonProperty(value = "c", required = true)
+                      @NotNull
+                              BigDecimal closingPrice,
+                      @JsonProperty(value = "h", required = true)
+                      @NotNull
+                              BigDecimal highestPrice,
+                      @JsonProperty(value = "l", required = true)
+                      @NotNull
+                              BigDecimal lowestPrice,
+                      @JsonProperty(value = "v", required = true)
+                      @NotNull
+                              BigDecimal tradingValue,
+                      @JsonProperty(value = "time", required = true)
+                      @NotNull
+                              ZonedDateTime dateTime,
+                      @JsonProperty(value = "interval", required = true)
+                      @NotNull
+                              CandleInterval interval,
+                      @JsonProperty(value = "figi", required = true)
+                      @NotNull
+                              String figi) {
             this.openPrice = openPrice;
             this.closingPrice = closingPrice;
             this.highestPrice = highestPrice;
@@ -99,34 +110,42 @@ public abstract class StreamingEvent {
             this.figi = figi;
         }
 
+        @NotNull
         public BigDecimal getOpenPrice() {
             return openPrice;
         }
 
+        @NotNull
         public BigDecimal getClosingPrice() {
             return closingPrice;
         }
 
+        @NotNull
         public BigDecimal getHighestPrice() {
             return highestPrice;
         }
 
+        @NotNull
         public BigDecimal getLowestPrice() {
             return lowestPrice;
         }
 
+        @NotNull
         public BigDecimal getTradingValue() {
             return tradingValue;
         }
 
+        @NotNull
         public ZonedDateTime getDateTime() {
             return dateTime;
         }
 
+        @NotNull
         public CandleInterval getInterval() {
             return interval;
         }
 
+        @NotNull
         public String getFigi() {
             return figi;
         }
@@ -150,7 +169,7 @@ public abstract class StreamingEvent {
                 return false;
             }
 
-            final Candle other = (Candle)o;
+            final Candle other = (Candle) o;
 
             if (!this.closingPrice.equals(other.closingPrice)) {
                 return false;
@@ -205,14 +224,17 @@ public abstract class StreamingEvent {
         private final String figi;
 
         @JsonCreator
-        public Orderbook(@JsonProperty("depth")
-                         int depth,
-                         @JsonProperty("bids")
-                         List<BigDecimal[]> bids,
-                         @JsonProperty("asks")
-                         List<BigDecimal[]> asks,
-                         @JsonProperty("figi")
-                         String figi) {
+        public Orderbook(@JsonProperty(value = "depth", required = true)
+                                 int depth,
+                         @JsonProperty(value = "bids", required = true)
+                         @NotNull
+                                 List<BigDecimal[]> bids,
+                         @NotNull
+                         @JsonProperty(value = "asks", required = true)
+                                 List<BigDecimal[]> asks,
+                         @JsonProperty(value = "figi", required = true)
+                         @NotNull
+                                 String figi) {
             this.depth = depth;
             this.bids = bids;
             this.asks = asks;
@@ -223,14 +245,17 @@ public abstract class StreamingEvent {
             return depth;
         }
 
+        @NotNull
         public List<BigDecimal[]> getBids() {
             return bids;
         }
 
+        @NotNull
         public List<BigDecimal[]> getAsks() {
             return asks;
         }
 
+        @NotNull
         public String getFigi() {
             return figi;
         }
@@ -256,7 +281,7 @@ public abstract class StreamingEvent {
                 return false;
             }
 
-            final Orderbook other = (Orderbook)o;
+            final Orderbook other = (Orderbook) o;
 
             if (this.depth != other.depth) {
                 return false;
@@ -320,20 +345,26 @@ public abstract class StreamingEvent {
         private final String figi;
 
         @JsonCreator
-        public InstrumentInfo(@JsonProperty("trade_status")
-                              String tradeStatus,
-                              @JsonProperty("min_price_increment")
-                              BigDecimal minPriceIncrement,
-                              @JsonProperty("lot")
-                              int lot,
+        public InstrumentInfo(@JsonProperty(value = "trade_status", required = true)
+                              @NotNull
+                                      String tradeStatus,
+                              @JsonProperty(value = "min_price_increment", required = true)
+                              @NotNull
+                                      BigDecimal minPriceIncrement,
+                              @JsonProperty(value = "lot", required = true)
+                                      int lot,
                               @JsonProperty("accrued_interest")
-                              BigDecimal accruedInterest,
+                              @Nullable
+                                      BigDecimal accruedInterest,
                               @JsonProperty("limit_up")
-                              BigDecimal limitUp,
+                              @Nullable
+                                      BigDecimal limitUp,
                               @JsonProperty("limit_down")
-                              BigDecimal limitDown,
-                              @JsonProperty("figi")
-                              String figi) {
+                              @Nullable
+                                      BigDecimal limitDown,
+                              @JsonProperty(value = "figi", required = true)
+                              @NotNull
+                                      String figi) {
             this.tradeStatus = tradeStatus;
             this.minPriceIncrement = minPriceIncrement;
             this.lot = lot;
@@ -343,10 +374,12 @@ public abstract class StreamingEvent {
             this.figi = figi;
         }
 
+        @NotNull
         public String getTradeStatus() {
             return tradeStatus;
         }
 
+        @NotNull
         public BigDecimal getMinPriceIncrement() {
             return minPriceIncrement;
         }
@@ -355,18 +388,22 @@ public abstract class StreamingEvent {
             return lot;
         }
 
+        @Nullable
         public BigDecimal getAccruedInterest() {
             return accruedInterest;
         }
 
+        @Nullable
         public BigDecimal getLimitUp() {
             return limitUp;
         }
 
+        @Nullable
         public BigDecimal getLimitDown() {
             return limitDown;
         }
 
+        @NotNull
         public String getFigi() {
             return figi;
         }
@@ -380,9 +417,6 @@ public abstract class StreamingEvent {
             return "InstrumentInfo(tradeStatus = " + tradeStatus +
                     ", minPriceIncrement = " + minPriceIncrement +
                     ", lot = " + lot +
-                    ", accruedInterest = " + accruedInterest +
-                    ", limitUp = " + limitUp +
-                    ", limitDown = " + limitDown +
                     ", figi = " + figi +
                     ")";
         }
@@ -393,7 +427,7 @@ public abstract class StreamingEvent {
                 return false;
             }
 
-            final InstrumentInfo other = (InstrumentInfo)o;
+            final InstrumentInfo other = (InstrumentInfo) o;
 
             if (!this.tradeStatus.equals(other.tradeStatus)) {
                 return false;
@@ -404,13 +438,13 @@ public abstract class StreamingEvent {
             if (this.lot != other.lot) {
                 return false;
             }
-            if (!this.accruedInterest.equals(other.accruedInterest)) {
+            if (!Objects.equals(this.accruedInterest, other.accruedInterest)) {
                 return false;
             }
-            if (!this.limitUp.equals(other.limitUp)) {
+            if (!Objects.equals(this.limitUp, other.limitUp)) {
                 return false;
             }
-            if (!this.limitDown.equals(other.limitDown)) {
+            if (!Objects.equals(this.limitDown, other.limitDown)) {
                 return false;
             }
             if (!this.figi.equals(other.figi)) {
@@ -434,23 +468,26 @@ public abstract class StreamingEvent {
 
         /**
          * Идентификатор подписки.
-         * Может быть null.
          */
         private final String requestId;
 
         @JsonCreator
-        public Error(@JsonProperty("error")
-                     String error,
+        public Error(@JsonProperty(value = "error", required = true)
+                     @NotNull
+                             String error,
                      @JsonProperty("request_id")
-                     String requestId) {
+                     @Nullable
+                             String requestId) {
             this.error = error;
             this.requestId = requestId;
         }
 
-        public String geError() {
+        @NotNull
+        public String getError() {
             return error;
         }
 
+        @Nullable
         public String getRequestId() {
             return requestId;
         }
@@ -458,7 +495,6 @@ public abstract class StreamingEvent {
         @Override
         public String toString() {
             return "Error(error = " + error +
-                    ", requestId = " + requestId +
                     ")";
         }
 
@@ -468,12 +504,12 @@ public abstract class StreamingEvent {
                 return false;
             }
 
-            final Error other = (Error)o;
+            final Error other = (Error) o;
 
             if (!this.error.equals(other.error)) {
                 return false;
             }
-            if (!this.requestId.equals(other.requestId)) {
+            if (!Objects.equals(this.requestId, other.requestId)) {
                 return false;
             }
 

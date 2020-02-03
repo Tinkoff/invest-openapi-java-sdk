@@ -8,7 +8,6 @@ import ru.tinkoff.invest.openapi.OpenApiFactoryBase;
 import ru.tinkoff.invest.openapi.exceptions.NotEnoughBalanceException;
 import ru.tinkoff.invest.openapi.model.streaming.StreamingEvent;
 
-import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Objects;
@@ -20,6 +19,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ReactiveApi implements Processor<InputApiSignal, OutputApiSignal>, Runnable {
+
+    private static String DEFAULT_REJECT_MESSAGE = "Причина неизвестна.";
 
     @NotNull public final OpenApi api;
 
@@ -156,7 +157,7 @@ public class ReactiveApi implements Processor<InputApiSignal, OutputApiSignal>, 
         } else if (se instanceof StreamingEvent.InstrumentInfo) {
             emitSignal(OutputApiSignal.InstrumentInfoReceived.fromApiEntity((StreamingEvent.InstrumentInfo) se));
         } else {
-            this.onError(new Exception(((StreamingEvent.Error) se).geError()));
+            this.onError(new Exception(((StreamingEvent.Error) se).getError()));
         }
     }
 
@@ -218,14 +219,19 @@ public class ReactiveApi implements Processor<InputApiSignal, OutputApiSignal>, 
             api.ordersContext.placeLimitOrder(
                     concreteSignal.toApiEntity(),
                     plo -> {
-                        final OutputApiSignal.LimitOrderPlaced data = OutputApiSignal.LimitOrderPlaced.fromApiEntity(plo, concreteSignal.price, concreteSignal.figi);
-                        emitSignal(data);
-                        executor.execute(new OrderMonitor(data, logger));
+                        if (Objects.nonNull(plo.rejectReason) || Objects.nonNull(plo.message)) {
+                            final String message = Objects.nonNull(plo.message) ? plo.message : DEFAULT_REJECT_MESSAGE;
+                            final OutputApiSignal.OrderNotPlaced data = new OutputApiSignal.OrderNotPlaced(concreteSignal.figi, message);
+                            emitSignal(data);
+                        } else {
+                            final OutputApiSignal.LimitOrderPlaced data = OutputApiSignal.LimitOrderPlaced.fromApiEntity(plo, concreteSignal.price, concreteSignal.figi);
+                            emitSignal(data);
+                            executor.execute(new OrderMonitor(data, logger));
+                        }
                     },
                     ex -> {
                         if (ex instanceof NotEnoughBalanceException) {
-                            final BigDecimal amount = concreteSignal.price.multiply(BigDecimal.valueOf(concreteSignal.lots));
-                            emitSignal(OutputApiSignal.OrderNotPlaced.fromApiEntity(concreteSignal.figi, ex.getMessage(), amount));
+                            emitSignal(new OutputApiSignal.OrderNotPlaced(concreteSignal.figi, ex.getMessage()));
                         } else {
                             this.onError(ex);
                         }
@@ -236,7 +242,7 @@ public class ReactiveApi implements Processor<InputApiSignal, OutputApiSignal>, 
 
             api.ordersContext.cancelOrder(
                     concreteSignal.orderId,
-                    empty -> emitSignal(OutputApiSignal.OrderCancelled.fromApiEntity(concreteSignal.orderId, concreteSignal.figi)),
+                    empty -> emitSignal(new OutputApiSignal.OrderCancelled(concreteSignal.figi, concreteSignal.orderId)),
                     this::onError);
         }
 
@@ -548,7 +554,7 @@ public class ReactiveApi implements Processor<InputApiSignal, OutputApiSignal>, 
                         orders -> {
                             final boolean executed = orders.stream().noneMatch(o -> o.id.equals(this.order.id));
                             if (executed) {
-                                emitSignal(OutputApiSignal.OrderExecuted.fromApiEntity(this.order.id, this.order.figi));
+                                emitSignal(new OutputApiSignal.OrderExecuted( this.order.figi, this.order.id));
                             } else {
                                 executor.execute(this);
                             }
