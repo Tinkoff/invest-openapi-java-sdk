@@ -90,8 +90,8 @@ public class StrategyProcessor implements Processor<OutputApiSignal, InputApiSig
     public final void run() {
         if(on.get()) { // establishes a happens-before relationship with the end of the previous run
             try {
-                final SubscriberSignal s = inboundSignals.poll(); // We take a signal off the queue
                 if (!done) { // If we're done, we shouldn't process any more signals, obeying rule 2.8
+                    final SubscriberSignal s = inboundSignals.poll(); // We take a signal off the queue
                     // Below we simply unpack the `Signal`s and invoke the corresponding methods
                     if (s instanceof OnNext)
                         handleOnNext(((OnNext)s).next);
@@ -101,6 +101,8 @@ public class StrategyProcessor implements Processor<OutputApiSignal, InputApiSig
                         handleOnError(((OnError)s).error);
                     else if (s == OnComplete.Instance) // We are always able to handle OnComplete, obeying rule 2.9
                         handleOnComplete();
+
+                    logger.finest("Сигналов в очереди для StrategyProcessor.");
                 }
             } finally {
                 on.set(false); // establishes a happens-before relationship with the beginning of the next run

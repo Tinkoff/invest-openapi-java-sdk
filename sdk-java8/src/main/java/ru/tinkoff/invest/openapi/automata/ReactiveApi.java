@@ -83,8 +83,8 @@ public class ReactiveApi implements Processor<InputApiSignal, OutputApiSignal>, 
     public final void run() {
         if(on.get()) { // establishes a happens-before relationship with the end of the previous run
             try {
-                final SubscriberSignal s = inboundSignals.poll(); // We take a signal off the queue
                 if (!done) { // If we're done, we shouldn't process any more signals, obeying rule 2.8
+                    final SubscriberSignal s = inboundSignals.poll(); // We take a signal off the queue
                     // Below we simply unpack the `Signal`s and invoke the corresponding methods
                     if (s instanceof OnNext)
                         handleOnNext(((OnNext)s).next);
@@ -94,6 +94,8 @@ public class ReactiveApi implements Processor<InputApiSignal, OutputApiSignal>, 
                         handleOnError(((OnError)s).error);
                     else if (s == OnComplete.Instance) // We are always able to handle OnComplete, obeying rule 2.9
                         handleOnComplete();
+
+                    logger.finest("Сигналов в очереди для ReactiveApi.");
                 }
             } finally {
                 on.set(false); // establishes a happens-before relationship with the beginning of the next run
@@ -439,12 +441,12 @@ public class ReactiveApi implements Processor<InputApiSignal, OutputApiSignal>, 
 
         // What `signal` does is that it sends signals to the `Subscription` asynchronously
         private void signal(final PublisherSignal signal) {
-            if (signal instanceof Request) {
-                if (inboundSignals.offerFirst(signal))
-                    tryScheduleToExecute();
-            } else {
+            if (signal instanceof Send) {
                 if (inboundSignals.offerLast(signal)) // No need to null-check here as ConcurrentLinkedQueue does this for us
                     tryScheduleToExecute(); // Then we try to schedule it for execution, if it isn't already
+            } else {
+                if (inboundSignals.offerFirst(signal))
+                    tryScheduleToExecute();
             }
         }
 
@@ -452,8 +454,8 @@ public class ReactiveApi implements Processor<InputApiSignal, OutputApiSignal>, 
         public void run() {
             if(on.get()) { // establishes a happens-before relationship with the end of the previous run
                 try {
-                    PublisherSignal s = inboundSignals.peek(); // We take a signal off the queue
                     if (!cancelled) { // to make sure that we follow rule 1.8, 3.6 and 3.7
+                        final PublisherSignal s = inboundSignals.peek(); // We take a signal off the queue
 
                         // Below we simply unpack the `Signal`s and invoke the corresponding methods
                         if (s instanceof Request) {
