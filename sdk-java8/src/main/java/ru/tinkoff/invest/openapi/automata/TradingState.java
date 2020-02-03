@@ -25,31 +25,28 @@ public class TradingState {
 
     private final Currency instrumentCurrency;
 
-    public TradingState(@Nullable final Orderbook orderbook,
-                        @Nullable final Candle candle,
-                        @Nullable final InstrumentInfo instrumentInfo,
-                        @NotNull final List<Order> orders,
-                        @NotNull final Map<Currency, Position> currencies,
-                        @NotNull final Map<String, Position> positions,
-                        @NotNull final Currency instrumentCurrency) {
-        this.orderbook = orderbook;
-        this.candle = candle;
-        this.instrumentInfo = instrumentInfo;
-        this.orders = orders;
-        this.currencies = currencies;
-        this.positions = positions;
-        this.instrumentCurrency = instrumentCurrency;
-        this.operations = new LinkedList<>();
+    public static TradingState init(@NotNull final List<Order> orders,
+                                    @NotNull final Map<Currency, Position> currencies,
+                                    @NotNull final Map<String, Position> positions,
+                                    @NotNull final Currency instrumentCurrency) {
+        return new TradingState(null,
+                                null,
+                                null,
+                                orders,
+                                currencies,
+                                positions,
+                                instrumentCurrency,
+                                new LinkedList<>());
     }
 
-    public TradingState(@Nullable final Orderbook orderbook,
-                        @Nullable final Candle candle,
-                        @Nullable final InstrumentInfo instrumentInfo,
-                        @NotNull final List<Order> orders,
-                        @NotNull final Map<Currency, Position> currencies,
-                        @NotNull final Map<String, Position> positions,
-                        @NotNull final Currency instrumentCurrency,
-                        @NotNull final List<Operation> operations) {
+    private TradingState(@Nullable final Orderbook orderbook,
+                         @Nullable final Candle candle,
+                         @Nullable final InstrumentInfo instrumentInfo,
+                         @NotNull final List<Order> orders,
+                         @NotNull final Map<Currency, Position> currencies,
+                         @NotNull final Map<String, Position> positions,
+                         @NotNull final Currency instrumentCurrency,
+                         @NotNull final List<Operation> operations) {
         this.orderbook = orderbook;
         this.candle = candle;
         this.instrumentInfo = instrumentInfo;

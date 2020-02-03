@@ -77,15 +77,10 @@ public class SimpleStopLossStrategy implements Strategy {
         this.canTrade = false;
         this.waitingForPlacingOrder = false;
 
-        currentState = new TradingState(
-                null,
-                null ,
-                null,
-                orders,
-                currencies,
-                positions,
-                operatingInstrument.currency
-        );
+        currentState = TradingState.init(orders,
+                                         currencies,
+                                         positions,
+                                         operatingInstrument.currency);
     }
 
     @Override
