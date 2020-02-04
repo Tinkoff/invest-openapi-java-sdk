@@ -57,7 +57,7 @@ class StreamingContextImpl implements StreamingContext {
         for (int i = 0; i < streamingParallelism; i++) {
             final StreamingApiListener streamingCallback = new StreamingContextImpl.StreamingApiListener(i+1);
             this.wsClients[i] = this.client.newWebSocket(this.wsRequest, streamingCallback);
-            this.requestsHistory.set(i, new HashSet<>());
+            this.requestsHistory.add(new HashSet<>());
         }
     }
 
