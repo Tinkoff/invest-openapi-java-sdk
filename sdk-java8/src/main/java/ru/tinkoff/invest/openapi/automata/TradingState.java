@@ -5,7 +5,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigDecimal;
-import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -27,8 +26,6 @@ public class TradingState {
     public final Map<Currency, Position> currencies;
     @NotNull
     public final Map<String, Position> positions;
-    @NotNull
-    public final List<Operation> operations;
     public boolean waitingForPlacingOrder;
 
     private final Currency instrumentCurrency;
@@ -45,7 +42,6 @@ public class TradingState {
                 currencies,
                 positions,
                 instrumentCurrency,
-                new LinkedList<>(),
                 false
         );
     }
@@ -57,7 +53,6 @@ public class TradingState {
                          @NotNull final Map<Currency, Position> currencies,
                          @NotNull final Map<String, Position> positions,
                          @NotNull final Currency instrumentCurrency,
-                         @NotNull final List<Operation> operations,
                          final boolean waitingForPlacingOrder) {
         this.orderbook = orderbook;
         this.candle = candle;
@@ -66,7 +61,6 @@ public class TradingState {
         this.currencies = currencies;
         this.positions = positions;
         this.instrumentCurrency = instrumentCurrency;
-        this.operations = operations;
         this.waitingForPlacingOrder = waitingForPlacingOrder;
     }
 
@@ -80,7 +74,6 @@ public class TradingState {
                 this.currencies,
                 this.positions,
                 this.instrumentCurrency,
-                this.operations,
                 this.waitingForPlacingOrder
         );
     }
@@ -95,7 +88,6 @@ public class TradingState {
                 this.currencies,
                 this.positions,
                 this.instrumentCurrency,
-                this.operations,
                 this.waitingForPlacingOrder
         );
     }
@@ -152,7 +144,6 @@ public class TradingState {
                 currencies,
                 positions,
                 this.instrumentCurrency,
-                this.operations,
                 this.waitingForPlacingOrder
         );
     }
@@ -188,19 +179,6 @@ public class TradingState {
             positionsCopy.put(executedOrder.figi, newPositionValue);
         }
 
-        Operation oldOperation = null;
-        for (final Operation o : this.operations) {
-            if (o.id.equals(id)) {
-                oldOperation = o;
-            }
-        }
-
-        final List<Operation> filteredOps = this.operations.stream().filter(o -> o.id.equals(id)).collect(Collectors.toList());
-        if (Objects.nonNull(oldOperation)) {
-            final Operation newOperation = oldOperation.execute();
-            filteredOps.add(newOperation);
-        }
-
         return new TradingState(
                 this.orderbook,
                 this.candle,
@@ -209,7 +187,6 @@ public class TradingState {
                 currenciesCopy,
                 positionsCopy,
                 this.instrumentCurrency,
-                this.operations,
                 this.waitingForPlacingOrder
         );
     }
@@ -245,19 +222,6 @@ public class TradingState {
             positionsCopy.put(cancelledOrder.figi, newPositionValue);
         }
 
-        Operation oldOperation = null;
-        for (final Operation o : this.operations) {
-            if (o.id.equals(id)) {
-                oldOperation = o;
-            }
-        }
-
-        final List<Operation> filteredOps = this.operations.stream().filter(o -> o.id.equals(id)).collect(Collectors.toList());
-        if (Objects.nonNull(oldOperation)) {
-            final Operation newOperation = oldOperation.cancel();
-            filteredOps.add(newOperation);
-        }
-
         return new TradingState(
                 this.orderbook,
                 this.candle,
@@ -266,7 +230,6 @@ public class TradingState {
                 currenciesCopy,
                 positionsCopy,
                 this.instrumentCurrency,
-                filteredOps,
                 this.waitingForPlacingOrder
         );
     }
@@ -291,19 +254,6 @@ public class TradingState {
             }
         }).collect(Collectors.toList());
 
-        Operation oldOperation = null;
-        for (final Operation o : this.operations) {
-            if (o.id.equals(id)) {
-                oldOperation = o;
-            }
-        }
-
-        final List<Operation> filteredOps = this.operations.stream().filter(o -> o.id.equals(id)).collect(Collectors.toList());
-        if (Objects.nonNull(oldOperation)) {
-            final Operation newOperation = oldOperation.update(executedLots);
-            filteredOps.add(newOperation);
-        }
-
         return new TradingState(
                 this.orderbook,
                 this.candle,
@@ -312,7 +262,6 @@ public class TradingState {
                 this.currencies,
                 this.positions,
                 this.instrumentCurrency,
-                filteredOps,
                 this.waitingForPlacingOrder
         );
     }
@@ -341,10 +290,6 @@ public class TradingState {
                 : currentPosition.withBlocked(currentPosition.blocked.add(requestedLots)).withBalance(currentPosition.balance.subtract(requestedLots));
         positionsCopy.put(newOrder.figi, newPositionValue);
 
-        final Operation newOperation = Operation.fromOrder(newOrder, instrumentCurrency);
-        final List<Operation> newOperations = new LinkedList<>(this.operations);
-        newOperations.add(newOperation);
-
         return new TradingState(
                 this.orderbook,
                 this.candle,
@@ -353,7 +298,6 @@ public class TradingState {
                 currenciesCopy,
                 positionsCopy,
                 this.instrumentCurrency,
-                newOperations,
                 false
         );
     }
@@ -368,7 +312,6 @@ public class TradingState {
                 this.currencies,
                 this.positions,
                 this.instrumentCurrency,
-                this.operations,
                 false
         );
     }
@@ -645,208 +588,6 @@ public class TradingState {
                     ", blocked=" + blocked +
                     '}';
         }
-    }
-
-    public static class Operation {
-        @NotNull
-        public final String id;
-        @NotNull
-        public final Status status;
-        @Nullable
-        private final List<Trade> trades;
-        @Nullable
-        private final MoneyAmount commission;
-        @NotNull
-        public final Currency currency;
-        @NotNull
-        public final BigDecimal payment;
-        @Nullable
-        private final BigDecimal price;
-        private final int quantity;
-        @Nullable
-        private final String figi;
-        @Nullable
-        private final InstrumentType instrumentType;
-        @NotNull
-        public final Boolean isMarginCall;
-        @NotNull
-        public final OffsetDateTime date;
-        @Nullable
-        private final Type operationType;
-
-        public static Operation fromOrder(@NotNull final Order newOrder, @NotNull final Currency currency) {
-            return new Operation(newOrder.id,
-                    Status.Progress,
-                    null,
-                    null,
-                    currency,
-                    newOrder.price.multiply(BigDecimal.valueOf(newOrder.requestedLots)),
-                    newOrder.price,
-                    newOrder.requestedLots,
-                    newOrder.figi,
-                    null,
-                    false,
-                    OffsetDateTime.now(),
-                    newOrder.operation == Order.Type.Buy ? Type.Buy : Type.Sell);
-        }
-
-        private Operation(@NotNull final String id,
-                          @NotNull final Status status,
-                          @Nullable final List<Trade> trades,
-                          @Nullable final MoneyAmount commission,
-                          @NotNull final Currency currency,
-                          @NotNull final BigDecimal payment,
-                          @Nullable final BigDecimal price,
-                          @Nullable final Integer quantity,
-                          @Nullable final String figi,
-                          @Nullable final InstrumentType instrumentType,
-                          @NotNull final Boolean isMarginCall,
-                          @NotNull final OffsetDateTime date,
-                          @Nullable final Type operationType) {
-            this.id = id;
-            this.status = status;
-            this.trades = trades;
-            this.commission = commission;
-            this.currency = currency;
-            this.payment = operationType == Type.Buy ? payment.negate() : payment;
-            this.price = price;
-            this.quantity = Objects.nonNull(quantity) ? quantity : -1;
-            this.figi = figi;
-            this.instrumentType = instrumentType;
-            this.isMarginCall = isMarginCall;
-            this.date = date;
-            this.operationType = operationType;
-        }
-
-        @NotNull
-        public Optional<List<Trade>> trades() {
-            return Optional.ofNullable(trades);
-        }
-
-        @NotNull
-        public OptionalInt quantity() {
-            return quantity < 0 ? OptionalInt.empty() : OptionalInt.of(quantity);
-        }
-
-        @NotNull
-        public Optional<MoneyAmount> commission() {
-            return Optional.ofNullable(commission);
-        }
-
-        @NotNull
-        public Optional<BigDecimal> price() {
-            return Optional.ofNullable(price);
-        }
-
-        @NotNull
-        public Optional<String> figi() {
-            return Optional.ofNullable(figi);
-        }
-
-        @NotNull
-        public Optional<InstrumentType> instrumentType() {
-            return Optional.ofNullable(instrumentType);
-        }
-
-        @NotNull
-        public Optional<Type> getOperationType() {
-            return Optional.ofNullable(operationType);
-        }
-
-        @NotNull
-        public Operation cancel() {
-            return new Operation(
-                    this.id,
-                    Status.Decline,
-                    this.trades,
-                    this.commission,
-                    this.currency,
-                    this.payment,
-                    this.price,
-                    this.quantity,
-                    this.figi,
-                    this.instrumentType,
-                    this.isMarginCall,
-                    OffsetDateTime.now(),
-                    this.operationType
-            );
-        }
-
-        @NotNull
-        public Operation execute() {
-            return new Operation(
-                    this.id,
-                    Status.Done,
-                    this.trades,
-                    this.commission,
-                    this.currency,
-                    this.payment,
-                    this.price,
-                    this.quantity,
-                    this.figi,
-                    this.instrumentType,
-                    this.isMarginCall,
-                    OffsetDateTime.now(),
-                    this.operationType
-            );
-        }
-
-        @NotNull
-        public Operation update(final int executedLots) {
-            final List<Trade> newTrades = Objects.isNull(this.trades) ? new LinkedList<>() : new LinkedList<>(this.trades);
-            final int currentTradesCount = newTrades.size();
-            final int moreTradesCount = executedLots - currentTradesCount;
-            final OffsetDateTime now = OffsetDateTime.now();
-            newTrades.add(new Trade("fakeId", now, BigDecimal.ZERO, moreTradesCount));
-
-            return new Operation(
-                    this.id,
-                    Status.Progress,
-                    newTrades,
-                    this.commission,
-                    this.currency,
-                    this.payment,
-                    this.price,
-                    this.quantity,
-                    this.figi,
-                    this.instrumentType,
-                    this.isMarginCall,
-                    now,
-                    this.operationType
-            );
-        }
-
-        public enum Status {
-            Done, Decline, Progress
-        }
-
-        public enum Type {
-            Buy, Sell, BrokerCommission, ExchangeCommission, ServiceCommission, MarginCommission, BuyCard, Dividend, TaxDividend, TaxCoupon, Coupon, PartRepayment, PayIn
-        }
-
-        public static class Trade {
-            @NotNull
-            public final String tradeId;
-            @NotNull
-            public final OffsetDateTime date;
-            @NotNull
-            public final BigDecimal price;
-            public final int quantity;
-
-            public Trade(@NotNull final String tradeId,
-                         @NotNull final OffsetDateTime date,
-                         @NotNull final BigDecimal price,
-                         final int quantity) {
-                this.tradeId = tradeId;
-                this.date = date;
-                this.price = price;
-                this.quantity = quantity;
-            }
-        }
-    }
-
-    public enum InstrumentType {
-        Stock, Currency, Bond, ETF
     }
 
 }
