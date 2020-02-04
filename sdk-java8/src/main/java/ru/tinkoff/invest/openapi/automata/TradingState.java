@@ -207,18 +207,20 @@ public class TradingState {
         final Map<Currency, Position> currenciesCopy = new HashMap<>(this.currencies);
         final Map<String, Position> positionsCopy = new HashMap<>(this.positions);
         if (Objects.nonNull(cancelledOrder)) {
-            final BigDecimal requestedLots = BigDecimal.valueOf(cancelledOrder.requestedLots).multiply(BigDecimal.valueOf(instrumentInfo.lot));
-            final BigDecimal amount = cancelledOrder.price.multiply(requestedLots);
+            final BigDecimal securitiesPerLot = BigDecimal.valueOf(instrumentInfo.lot);
+            final BigDecimal executedLots = BigDecimal.valueOf(cancelledOrder.executedLots).multiply(securitiesPerLot);
+            final BigDecimal nonExecutedLots = BigDecimal.valueOf(cancelledOrder.requestedLots - cancelledOrder.executedLots).multiply(securitiesPerLot);
+            final BigDecimal amount = cancelledOrder.price.multiply(nonExecutedLots);
             final Position currentCurrencyPosition = currenciesCopy.getOrDefault(this.instrumentCurrency, Position.empty);
             final Position newCurrencyValue = cancelledOrder.operation == Order.Type.Buy
                     ? currentCurrencyPosition.withBlocked(currentCurrencyPosition.blocked.subtract(amount)).withBalance(currentCurrencyPosition.balance.add(amount))
-                    : currentCurrencyPosition;
+                    : currentCurrencyPosition.withBalance(currentCurrencyPosition.balance.add(cancelledOrder.price.multiply(executedLots)));
             currenciesCopy.put(this.instrumentCurrency, newCurrencyValue);
 
             final Position currentPosition = positionsCopy.getOrDefault(cancelledOrder.figi, Position.empty);
             final Position newPositionValue = cancelledOrder.operation == Order.Type.Buy
-                    ? currentPosition
-                    : currentPosition.withBlocked(currentPosition.blocked.subtract(requestedLots)).withBalance(currentPosition.balance.add(requestedLots));
+                    ? currentPosition.withBalance(currentPosition.balance.add(executedLots))
+                    : currentPosition.withBlocked(currentPosition.blocked.subtract(nonExecutedLots)).withBalance(currentPosition.balance.add(nonExecutedLots));
             positionsCopy.put(cancelledOrder.figi, newPositionValue);
         }
 
