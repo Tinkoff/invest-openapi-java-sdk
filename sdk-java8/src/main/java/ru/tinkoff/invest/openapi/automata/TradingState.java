@@ -300,7 +300,7 @@ public class TradingState {
 
         final List<Operation> filteredOps = this.operations.stream().filter(o -> o.id.equals(id)).collect(Collectors.toList());
         if (Objects.nonNull(oldOperation)) {
-            final Operation newOperation = oldOperation.cancel();
+            final Operation newOperation = oldOperation.update(executedLots);
             filteredOps.add(newOperation);
         }
 
