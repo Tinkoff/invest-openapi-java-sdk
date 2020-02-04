@@ -232,7 +232,7 @@ public class TradingState {
                 currenciesCopy,
                 positionsCopy,
                 this.instrumentCurrency,
-                this.waitingForPlacingOrder
+                false
         );
     }
 

@@ -141,6 +141,7 @@ public class SimpleStopLossStrategy implements Strategy {
                 logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
                         initialPrice + ". Экстремум = " + extremum + ". Сейчас есть заявка. Текущая цена " +
                         "значительно отошла от цены заявки. Отменяем заявку.");
+                currentState.waitingForPlacingOrder = true;
                 return StrategyDecision.cancelOrder(activeOrder.figi, activeOrder.id);
             } else {
                 logger.finest("Состояние поменялось. Сейчас есть заявка. Ничего не делаем.");
