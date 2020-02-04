@@ -76,10 +76,10 @@ public class TradingAutomata implements AutoCloseable {
     @NotNull
     public Map<Strategy, BigDecimal> yields() {
         return this.strategyProcessor.strategies().stream()
-            .collect(Collectors.toMap(
-                    s -> s,
-                    s -> calculateYield(s.getCurrentState())
-            ));
+                .collect(Collectors.toMap(
+                        s -> s,
+                        s -> calculateYield(s.getCurrentState())
+                ));
     }
 
     private void prepareStrategy(@NotNull final Strategy strategy) {
@@ -115,6 +115,6 @@ public class TradingAutomata implements AutoCloseable {
     @NotNull
     private BigDecimal calculateYield(@NotNull final TradingState state) {
         return state.operations.stream()
-            .reduce(BigDecimal.ZERO, (acc, op) -> op.payment, BigDecimal::add);
+                .reduce(BigDecimal.ZERO, (acc, op) -> op.payment, BigDecimal::add);
     }
 }

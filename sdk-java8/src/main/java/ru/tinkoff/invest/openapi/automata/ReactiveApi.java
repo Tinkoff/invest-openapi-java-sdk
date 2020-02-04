@@ -6,6 +6,7 @@ import org.reactivestreams.Subscriber;
 import ru.tinkoff.invest.openapi.OpenApi;
 import ru.tinkoff.invest.openapi.OpenApiFactoryBase;
 import ru.tinkoff.invest.openapi.exceptions.NotEnoughBalanceException;
+import ru.tinkoff.invest.openapi.model.orders.Order;
 import ru.tinkoff.invest.openapi.model.streaming.StreamingEvent;
 
 import java.util.HashSet;
@@ -226,7 +227,7 @@ public class ReactiveApi implements Processor<InputApiSignal, OutputApiSignal>, 
                         } else {
                             final OutputApiSignal.LimitOrderPlaced data = OutputApiSignal.LimitOrderPlaced.fromApiEntity(plo, concreteSignal.price, concreteSignal.figi);
                             emitSignal(data);
-                            executor.execute(new OrderMonitor(data, logger));
+                            executor.execute(new OrderMonitor(data));
                         }
                     },
                     ex -> {
@@ -538,12 +539,12 @@ public class ReactiveApi implements Processor<InputApiSignal, OutputApiSignal>, 
     }
 
     final class OrderMonitor implements Runnable {
+        private int executedLots;
         private final OutputApiSignal.LimitOrderPlaced order;
-        private final Logger logger;
 
-        OrderMonitor(final OutputApiSignal.LimitOrderPlaced order, final Logger logger) {
+        OrderMonitor(@NotNull final OutputApiSignal.LimitOrderPlaced order) {
             this.order = order;
-            this.logger = logger;
+            this.executedLots = order.executedLots;
         }
 
         @Override
@@ -552,10 +553,20 @@ public class ReactiveApi implements Processor<InputApiSignal, OutputApiSignal>, 
                 Thread.sleep(1000);
                 api.ordersContext.getOrders(
                         orders -> {
-                            final boolean executed = orders.stream().noneMatch(o -> o.id.equals(this.order.id));
-                            if (executed) {
-                                emitSignal(new OutputApiSignal.OrderExecuted( this.order.figi, this.order.id));
+                            Order targetOrder = null;
+                            for (final Order activeOrder : orders) {
+                                if (activeOrder.id.equals(this.order.id))
+                                    targetOrder = activeOrder;
+                            }
+
+                            if (Objects.isNull(targetOrder)) {
+                                emitSignal(new OutputApiSignal.OrderExecuted(this.order.figi, this.order.id));
                             } else {
+                                if (targetOrder.executedLots != this.executedLots) {
+                                    emitSignal(OutputApiSignal.OrderStateChanged.fromApiEntity(targetOrder));
+                                    this.executedLots = targetOrder.executedLots;
+                                }
+
                                 executor.execute(this);
                             }
                         },

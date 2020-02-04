@@ -203,18 +203,18 @@ public class OutputApiSignal {
 
     public static final class OrderStateChanged extends OutputApiSignal {
         final public String id;
-        final public Status status;
         final public int executedLots;
+        final public Status status;
 
-        private OrderStateChanged(final String id, final Status status, final int executedLots, final String figi) {
+        private OrderStateChanged(@NotNull final String figi, @NotNull final String id, @NotNull final Status status, final int executedLots) {
             super(figi);
             this.id = id;
             this.status = status;
             this.executedLots = executedLots;
         }
 
-        static OrderStateChanged fromApiEntity(final Order order, final String figi) {
-            return new OrderStateChanged(order.id, order.status, order.executedLots, order.figi);
+        static OrderStateChanged fromApiEntity(@NotNull final Order order) {
+            return new OrderStateChanged(order.figi, order.id, order.status, order.executedLots);
         }
     }
 

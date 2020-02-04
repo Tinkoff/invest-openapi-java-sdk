@@ -274,7 +274,7 @@ public class TradingState {
     @NotNull
     public TradingState withChangedOrder(@NotNull final String id,
                                          @NotNull final Order.Status status,
-                                         int executedLots) {
+                                         final int executedLots) {
         final List<Order> updated = this.orders.stream().map(o -> {
             if (o.id.equals(id)) {
                 return new Order(
@@ -291,6 +291,19 @@ public class TradingState {
             }
         }).collect(Collectors.toList());
 
+        Operation oldOperation = null;
+        for (final Operation o : this.operations) {
+            if (o.id.equals(id)) {
+                oldOperation = o;
+            }
+        }
+
+        final List<Operation> filteredOps = this.operations.stream().filter(o -> o.id.equals(id)).collect(Collectors.toList());
+        if (Objects.nonNull(oldOperation)) {
+            final Operation newOperation = oldOperation.cancel();
+            filteredOps.add(newOperation);
+        }
+
         return new TradingState(
                 this.orderbook,
                 this.candle,
@@ -299,7 +312,7 @@ public class TradingState {
                 this.currencies,
                 this.positions,
                 this.instrumentCurrency,
-                this.operations, // TODO update operations
+                filteredOps,
                 this.waitingForPlacingOrder
         );
     }
@@ -745,15 +758,15 @@ public class TradingState {
             return new Operation(
                     this.id,
                     Status.Decline,
-                    null,
-                    null,
+                    this.trades,
+                    this.commission,
                     this.currency,
                     this.payment,
                     this.price,
                     this.quantity,
                     this.figi,
-                    null,
-                    false,
+                    this.instrumentType,
+                    this.isMarginCall,
                     OffsetDateTime.now(),
                     this.operationType
             );
@@ -764,16 +777,41 @@ public class TradingState {
             return new Operation(
                     this.id,
                     Status.Done,
-                    null,
-                    null,
+                    this.trades,
+                    this.commission,
                     this.currency,
                     this.payment,
                     this.price,
                     this.quantity,
                     this.figi,
-                    null,
-                    false,
+                    this.instrumentType,
+                    this.isMarginCall,
                     OffsetDateTime.now(),
+                    this.operationType
+            );
+        }
+
+        @NotNull
+        public Operation update(final int executedLots) {
+            final List<Trade> newTrades = Objects.isNull(this.trades) ? new LinkedList<>() : new LinkedList<>(this.trades);
+            final int currentTradesCount = newTrades.size();
+            final int moreTradesCount = executedLots - currentTradesCount;
+            final OffsetDateTime now = OffsetDateTime.now();
+            newTrades.add(new Trade("fakeId", now, BigDecimal.ZERO, moreTradesCount));
+
+            return new Operation(
+                    this.id,
+                    Status.Progress,
+                    newTrades,
+                    this.commission,
+                    this.currency,
+                    this.payment,
+                    this.price,
+                    this.quantity,
+                    this.figi,
+                    this.instrumentType,
+                    this.isMarginCall,
+                    now,
                     this.operationType
             );
         }
