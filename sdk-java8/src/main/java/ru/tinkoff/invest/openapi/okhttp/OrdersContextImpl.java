@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import ru.tinkoff.invest.openapi.OrdersContext;
 import ru.tinkoff.invest.openapi.exceptions.NotEnoughBalanceException;
 import ru.tinkoff.invest.openapi.exceptions.OpenApiException;
+import ru.tinkoff.invest.openapi.exceptions.OrderAlreadyCancelledException;
 import ru.tinkoff.invest.openapi.model.RestResponse;
 import ru.tinkoff.invest.openapi.model.orders.LimitOrder;
 import ru.tinkoff.invest.openapi.model.orders.Order;
@@ -21,6 +22,7 @@ import java.util.logging.Logger;
 final class OrdersContextImpl extends BaseContextImpl implements OrdersContext {
 
     private static final String NOT_ENOUGH_BALANCE_CODE = "NOT_ENOUGH_BALANCE";
+    private static final String ORDER_ERROR_CODE = "ORDER_ERROR";
 
     private static final TypeReference<RestResponse<List<Order>>> listOrderTypeReference =
             new TypeReference<RestResponse<List<Order>>>() {
@@ -131,7 +133,11 @@ final class OrdersContextImpl extends BaseContextImpl implements OrdersContext {
                     handleResponse(response, emptyPayloadTypeReference);
                     onComplete.accept(null);
                 } catch (OpenApiException ex) { // TODO what if orderId doesn't exist?
-                    onError.accept(ex);
+                    if (ex.getCode().equals(ORDER_ERROR_CODE)) {
+                        onError.accept(new OrderAlreadyCancelledException(ex.getMessage(), ex.getCode()));
+                    } else {
+                        onError.accept(ex);
+                    }
                 }
             }
         });

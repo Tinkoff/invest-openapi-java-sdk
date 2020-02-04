@@ -237,6 +237,25 @@ public class OutputApiSignal {
         }
     }
 
+    public static final class OrderNotCancelled extends OutputApiSignal {
+        @NotNull
+        public final String id;
+
+        public OrderNotCancelled(@NotNull final String figi, @NotNull final String id) {
+            super(figi);
+
+            this.id = id;
+        }
+
+        @Override
+        public String toString() {
+            return "OrderNotPlaced{" +
+                    "figi='" + figi + '\'' +
+                    ", id='" + id + '\'' +
+                    '}';
+        }
+    }
+
     public static final class OrderExecuted extends OutputApiSignal {
         @NotNull final public String id;
 

@@ -288,6 +288,10 @@ public class StrategyProcessor implements Processor<OutputApiSignal, InputApiSig
             final OutputApiSignal.OrderNotPlaced signal = (OutputApiSignal.OrderNotPlaced) element;
             logger.fine("Заявка по инструменту " + signal.figi + " не размещена.");
             return currentState.withUnplacedOrder();
+        } else if (element instanceof OutputApiSignal.OrderNotCancelled) {
+            final OutputApiSignal.OrderNotCancelled signal = (OutputApiSignal.OrderNotCancelled) element;
+            logger.fine("Заявка по инструменту " + signal.figi + " не отменена.");
+            return currentState.withUncancelledOrder();
         } else {
             return currentState;
         }

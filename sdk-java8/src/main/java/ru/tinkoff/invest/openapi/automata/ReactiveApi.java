@@ -6,6 +6,7 @@ import org.reactivestreams.Subscriber;
 import ru.tinkoff.invest.openapi.OpenApi;
 import ru.tinkoff.invest.openapi.OpenApiFactoryBase;
 import ru.tinkoff.invest.openapi.exceptions.NotEnoughBalanceException;
+import ru.tinkoff.invest.openapi.exceptions.OrderAlreadyCancelledException;
 import ru.tinkoff.invest.openapi.model.orders.Order;
 import ru.tinkoff.invest.openapi.model.streaming.StreamingEvent;
 
@@ -244,7 +245,13 @@ public class ReactiveApi implements Processor<InputApiSignal, OutputApiSignal>, 
             api.ordersContext.cancelOrder(
                     concreteSignal.orderId,
                     empty -> emitSignal(new OutputApiSignal.OrderCancelled(concreteSignal.figi, concreteSignal.orderId)),
-                    this::onError);
+                    ex -> {
+                        if (ex instanceof OrderAlreadyCancelledException) {
+                            emitSignal(new OutputApiSignal.OrderNotCancelled(concreteSignal.figi, concreteSignal.orderId));
+                        } else {
+                            this.onError(ex);
+                        }
+                    });
         }
 
         return true;

@@ -318,6 +318,20 @@ public class TradingState {
         );
     }
 
+    @NotNull
+    public TradingState withUncancelledOrder() {
+        return new TradingState(
+                this.orderbook,
+                this.candle,
+                this.instrumentInfo,
+                this.orders,
+                this.currencies,
+                this.positions,
+                this.instrumentCurrency,
+                false
+        );
+    }
+
     @Override
     public String toString() {
         return "TradingState{" +
