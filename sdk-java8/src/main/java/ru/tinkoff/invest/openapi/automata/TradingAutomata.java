@@ -5,7 +5,7 @@ import ru.tinkoff.invest.openapi.OpenApi;
 import ru.tinkoff.invest.openapi.OpenApiFactoryBase;
 import ru.tinkoff.invest.openapi.model.market.CandleInterval;
 
-import java.util.List;
+import java.math.BigDecimal;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.logging.Logger;
@@ -67,6 +67,21 @@ public class TradingAutomata implements AutoCloseable {
         if (this.isRunning) this.cleanupStrategy(strategy);
     }
 
+    @Override
+    public void close() throws Exception {
+        this.stop();
+        this.api().streamingContext.close();
+    }
+
+    @NotNull
+    public Map<Strategy, BigDecimal> yields() {
+        return this.strategyProcessor.strategies().stream()
+            .collect(Collectors.toMap(
+                    s -> s,
+                    s -> calculateYield(s.getCurrentState())
+            ));
+    }
+
     private void prepareStrategy(@NotNull final Strategy strategy) {
         final String figi = strategy.getInstrument().figi;
         final InputApiSignal.StartInstrumentInfoStreaming instrumentInfoSignal =
@@ -97,9 +112,9 @@ public class TradingAutomata implements AutoCloseable {
         this.apiProcessor.onNext(orderbookSignal);
     }
 
-    @Override
-    public void close() throws Exception {
-        this.stop();
-        this.api().streamingContext.close();
+    @NotNull
+    private BigDecimal calculateYield(@NotNull final TradingState state) {
+        return state.operations.stream()
+            .reduce(BigDecimal.ZERO, (acc, op) -> op.payment, BigDecimal::add);
     }
 }

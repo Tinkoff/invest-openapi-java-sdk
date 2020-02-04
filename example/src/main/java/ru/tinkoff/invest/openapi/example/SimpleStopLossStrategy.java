@@ -1,5 +1,6 @@
 package ru.tinkoff.invest.openapi.example;
 
+import org.jetbrains.annotations.NotNull;
 import ru.tinkoff.invest.openapi.automata.Instrument;
 import ru.tinkoff.invest.openapi.automata.Strategy;
 import ru.tinkoff.invest.openapi.automata.StrategyDecision;
@@ -13,6 +14,8 @@ import java.util.logging.Logger;
 public class SimpleStopLossStrategy implements Strategy {
 
     private enum LastOrderResult {Profit, Loss, None}
+
+    private static final String DISPLAY_NAME = "Простая StopLoss";
 
     private final Instrument operatingInstrument;
     private final BigDecimal maxOperationValue;
@@ -83,6 +86,12 @@ public class SimpleStopLossStrategy implements Strategy {
         );
     }
 
+    @NotNull
+    public String getDisplayName() {
+        return DISPLAY_NAME;
+    }
+
+    @NotNull
     @Override
     public TradingState.Candle.CandleInterval getCandleInterval() {
         return this.candlesOperationInterval;
@@ -93,12 +102,14 @@ public class SimpleStopLossStrategy implements Strategy {
         return this.maxOperationOrderbookDepth;
     }
 
+    @NotNull
     @Override
     public TradingState getCurrentState() {
         return this.currentState;
     }
 
-    public StrategyDecision handleNewState(final TradingState tradingState) {
+    @NotNull
+    public StrategyDecision handleNewState(@NotNull final TradingState tradingState) {
         currentState = tradingState;
         final var candle = currentState.candle;
         final var instrumentInfo = currentState.instrumentInfo;
@@ -243,6 +254,7 @@ public class SimpleStopLossStrategy implements Strategy {
         return StrategyDecision.pass();
     }
 
+    @NotNull
     @Override
     public Instrument getInstrument() {
         return this.operatingInstrument;

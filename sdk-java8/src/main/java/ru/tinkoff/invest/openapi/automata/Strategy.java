@@ -1,6 +1,6 @@
 package ru.tinkoff.invest.openapi.automata;
 
-import java.math.BigDecimal;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Интерфейс стратегии торгового робота. Стратегия это чёрный ящщик, который на вход принимает исследуемый инструмент
@@ -14,6 +14,7 @@ public interface Strategy {
      *
      * @return Разрешение.
      */
+    @NotNull
     TradingState.Candle.CandleInterval getCandleInterval();
 
     /**
@@ -28,9 +29,15 @@ public interface Strategy {
      *
      * @return Состояние торговой ситуации.
      */
+    @NotNull
     TradingState getCurrentState();
 
-    StrategyDecision handleNewState(TradingState newState);
+    @NotNull
+    StrategyDecision handleNewState(@NotNull TradingState newState);
 
+    @NotNull
     Instrument getInstrument();
+
+    @NotNull
+    String getDisplayName();
 }

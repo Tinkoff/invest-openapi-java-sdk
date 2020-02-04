@@ -695,7 +695,7 @@ public class TradingState {
             this.trades = trades;
             this.commission = commission;
             this.currency = currency;
-            this.payment = payment;
+            this.payment = operationType == Type.Buy ? payment.negate() : payment;
             this.price = price;
             this.quantity = Objects.nonNull(quantity) ? quantity : -1;
             this.figi = figi;
