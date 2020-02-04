@@ -101,6 +101,7 @@ public class App {
                     BigDecimal.valueOf(0.1),
                     BigDecimal.valueOf(0.3),
                     BigDecimal.valueOf(0.3),
+                    BigDecimal.valueOf(0.2),
                     logger
             );
 

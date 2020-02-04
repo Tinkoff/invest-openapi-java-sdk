@@ -25,6 +25,7 @@ public class SimpleStopLossStrategy implements Strategy {
     private final BigDecimal growToFallInterest;
     private final BigDecimal profitInterest;
     private final BigDecimal stopLossInterest;
+    private final BigDecimal badOrderInterest;
     private final Logger logger;
 
     private LastOrderResult lastOrderResult;
@@ -33,19 +34,19 @@ public class SimpleStopLossStrategy implements Strategy {
     private boolean canTrade;
     private TradingState currentState;
 
-    public SimpleStopLossStrategy(final Instrument operatingInstrument,
-                                  final List<TradingState.Order> orders,
-                                  final Map<TradingState.Currency, TradingState.Position> currencies,
-                                  final Map<String, TradingState.Position> positions,
-                                  final BigDecimal maxOperationValue,
+    public SimpleStopLossStrategy(@NotNull final Instrument operatingInstrument,
+                                  @NotNull final List<TradingState.Order> orders,
+                                  @NotNull final Map<TradingState.Currency, TradingState.Position> currencies,
+                                  @NotNull final Map<String, TradingState.Position> positions,
+                                  @NotNull final BigDecimal maxOperationValue,
                                   final int maxOperationOrderbookDepth,
-                                  final TradingState.Candle.CandleInterval candlesOperationInterval,
-                                  final BigDecimal growToFallInterest,
-                                  final BigDecimal fallToGrowInterest,
-                                  final BigDecimal profitInterest,
-                                  final BigDecimal stopLossInterest,
-                                  final Logger logger) {
-
+                                  @NotNull final TradingState.Candle.CandleInterval candlesOperationInterval,
+                                  @NotNull final BigDecimal growToFallInterest,
+                                  @NotNull final BigDecimal fallToGrowInterest,
+                                  @NotNull final BigDecimal profitInterest,
+                                  @NotNull final BigDecimal stopLossInterest,
+                                  @NotNull final BigDecimal badOrderInterest,
+                                  @NotNull final Logger logger) {
         if (!(maxOperationValue.compareTo(BigDecimal.ZERO) > 0)) {
             throw new IllegalArgumentException("maxOperationValue должно быть положительным");
         }
@@ -73,6 +74,7 @@ public class SimpleStopLossStrategy implements Strategy {
         this.growToFallInterest = growToFallInterest;
         this.profitInterest = profitInterest;
         this.stopLossInterest = stopLossInterest;
+        this.badOrderInterest = badOrderInterest;
         this.logger = logger;
 
         this.lastOrderResult = LastOrderResult.None;
@@ -130,7 +132,19 @@ public class SimpleStopLossStrategy implements Strategy {
             logger.finest("Состояние поменялось. Идёт выставление заявки. Ничего не делаем.");
             return StrategyDecision.pass();
         } else if (!currentState.orders.isEmpty()) {
-            logger.finest("Состояние поменялось. Сейчас есть заявка. Ничего не делаем.");
+            final var activeOrder = currentState.orders.get(0);
+            final var activeAndCurrentDelta = activeOrder.price.subtract(price);
+            final var activeAndCurrentPercent = activeAndCurrentDelta.divide(
+                    activeOrder.price.divide(BigDecimal.valueOf(100), RoundingMode.HALF_EVEN),
+                    RoundingMode.HALF_EVEN);
+            if (activeAndCurrentPercent.compareTo(badOrderInterest) >= 0) {
+                logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
+                        initialPrice + ". Экстремум = " + extremum + ". Сейчас есть заявка. Текущая цена " +
+                        "значительно отошла от цены заявки. Отменяем заявку.");
+                return StrategyDecision.cancelOrder(activeOrder.figi, activeOrder.id);
+            } else {
+                logger.finest("Состояние поменялось. Сейчас есть заявка. Ничего не делаем.");
+            }
             return StrategyDecision.pass();
         } else if (hasPosition && price.compareTo(extremum) == 0) {
             logger.finest("Состояние поменялось. Сейчас есть позиция. Цена не изменилась. Ничего не делаем.");
