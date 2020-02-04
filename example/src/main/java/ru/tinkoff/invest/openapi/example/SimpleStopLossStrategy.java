@@ -245,7 +245,7 @@ public class SimpleStopLossStrategy implements Strategy {
                     if (priceAndInitPercent.compareTo(stopLossInterest) >= 0) {
                         logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
                                 initialPrice + ". Экстремум = " + extremum + ". Сейчас есть позиция. Экстремум < " +
-                                "отсчётной цены. екущая цена < экстремума. Цена опустилась значительно относительно " +
+                                "отсчётной цены. Текущая цена < экстремума. Цена опустилась значительно относительно " +
                                 "отсчётной цены. Размещаем лимитную заявку на продажу (остановка потерь).");
                         lastOrderResult = LastOrderResult.Loss;
                         return placeLimitOrder(price, TradingState.Order.Type.Sell);
