@@ -164,7 +164,7 @@ public class TradingState {
         final Map<Currency, Position> currenciesCopy = new HashMap<>(this.currencies);
         final Map<String, Position> positionsCopy = new HashMap<>(this.positions);
         if (Objects.nonNull(executedOrder)) {
-            final BigDecimal executedLots = BigDecimal.valueOf(executedOrder.executedLots).multiply(BigDecimal.valueOf(instrumentInfo.lot));
+            final BigDecimal executedLots = BigDecimal.valueOf(executedOrder.requestedLots).multiply(BigDecimal.valueOf(instrumentInfo.lot));
             final BigDecimal amount = executedOrder.price.multiply(executedLots);
             final Position currentCurrencyPosition = currenciesCopy.getOrDefault(this.instrumentCurrency, Position.empty);
             final Position newCurrencyValue = executedOrder.operation == Order.Type.Buy

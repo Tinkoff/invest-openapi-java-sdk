@@ -145,22 +145,19 @@ public class SimpleStopLossStrategy implements Strategy {
             } else {
                 logger.finest("Состояние поменялось. Сейчас есть заявка. Ничего не делаем.");
             }
-            return StrategyDecision.pass();
         } else if (hasPosition && price.compareTo(extremum) == 0) {
             logger.finest("Состояние поменялось. Сейчас есть позиция. Цена не изменилась. Ничего не делаем.");
-            return StrategyDecision.pass();
         } else if (!hasPosition && lastOrderResult == LastOrderResult.None) {
             if (!canTrade) {
                 logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
                         initialPrice + ". Экстремум = " + extremum + ". Сейчас нет позиции и до этого не было. " +
                         "Нельзя торговать. Ничего не делаем.");
-                return StrategyDecision.pass();
+            } else {
+                logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " + initialPrice +
+                        ". Экстремум = " + extremum + ". Сейчас нет позиции и до этого не было. Можно торговать. " +
+                        "Размещаем лимитную заявку на покупку.");
+                return placeLimitOrder(price, TradingState.Order.Type.Buy);
             }
-
-            logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " + initialPrice +
-                    ". Экстремум = " + extremum + ". Сейчас нет позиции и до этого не было. Можно торговать. " +
-                    "Размещаем лимитную заявку на покупку.");
-            return placeLimitOrder(price, TradingState.Order.Type.Buy);
         } else if (!hasPosition && lastOrderResult != LastOrderResult.None) {
             if (price.compareTo(extremum) <= 0) {
                 logger.finest("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
