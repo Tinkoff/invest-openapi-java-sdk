@@ -90,25 +90,25 @@ public class StrategyProcessor implements Processor<OutputApiSignal, InputApiSig
 
     @Override
     public final void run() {
-        if(on.get()) { // establishes a happens-before relationship with the end of the previous run
+        if (on.get()) { // establishes a happens-before relationship with the end of the previous run
             try {
                 if (!done) { // If we're done, we shouldn't process any more signals, obeying rule 2.8
                     final SubscriberSignal s = inboundSignals.poll(); // We take a signal off the queue
                     // Below we simply unpack the `Signal`s and invoke the corresponding methods
                     if (s instanceof OnNext)
-                        handleOnNext(((OnNext)s).next);
+                        handleOnNext(((OnNext) s).next);
                     else if (s instanceof OnSubscribe)
-                        handleOnSubscribe(((OnSubscribe)s).subscription);
+                        handleOnSubscribe(((OnSubscribe) s).subscription);
                     else if (s instanceof OnError) // We are always able to handle OnError, obeying rule 2.10
-                        handleOnError(((OnError)s).error);
+                        handleOnError(((OnError) s).error);
                     else if (s == OnComplete.Instance) // We are always able to handle OnComplete, obeying rule 2.9
                         handleOnComplete();
 
-                    logger.finest("Сигналов в очереди для StrategyProcessor.");
+                    logger.finest("Сигналов в очереди для StrategyProcessor: " + inboundSignals.size());
                 }
             } finally {
                 on.set(false); // establishes a happens-before relationship with the beginning of the next run
-                if(!inboundSignals.isEmpty()) // If we still have signals to process
+                if (!inboundSignals.isEmpty()) // If we still have signals to process
                     tryScheduleToExecute(); // Then we try to schedule ourselves to execute again
             }
         }
@@ -123,33 +123,54 @@ public class StrategyProcessor implements Processor<OutputApiSignal, InputApiSig
     }
 
     // Signal represents the asynchronous protocol between the Publisher and Subscriber
-    private interface SubscriberSignal {}
-    private enum OnComplete implements SubscriberSignal { Instance }
+    private interface SubscriberSignal {
+    }
+
+    private enum OnComplete implements SubscriberSignal {Instance}
+
     private static class OnError implements SubscriberSignal {
         public final Throwable error;
-        public OnError(final Throwable error) { this.error = error; }
+
+        public OnError(final Throwable error) {
+            this.error = error;
+        }
     }
+
     private static class OnNext implements SubscriberSignal {
         public final OutputApiSignal next;
-        public OnNext(final OutputApiSignal next) { this.next = next; }
+
+        public OnNext(final OutputApiSignal next) {
+            this.next = next;
+        }
     }
+
     private static class OnSubscribe implements SubscriberSignal {
         public final org.reactivestreams.Subscription subscription;
-        public OnSubscribe(final org.reactivestreams.Subscription subscription) { this.subscription = subscription; }
+
+        public OnSubscribe(final org.reactivestreams.Subscription subscription) {
+            this.subscription = subscription;
+        }
     }
 
     // These represent the protocol of the `ReactiveOpenApis` Subscription
-    private interface PublisherSignal {}
-    private enum Cancel implements PublisherSignal { Instance }
-    private enum Subscribe implements PublisherSignal { Instance }
+    private interface PublisherSignal {
+    }
+
+    private enum Cancel implements PublisherSignal {Instance}
+
+    private enum Subscribe implements PublisherSignal {Instance}
+
     private static final class Send implements PublisherSignal {
         final InputApiSignal outSignal;
+
         Send(final InputApiSignal outSignal) {
             this.outSignal = outSignal;
         }
     }
+
     private static final class Request implements PublisherSignal {
         final long n;
+
         Request(final long n) {
             this.n = n;
         }
@@ -163,7 +184,7 @@ public class StrategyProcessor implements Processor<OutputApiSignal, InputApiSig
         if (subscription != null) { // If we are bailing out before we got a `Subscription` there's little need for cancelling it.
             try {
                 subscription.cancel(); // Cancel the subscription
-            } catch(final Throwable t) {
+            } catch (final Throwable t) {
                 //Subscription.cancel is not allowed to throw an exception, according to rule 3.15
                 logger.log(Level.SEVERE, subscription + " violated the Reactive Streams rule 3.15 by throwing an exception from cancel.", t);
             }
@@ -177,26 +198,24 @@ public class StrategyProcessor implements Processor<OutputApiSignal, InputApiSig
         logger.finest("StrategyProcessor получил сигнал " + element);
 
         final List<Strategy> filtered = operatingStrategies.stream()
-            .filter(s -> s.getInstrument().figi.equals(element.figi))
-            .collect(Collectors.toList());
+                .filter(s -> s.getInstrument().figi.equals(element.figi))
+                .collect(Collectors.toList());
 
         if (!filtered.isEmpty()) {
-            final boolean waitingIsOver = element instanceof OutputApiSignal.OrderNotPlaced ||
-                element instanceof OutputApiSignal.LimitOrderPlaced;
-
             filtered.forEach(strategy -> {
-                if (waitingIsOver) strategy.internalReset();
+                logger.finest("Состояние перед обработкой сигнала: " + strategy.getCurrentState());
                 final TradingState newState = computeNewState(element, strategy.getCurrentState());
                 if (element instanceof OutputApiSignal.LimitOrderPlaced ||
-                    element instanceof OutputApiSignal.OrderCancelled ||
-                    element instanceof OutputApiSignal.OrderExecuted
+                        element instanceof OutputApiSignal.OrderCancelled ||
+                        element instanceof OutputApiSignal.OrderExecuted
                 ) {
-                    logger.fine("Состояние после изменения статуса заявки: " + newState);
+                    logger.finest("Состояние после изменения статуса заявки: " + newState);
                 }
+                logger.finest("Новый waitingForPlacingOrder = " + newState.waitingForPlacingOrder);
                 final StrategyDecision decision = strategy.handleNewState(newState);
                 final InputApiSignal outputSignal = formSignalToApi(decision);
                 if (Objects.nonNull(outputSignal)) {
-                    logger.fine("Состояние перед отправкой решения: " + newState);
+                    logger.finest("Состояние перед отправкой решения: " + newState);
                     emitSignal(outputSignal);
                 }
             });
@@ -234,7 +253,7 @@ public class StrategyProcessor implements Processor<OutputApiSignal, InputApiSig
             return currentState.withNewInstrumentInfo(newInstrumentInfo);
         } else if (element instanceof OutputApiSignal.LimitOrderPlaced) {
             final OutputApiSignal.LimitOrderPlaced signal = (OutputApiSignal.LimitOrderPlaced) element;
-            // TODO отследить rejectReason
+            logger.fine("Заявка " + signal.id + " по инструменту " + signal.figi + " размещена.");
             final TradingState.Order newOrder = new TradingState.Order(
                     signal.id,
                     EntitiesAdaptor.convertApiEntityToTradingState(signal.operation),
@@ -256,13 +275,19 @@ public class StrategyProcessor implements Processor<OutputApiSignal, InputApiSig
             return currentState.withNewOrderbook(newOrderbook);
         } else if (element instanceof OutputApiSignal.OrderCancelled) {
             final OutputApiSignal.OrderCancelled signal = (OutputApiSignal.OrderCancelled) element;
+            logger.fine("Заявка " + signal.id + " по инструменту " + signal.figi + " отменена.");
             return currentState.withCancelledOrder(signal.id);
         } else if (element instanceof OutputApiSignal.OrderStateChanged) {
             final OutputApiSignal.OrderStateChanged signal = (OutputApiSignal.OrderStateChanged) element;
             return currentState.withChangedOrder(signal.id, EntitiesAdaptor.convertApiEntityToTradingState(signal.status), signal.executedLots);
         } else if (element instanceof OutputApiSignal.OrderExecuted) {
             final OutputApiSignal.OrderExecuted signal = (OutputApiSignal.OrderExecuted) element;
+            logger.fine("Заявка " + signal.id + " по инструменту " + signal.figi + " исполнена.");
             return currentState.withExecutedOrder(signal.id);
+        } else if (element instanceof OutputApiSignal.OrderNotPlaced) {
+            final OutputApiSignal.OrderNotPlaced signal = (OutputApiSignal.OrderNotPlaced) element;
+            logger.fine("Заявка по инструменту " + signal.figi + " не размещена.");
+            return currentState.withUnplacedOrder();
         } else {
             return currentState;
         }
@@ -282,7 +307,8 @@ public class StrategyProcessor implements Processor<OutputApiSignal, InputApiSig
     }
 
     // This method is invoked when the OnComplete signal arrives
-    protected void whenComplete() { }
+    protected void whenComplete() {
+    }
 
     // This method is invoked if the OnError signal arrives
     protected void whenError(final Throwable error) {
@@ -296,7 +322,7 @@ public class StrategyProcessor implements Processor<OutputApiSignal, InputApiSig
         } else if (subscription != null) { // If someone has made a mistake and added this Subscriber multiple times, let's handle it gracefully
             try {
                 s.cancel(); // Cancel the additional subscription to follow rule 2.5
-            } catch(final Throwable t) {
+            } catch (final Throwable t) {
                 //Subscription.cancel is not allowed to throw an exception, according to rule 3.15
                 logger.log(Level.SEVERE, s + " violated the Reactive Streams rule 3.15 by throwing an exception from cancel.", t);
             }
@@ -308,7 +334,7 @@ public class StrategyProcessor implements Processor<OutputApiSignal, InputApiSig
                 // If we want elements, according to rule 2.1 we need to call `request`
                 // And, according to rule 3.2 we are allowed to call this synchronously from within the `onSubscribe` method
                 s.request(1); // Our Subscriber is unbuffered and modest, it requests one element at a time
-            } catch(final Throwable t) {
+            } catch (final Throwable t) {
                 // Subscription.request is not allowed to throw according to rule 3.16
                 logger.log(Level.SEVERE, s + " violated the Reactive Streams rule 3.16 by throwing an exception from request.", t);
             }
@@ -317,7 +343,7 @@ public class StrategyProcessor implements Processor<OutputApiSignal, InputApiSig
 
     private void handleOnNext(final OutputApiSignal element) {
         if (!done) { // If we aren't already done
-            if(subscription == null) { // Technically this check is not needed, since we are expecting Publishers to conform to the spec
+            if (subscription == null) { // Technically this check is not needed, since we are expecting Publishers to conform to the spec
                 // Check for spec violation of 2.1 and 1.09
                 logger.log(Level.SEVERE, "Someone violated the Reactive Streams rule 1.09 and 2.1 by signalling OnNext before `Subscription.request`. (no Subscription)");
             } else {
@@ -325,18 +351,18 @@ public class StrategyProcessor implements Processor<OutputApiSignal, InputApiSig
                     if (whenNext(element)) {
                         try {
                             subscription.request(1); // Our Subscriber is unbuffered and modest, it requests one element at a time
-                        } catch(final Throwable t) {
+                        } catch (final Throwable t) {
                             // Subscription.request is not allowed to throw according to rule 3.16
                             logger.log(Level.SEVERE, subscription + " violated the Reactive Streams rule 3.16 by throwing an exception from request.", t);
                         }
                     } else {
                         done(); // This is legal according to rule 2.6
                     }
-                } catch(final Throwable t) {
+                } catch (final Throwable t) {
                     done();
                     try {
                         onError(t);
-                    } catch(final Throwable t2) {
+                    } catch (final Throwable t2) {
                         //Subscriber.onError is not allowed to throw an exception, according to rule 2.13
                         logger.log(Level.SEVERE, this + " violated the Reactive Streams rule 2.13 by throwing an exception from onError.", t2);
                     }
@@ -383,10 +409,10 @@ public class StrategyProcessor implements Processor<OutputApiSignal, InputApiSig
 
     // This method makes sure that this `Subscriber` is only executing on one Thread at a time
     private void tryScheduleToExecute() {
-        if(on.compareAndSet(false, true)) {
+        if (on.compareAndSet(false, true)) {
             try {
                 executor.execute(this);
-            } catch(Throwable t) { // If we can't run on the `Executor`, we need to fail gracefully and not violate rule 2.13
+            } catch (Throwable t) { // If we can't run on the `Executor`, we need to fail gracefully and not violate rule 2.13
                 if (!done) {
                     try {
                         done(); // First of all, this failure is not recoverable, so we need to cancel our subscription
@@ -448,7 +474,7 @@ public class StrategyProcessor implements Processor<OutputApiSignal, InputApiSig
                 // Deal with setting up the subscription with the subscriber
                 try {
                     subscriber.onSubscribe(this);
-                } catch(final Throwable t) { // Due diligence to obey 2.13
+                } catch (final Throwable t) { // Due diligence to obey 2.13
                     terminateDueTo(new IllegalStateException(subscriber + " violated the Reactive Streams rule 2.13 by throwing an exception from onSubscribe.", t));
                 }
             }
@@ -459,7 +485,7 @@ public class StrategyProcessor implements Processor<OutputApiSignal, InputApiSig
             try {
                 subscriber.onNext(s); // Then we signal the next element downstream to the `Subscriber`
                 --demand;
-            } catch(final Throwable t) {
+            } catch (final Throwable t) {
                 // We can only get here if `onNext` or `onComplete` threw, and they are not allowed to according to 2.13, so we can only cancel and log here.
                 doCancel(); // Make sure that we are cancelled, since we cannot do anything else since the `Subscriber` is faulty.
                 logger.log(Level.SEVERE, subscriber + " violated the Reactive Streams rule 2.13 by throwing an exception from onNext or onComplete.", t);
@@ -471,7 +497,7 @@ public class StrategyProcessor implements Processor<OutputApiSignal, InputApiSig
             cancelled = true; // When we signal onError, the subscription must be considered as cancelled, as per rule 1.6
             try {
                 subscriber.onError(t); // Then we signal the error downstream, to the `Subscriber`
-            } catch(final Throwable t2) { // If `onError` throws an exception, this is a spec violation according to rule 1.9, and all we can do is to log it.
+            } catch (final Throwable t2) { // If `onError` throws an exception, this is a spec violation according to rule 1.9, and all we can do is to log it.
                 logger.log(Level.SEVERE, subscriber + " violated the Reactive Streams rule 2.13 by throwing an exception from onError.", t2);
             }
         }
@@ -484,7 +510,7 @@ public class StrategyProcessor implements Processor<OutputApiSignal, InputApiSig
 
         @Override
         public void run() {
-            if(on.get()) { // establishes a happens-before relationship with the end of the previous run
+            if (on.get()) { // establishes a happens-before relationship with the end of the previous run
                 try {
                     PublisherSignal s = inboundSignals.peek(); // We take a signal off the queue
                     if (!cancelled) { // to make sure that we follow rule 1.8, 3.6 and 3.7
@@ -508,7 +534,7 @@ public class StrategyProcessor implements Processor<OutputApiSignal, InputApiSig
                     }
                 } finally {
                     on.set(false); // establishes a happens-before relationship with the beginning of the next run
-                    if(!inboundSignals.isEmpty()) // If we still have signals to process
+                    if (!inboundSignals.isEmpty()) // If we still have signals to process
                         tryScheduleToExecute(); // Then we try to schedule ourselves to execute again
                 }
             }
@@ -517,10 +543,10 @@ public class StrategyProcessor implements Processor<OutputApiSignal, InputApiSig
         // This method makes sure that this `Subscription` is only running on one Thread at a time,
         // this is important to make sure that we follow rule 1.3
         private void tryScheduleToExecute() {
-            if(on.compareAndSet(false, true)) {
+            if (on.compareAndSet(false, true)) {
                 try {
                     executor.execute(this);
-                } catch(Throwable t) { // If we can't run on the `Executor`, we need to fail gracefully
+                } catch (Throwable t) { // If we can't run on the `Executor`, we need to fail gracefully
                     if (!cancelled) {
                         doCancel(); // First of all, this failure is not recoverable, so we need to follow rule 1.4 and 1.6
                         try {
@@ -538,12 +564,14 @@ public class StrategyProcessor implements Processor<OutputApiSignal, InputApiSig
         }
 
         // Our implementation of `Subscription.request` sends a signal to the Subscription that more elements are in demand
-        @Override public void request(final long n) {
+        @Override
+        public void request(final long n) {
             signal(new Request(n));
         }
 
         // Our implementation of `Subscription.cancel` sends a signal to the Subscription that the `Subscriber` is not interested in any more elements
-        @Override public void cancel() {
+        @Override
+        public void cancel() {
             signal(Cancel.Instance);
         }
 

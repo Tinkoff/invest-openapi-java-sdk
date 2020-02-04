@@ -99,7 +99,7 @@ public class ReactiveApi implements Processor<InputApiSignal, OutputApiSignal>, 
                     else if (s == OnComplete.Instance) // We are always able to handle OnComplete, obeying rule 2.9
                         handleOnComplete();
 
-                    logger.finest("Сигналов в очереди для ReactiveApi.");
+                    logger.finest("Сигналов в очереди для ReactiveApi: " + inboundSignals.size());
                 }
             } finally {
                 on.set(false); // establishes a happens-before relationship with the beginning of the next run

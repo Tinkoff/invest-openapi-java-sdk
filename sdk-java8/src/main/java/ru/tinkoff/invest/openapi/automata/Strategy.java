@@ -32,7 +32,5 @@ public interface Strategy {
 
     StrategyDecision handleNewState(TradingState newState);
 
-    void internalReset();
-
     Instrument getInstrument();
 }

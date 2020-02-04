@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 
 public class SimpleStopLossStrategy implements Strategy {
 
-    private enum LastOrderResult { Profit, Loss, None }
+    private enum LastOrderResult {Profit, Loss, None}
 
     private final Instrument operatingInstrument;
     private final BigDecimal maxOperationValue;
@@ -29,7 +29,6 @@ public class SimpleStopLossStrategy implements Strategy {
     private BigDecimal initialPrice;
     private boolean canTrade;
     private TradingState currentState;
-    private boolean waitingForPlacingOrder;
 
     public SimpleStopLossStrategy(final Instrument operatingInstrument,
                                   final List<TradingState.Order> orders,
@@ -63,7 +62,7 @@ public class SimpleStopLossStrategy implements Strategy {
             throw new IllegalArgumentException("stopLossInterest должно быть положительным");
         }
 
-        this.operatingInstrument= operatingInstrument;
+        this.operatingInstrument = operatingInstrument;
         this.maxOperationValue = maxOperationValue;
         this.maxOperationOrderbookDepth = maxOperationOrderbookDepth;
         this.candlesOperationInterval = candlesOperationInterval;
@@ -75,12 +74,13 @@ public class SimpleStopLossStrategy implements Strategy {
 
         this.lastOrderResult = LastOrderResult.None;
         this.canTrade = false;
-        this.waitingForPlacingOrder = false;
 
-        currentState = TradingState.init(orders,
-                                         currencies,
-                                         positions,
-                                         operatingInstrument.currency);
+        currentState = TradingState.init(
+                orders,
+                currencies,
+                positions,
+                operatingInstrument.currency
+        );
     }
 
     @Override
@@ -115,11 +115,11 @@ public class SimpleStopLossStrategy implements Strategy {
         final TradingState.Position position = currentState.positions.getOrDefault(operatingInstrument.figi, TradingState.Position.empty);
         final boolean hasPosition = position.balance.add(position.blocked).compareTo(BigDecimal.ZERO) != 0;
 
-        if (waitingForPlacingOrder) {
-            logger.fine("Состояние поменялось. Идёт выставление заявки. Ничего не делаем.");
+        if (currentState.waitingForPlacingOrder) {
+            logger.finest("Состояние поменялось. Идёт выставление заявки. Ничего не делаем.");
             return StrategyDecision.pass();
-        } else if (!tradingState.orders.isEmpty()) {
-            logger.fine("Состояние поменялось. Сейчас есть заявка. Ничего не делаем.");
+        } else if (!currentState.orders.isEmpty()) {
+            logger.finest("Состояние поменялось. Сейчас есть заявка. Ничего не делаем.");
             return StrategyDecision.pass();
         } else if (hasPosition && price.compareTo(extremum) == 0) {
             logger.finest("Состояние поменялось. Сейчас есть позиция. Цена не изменилась. Ничего не делаем.");
@@ -138,7 +138,7 @@ public class SimpleStopLossStrategy implements Strategy {
             return placeLimitOrder(price, TradingState.Order.Type.Buy);
         } else if (!hasPosition && lastOrderResult != LastOrderResult.None) {
             if (price.compareTo(extremum) <= 0) {
-                logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
+                logger.finest("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
                         initialPrice + ". Экстремум = " + extremum + ". Сейчас нет позиции, но до этого была. " +
                         "Текущая цена <= экстремуму. Обновляем экстремум ценой.");
                 extremum = price;
@@ -155,13 +155,13 @@ public class SimpleStopLossStrategy implements Strategy {
                                 "экстремума. Можно торговать. Размещаем лимитную заявку на покупку.");
                         return placeLimitOrder(price, TradingState.Order.Type.Buy);
                     } else {
-                        logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
+                        logger.finest("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
                                 initialPrice + ". Экстремум = " + extremum + ". Сейчас нет позиции, но до этого " +
                                 "была. Текущая цена > экстремума. Цена поднялась значительно относительно " +
                                 "экстремума. Нельзя торговать. Ничего не делаем.");
                     }
                 } else {
-                    logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
+                    logger.finest("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
                             initialPrice + ". Экстремум = " + extremum + ". Сейчас нет позиции, но до этого была. " +
                             "Текущая цена > экстремума. Цена поднялась незначительно относительно экстремума. " +
                             "Ничего не делаем.");
@@ -170,7 +170,7 @@ public class SimpleStopLossStrategy implements Strategy {
         } else if (hasPosition) {
             if (extremum.compareTo(initialPrice) > 0) {
                 if (price.compareTo(extremum) >= 0) {
-                    logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
+                    logger.finest("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
                             initialPrice + ". Экстремум = " + extremum + ". Сейчас есть позиция. Экстремум > " +
                             "отсчётной цены. Текущая цена >= экстремуму. Обновляем экстремум ценой.");
                     extremum = price;
@@ -193,13 +193,13 @@ public class SimpleStopLossStrategy implements Strategy {
                             lastOrderResult = LastOrderResult.Profit;
                             return placeLimitOrder(price, TradingState.Order.Type.Sell);
                         } else {
-                            logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
+                            logger.finest("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
                                     initialPrice + ". Экстремум = " + extremum + ". Сейчас есть позиция. Экстремум > " +
                                     "отсчётной цены. Текущая цена < экстремума. Цена опустилась незначительно ниже " +
                                     "экстремума. Ничего не делаем.");
                         }
                     } else {
-                        logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
+                        logger.finest("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
                                 initialPrice + ". Экстремум = " + extremum + ". Сейчас есть позиция. Экстремум > " +
                                 "отсчётной цены. Текущая цена < экстремума. Экстремум поднялся незначительно " +
                                 "относительно отсчётной цены. Обновляем экстремум ценой.");
@@ -208,7 +208,7 @@ public class SimpleStopLossStrategy implements Strategy {
                 }
             } else if (extremum.compareTo(initialPrice) < 0) {
                 if (price.compareTo(extremum) >= 0) {
-                    logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
+                    logger.finest("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
                             initialPrice + ". Экстремум = " + extremum + ". Сейчас есть позиция. Экстремум < " +
                             "отсчётной цены. Текущая цена >= экстремуму. Обновляем экстремум ценой.");
                     extremum = price;
@@ -225,7 +225,7 @@ public class SimpleStopLossStrategy implements Strategy {
                         lastOrderResult = LastOrderResult.Loss;
                         return placeLimitOrder(price, TradingState.Order.Type.Sell);
                     } else {
-                        logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
+                        logger.finest("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
                                 initialPrice + ". Экстремум = " + extremum + ". Сейчас есть позиция. Экстремум < " +
                                 "отсчётной цены. Текущая цена < экстремума. Цена опустилась незначительно " +
                                 "относительно отсчётной цены. Обновляем экстремум ценой.");
@@ -233,7 +233,7 @@ public class SimpleStopLossStrategy implements Strategy {
                     }
                 }
             } else {
-                logger.fine("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
+                logger.finest("Состояние поменялось. Текущая цена = " + price + ". Отсчётная цена = " +
                         initialPrice + ". Экстремум = " + extremum + ". Сейчас есть позиция. Экстремум = отсчётной " +
                         "цене. Обновляем экстремум ценой.");
                 extremum = price;
@@ -241,11 +241,6 @@ public class SimpleStopLossStrategy implements Strategy {
         }
 
         return StrategyDecision.pass();
-    }
-
-    @Override
-    public void internalReset() {
-        this.waitingForPlacingOrder = false;
     }
 
     @Override
@@ -267,11 +262,11 @@ public class SimpleStopLossStrategy implements Strategy {
         extremum = price;
 
         final BigDecimal correctedPrice = price.divide(operatingInstrument.minPriceIncrement, RoundingMode.HALF_DOWN)
-            .setScale(0, RoundingMode.DOWN)
-            .multiply(operatingInstrument.minPriceIncrement);
+                .setScale(0, RoundingMode.DOWN)
+                .multiply(operatingInstrument.minPriceIncrement);
 
         final TradingState.Position currentValue = currentState.currencies
-            .getOrDefault(operatingInstrument.currency, TradingState.Position.empty);
+                .getOrDefault(operatingInstrument.currency, TradingState.Position.empty);
 
         final BigDecimal lotSize = BigDecimal.valueOf(operatingInstrument.lot);
         final int lots;
@@ -286,7 +281,7 @@ public class SimpleStopLossStrategy implements Strategy {
             lots = currentState.positions.get(operatingInstrument.figi).balance.divide(lotSize, RoundingMode.DOWN).intValue();
         }
 
-        waitingForPlacingOrder = true;
+        currentState.waitingForPlacingOrder = true; // TODO hmmm...
 
         return StrategyDecision.placeLimitOrder(
                 operatingInstrument.figi,

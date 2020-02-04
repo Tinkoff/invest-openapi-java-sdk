@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.logging.*;
@@ -42,7 +43,7 @@ public class App {
         }
 
         try {
-            logger.fine("Создаём подключение... ");
+            logger.info("Создаём подключение... ");
             final var factory = new OkHttpOpenApiFactory(ssoToken, useSandbox, logger);
             final var automata = new TradingAutomata(factory, Executors.newScheduledThreadPool(10), logger);
             final var api = (OkHttpOpenApi) automata.api();
@@ -52,7 +53,7 @@ public class App {
                 ((OkHttpSandboxOpenApi) api).performRegistration().join();
             }
 
-            logger.fine("Ищём по тикеру " + ticker + "... ");
+            logger.info("Ищём по тикеру " + ticker + "... ");
             final var instrumentsList = api.searchMarketInstrumentsByTicker(ticker).join();
 
             final var instrumentOpt = instrumentsList.instruments.stream().findFirst();
@@ -69,7 +70,7 @@ public class App {
                 initPrepareSandbox((OkHttpSandboxOpenApi) api, instrument, logger);
             }
 
-            logger.fine("Получаем валютные балансы... ");
+            logger.info("Получаем валютные балансы... ");
             final var portfolioCurrencies = api.getPortfolioCurrencies().join();
 
             final var portfolioCurrencyOpt = portfolioCurrencies.currencies.stream()
@@ -82,7 +83,7 @@ public class App {
                 return;
             } else {
                 portfolioCurrency = portfolioCurrencyOpt.get();
-                logger.fine("Нужной валюты " + portfolioCurrency.currency + " на счету " + portfolioCurrency.balance.toPlainString());
+                logger.info("Нужной валюты " + portfolioCurrency.currency + " на счету " + portfolioCurrency.balance.toPlainString());
             }
 
             final var currentOrders = api.getOrders().join();
@@ -92,7 +93,7 @@ public class App {
                     EntitiesAdaptor.convertApiEntityToTradingState(instrument),
                     currentOrders.stream().map(EntitiesAdaptor::convertApiEntityToTradingState).collect(Collectors.toList()),
                     portfolioCurrencies.currencies.stream()
-                        .collect(Collectors.toMap(c -> EntitiesAdaptor.convertApiEntityToTradingState(c.currency), c -> new TradingState.Position(c.balance, c.blocked))),
+                            .collect(Collectors.toMap(c -> EntitiesAdaptor.convertApiEntityToTradingState(c.currency), c -> new TradingState.Position(c.balance, c.blocked))),
                     currentPositions.positions.stream().collect(Collectors.toMap(p -> p.figi, p -> new TradingState.Position(p.balance, p.blocked))),
                     maxVolume,
                     5,
@@ -106,7 +107,7 @@ public class App {
 
             initCleanupProcedure(automata, logger);
 
-            logger.fine("Запускаем робота... ");
+            logger.info("Запускаем робота... ");
             automata.addStrategy(strategy);
             automata.start();
 
@@ -181,10 +182,10 @@ public class App {
     private static void initPrepareSandbox(final OkHttpSandboxOpenApi context,
                                            final Instrument instrument,
                                            final Logger logger) {
-        logger.fine("Очищаем всё позиции... ");
+        logger.info("Очищаем всё позиции... ");
         context.clearAll().join();
 
-        logger.fine("Ставим на баланс немного " + instrument.currency + "... ");
+        logger.info("Ставим на баланс немного " + instrument.currency + "... ");
         final CurrencyBalance cb = new CurrencyBalance(instrument.currency, maxVolume);
         context.setCurrencyBalance(cb).join();
     }

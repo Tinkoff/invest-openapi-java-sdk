@@ -5,8 +5,11 @@ import ru.tinkoff.invest.openapi.OpenApi;
 import ru.tinkoff.invest.openapi.OpenApiFactoryBase;
 import ru.tinkoff.invest.openapi.model.market.CandleInterval;
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class TradingAutomata implements AutoCloseable {
 
