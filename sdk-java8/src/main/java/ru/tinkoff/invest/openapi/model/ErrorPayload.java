@@ -2,8 +2,7 @@ package ru.tinkoff.invest.openapi.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Модель ответа с ошибкой.
@@ -13,11 +12,13 @@ public class ErrorPayload {
     /**
      * Текст ошибки.
      */
+    @NotNull
     public final String message;
 
     /**
      * Код ошибки.
      */
+    @NotNull
     public final String code;
 
     /**
@@ -27,17 +28,12 @@ public class ErrorPayload {
      * @param code Код.
      */
     @JsonCreator
-    public ErrorPayload(@JsonProperty("message")
-                        String message,
-                        @JsonProperty("code")
-                        String code) {
-        if (Objects.isNull(message)) {
-            throw new IllegalArgumentException("Текст ошибки не может быть null.");
-        }
-        if (Objects.isNull(code)) {
-            throw new IllegalArgumentException("Код ошибки не может быть null.");
-        }
-
+    public ErrorPayload(@JsonProperty(value = "message", required = true)
+                        @NotNull
+                                String message,
+                        @JsonProperty(value = "code", required = true)
+                        @NotNull
+                                String code) {
         this.message = message;
         this.code = code;
     }

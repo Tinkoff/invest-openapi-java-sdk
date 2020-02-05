@@ -25,11 +25,9 @@ final class OrdersContextImpl extends BaseContextImpl implements OrdersContext {
     private static final String ORDER_ERROR_CODE = "ORDER_ERROR";
 
     private static final TypeReference<RestResponse<List<Order>>> listOrderTypeReference =
-            new TypeReference<RestResponse<List<Order>>>() {
-            };
+            new TypeReference<RestResponse<List<Order>>>() {};
     private static final TypeReference<RestResponse<PlacedLimitOrder>> placedLimitOrderTypeReference =
-            new TypeReference<RestResponse<PlacedLimitOrder>>() {
-            };
+            new TypeReference<RestResponse<PlacedLimitOrder>>() {};
 
     public OrdersContextImpl(@NotNull final OkHttpClient client,
                              @NotNull final String url,
@@ -132,7 +130,7 @@ final class OrdersContextImpl extends BaseContextImpl implements OrdersContext {
                 try {
                     handleResponse(response, emptyPayloadTypeReference);
                     onComplete.accept(null);
-                } catch (OpenApiException ex) { // TODO what if orderId doesn't exist?
+                } catch (OpenApiException ex) {
                     if (ex.getCode().equals(ORDER_ERROR_CODE)) {
                         onError.accept(new OrderAlreadyCancelledException(ex.getMessage(), ex.getCode()));
                     } else {
