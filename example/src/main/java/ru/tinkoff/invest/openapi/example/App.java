@@ -38,8 +38,8 @@ public class App {
             logger.info("Создаём подключение... ");
             final var factory = new OkHttpOpenApiFactory(parameters.ssoToken, parameters.sandboxMode, logger);
             final var api = factory.createOpenApiClient(
-                    se -> System.out.println("Из Streaming API пришло событие"),
-                    ex -> System.err.println("Что-то произошло со Streaming API")
+                    se -> logger.info("Из Streaming API пришло событие"),
+                    ex -> logger.severe("Что-то произошло со Streaming API")
             );
 
             if (parameters.sandboxMode) {
