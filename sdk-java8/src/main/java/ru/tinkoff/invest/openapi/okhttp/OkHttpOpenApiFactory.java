@@ -3,7 +3,7 @@ package ru.tinkoff.invest.openapi.okhttp;
 import okhttp3.OkHttpClient;
 import org.jetbrains.annotations.NotNull;
 import ru.tinkoff.invest.openapi.*;
-import ru.tinkoff.invest.openapi.model.streaming.StreamingEvent;
+import ru.tinkoff.invest.openapi.models.streaming.StreamingEvent;
 
 import java.time.Duration;
 import java.util.function.Consumer;

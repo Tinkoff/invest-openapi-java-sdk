@@ -9,8 +9,8 @@ import okio.ByteString;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.tinkoff.invest.openapi.StreamingContext;
-import ru.tinkoff.invest.openapi.model.streaming.StreamingEvent;
-import ru.tinkoff.invest.openapi.model.streaming.StreamingRequest;
+import ru.tinkoff.invest.openapi.models.streaming.StreamingEvent;
+import ru.tinkoff.invest.openapi.models.streaming.StreamingRequest;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -23,7 +23,8 @@ import java.util.logging.Logger;
 class StreamingContextImpl implements StreamingContext {
 
     private static final TypeReference<StreamingEvent> streamingEventTypeReference =
-            new TypeReference<StreamingEvent>() {};
+            new TypeReference<StreamingEvent>() {
+            };
 
     private final WebSocket[] wsClients;
     private final ArrayList<Set<StreamingRequest.ActivatingRequest>> requestsHistory;
@@ -55,7 +56,7 @@ class StreamingContextImpl implements StreamingContext {
                 .header("Authorization", authToken)
                 .build();
         for (int i = 0; i < streamingParallelism; i++) {
-            final StreamingApiListener streamingCallback = new StreamingContextImpl.StreamingApiListener(i+1);
+            final StreamingApiListener streamingCallback = new StreamingContextImpl.StreamingApiListener(i + 1);
             this.wsClients[i] = this.client.newWebSocket(this.wsRequest, streamingCallback);
             this.requestsHistory.add(new HashSet<>());
         }
@@ -77,7 +78,7 @@ class StreamingContextImpl implements StreamingContext {
 
             wsClient.send(message);
         } catch (JsonProcessingException ex) {
-            logger.log(Level.SEVERE, "Что-то произошло при посыле сообщения в Streaming API клиент #" + (clientIndex+1), ex);
+            logger.log(Level.SEVERE, "Что-то произошло при посыле сообщения в Streaming API клиент #" + (clientIndex + 1), ex);
             streamingErrorCallback.accept(ex);
         }
     }

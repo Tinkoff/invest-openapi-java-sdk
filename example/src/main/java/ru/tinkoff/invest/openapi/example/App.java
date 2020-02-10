@@ -1,28 +1,19 @@
 package ru.tinkoff.invest.openapi.example;
 
-import ru.tinkoff.invest.openapi.automata.EntitiesAdaptor;
-import ru.tinkoff.invest.openapi.automata.TradingAutomata;
-import ru.tinkoff.invest.openapi.automata.TradingState;
-import ru.tinkoff.invest.openapi.model.Currency;
-import ru.tinkoff.invest.openapi.model.market.Instrument;
-import ru.tinkoff.invest.openapi.model.portfolio.PortfolioCurrencies;
-import ru.tinkoff.invest.openapi.model.sandbox.CurrencyBalance;
-import ru.tinkoff.invest.openapi.okhttp.OkHttpOpenApi;
+import ru.tinkoff.invest.openapi.StreamingContext;
+import ru.tinkoff.invest.openapi.models.market.Instrument;
+import ru.tinkoff.invest.openapi.models.portfolio.PortfolioCurrencies;
+import ru.tinkoff.invest.openapi.models.streaming.StreamingRequest;
 import ru.tinkoff.invest.openapi.okhttp.OkHttpOpenApiFactory;
 import ru.tinkoff.invest.openapi.okhttp.OkHttpSandboxOpenApi;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
 import java.util.logging.*;
-import java.util.stream.Collectors;
 
 public class App {
 
@@ -46,22 +37,27 @@ public class App {
         try {
             logger.info("Создаём подключение... ");
             final var factory = new OkHttpOpenApiFactory(parameters.ssoToken, parameters.sandboxMode, logger);
-            final var automata = new TradingAutomata(factory, Executors.newScheduledThreadPool(10), logger);
-            final var api = (OkHttpOpenApi) automata.api();
+            final var api = factory.createOpenApiClient(
+                    se -> System.out.println("Из Streaming API пришло событие"),
+                    ex -> System.err.println("Что-то произошло со Streaming API")
+            );
 
             if (parameters.sandboxMode) {
                 // ОБЯЗАТЕЛЬНО нужно выполнить регистрацию в "песочнице"
-                ((OkHttpSandboxOpenApi) api).performRegistration().join();
+                ((OkHttpSandboxOpenApi) api).sandboxContext.performRegistration().join();
             }
 
-            final Map<Currency, BigDecimal> currencyVolumes = new HashMap<>();
+            final var currentOrders = api.ordersContext.getOrders().join();
+            logger.info("Количество текущих заявок: " + currentOrders.size());
+            final var currentPositions = api.portfolioContext.getPortfolio().join();
+            logger.info("Количество текущих позиций: " + currentPositions.positions.size());
+
             for (int i = 0; i < parameters.tickers.length; i++) {
                 final var ticker = parameters.tickers[i];
                 final var candleInterval = parameters.candleIntervals[i];
-                final var maxVolume = parameters.maxVolumes[i];
 
                 logger.info("Ищём по тикеру " + ticker + "... ");
-                final var instrumentsList = api.searchMarketInstrumentsByTicker(ticker).join();
+                final var instrumentsList = api.marketContext.searchMarketInstrumentsByTicker(ticker).join();
 
                 final var instrumentOpt = instrumentsList.instruments.stream().findFirst();
 
@@ -73,14 +69,8 @@ public class App {
                     instrument = instrumentOpt.get();
                 }
 
-                currencyVolumes.put(
-                        instrument.currency,
-                        currencyVolumes.getOrDefault(instrument.currency, BigDecimal.ZERO)
-                                .add(maxVolume)
-                );
-
                 logger.info("Получаем валютные балансы... ");
-                final var portfolioCurrencies = api.getPortfolioCurrencies().join();
+                final var portfolioCurrencies = api.portfolioContext.getPortfolioCurrencies().join();
 
                 final var portfolioCurrencyOpt = portfolioCurrencies.currencies.stream()
                         .filter(pc -> pc.currency == instrument.currency)
@@ -95,37 +85,10 @@ public class App {
                     logger.info("Нужной валюты " + portfolioCurrency.currency + " на счету " + portfolioCurrency.balance.toPlainString());
                 }
 
-                final var currentOrders = api.getOrders().join();
-                final var currentPositions = api.getPortfolio().join();
-
-                final var strategy = new SimpleStopLossStrategy(
-                        EntitiesAdaptor.convertApiEntityToTradingState(instrument),
-                        currentOrders.stream().map(EntitiesAdaptor::convertApiEntityToTradingState).collect(Collectors.toList()),
-                        portfolioCurrencies.currencies.stream()
-                                .collect(Collectors.toMap(c -> EntitiesAdaptor.convertApiEntityToTradingState(c.currency), c -> new TradingState.Position(c.balance, c.blocked))),
-                        currentPositions.positions.stream().collect(Collectors.toMap(p -> p.figi, p -> new TradingState.Position(p.balance, p.blocked))),
-                        maxVolume,
-                        5,
-                        candleInterval,
-                        BigDecimal.valueOf(0.1),
-                        BigDecimal.valueOf(0.1),
-                        BigDecimal.valueOf(0.3),
-                        BigDecimal.valueOf(0.3),
-                        BigDecimal.valueOf(0.2),
-                        logger
-                );
-
-                automata.addStrategy(strategy);
+                api.streamingContext.sendRequest(StreamingRequest.subscribeCandle(instrument.figi, candleInterval));
             }
 
-            if (parameters.sandboxMode) {
-                initPrepareSandbox((OkHttpSandboxOpenApi) api, currencyVolumes, logger);
-            }
-
-            initCleanupProcedure(automata, logger);
-
-            logger.info("Запускаем робота... ");
-            automata.start();
+            initCleanupProcedure(api.streamingContext, logger);
 
             final var result = new CompletableFuture<Void>();
             result.join();
@@ -159,29 +122,17 @@ public class App {
         } else if (args.length == 2) {
             throw new IllegalArgumentException("Не передан разрешающий интервал свечей!");
         } else if (args.length == 3) {
-            throw new IllegalArgumentException("Не передан допустимый объём используемых средств!");
-        } else if (args.length == 4) {
             throw new IllegalArgumentException("Не передан признак использования песочницы!");
         } else {
-            return TradingParameters.fromProgramArgs(args[0], args[1], args[2], args[3], args[4]);
+            return TradingParameters.fromProgramArgs(args[0], args[1], args[2], args[3]);
         }
     }
 
-    private static void initPrepareSandbox(final OkHttpSandboxOpenApi context,
-                                           final Map<Currency, BigDecimal> currencyVolumes,
-                                           final Logger logger) {
-        currencyVolumes.forEach((key, value) -> {
-            logger.info("Ставим на баланс немного " + key + "... ");
-            final var cb = new CurrencyBalance(key, value);
-            context.setCurrencyBalance(cb).join();
-        });
-    }
-
-    private static void initCleanupProcedure(final TradingAutomata automata, final Logger logger) {
+    private static void initCleanupProcedure(final StreamingContext sc, final Logger logger) {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 logger.info("Закрываем соединение... ");
-                automata.close();
+                sc.close();
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Что-то произошло при закрытии соединения!", e);
             }

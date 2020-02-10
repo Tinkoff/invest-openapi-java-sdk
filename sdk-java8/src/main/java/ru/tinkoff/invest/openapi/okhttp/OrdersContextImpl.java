@@ -8,14 +8,14 @@ import ru.tinkoff.invest.openapi.OrdersContext;
 import ru.tinkoff.invest.openapi.exceptions.NotEnoughBalanceException;
 import ru.tinkoff.invest.openapi.exceptions.OpenApiException;
 import ru.tinkoff.invest.openapi.exceptions.OrderAlreadyCancelledException;
-import ru.tinkoff.invest.openapi.model.RestResponse;
-import ru.tinkoff.invest.openapi.model.orders.LimitOrder;
-import ru.tinkoff.invest.openapi.model.orders.Order;
-import ru.tinkoff.invest.openapi.model.orders.PlacedLimitOrder;
+import ru.tinkoff.invest.openapi.models.RestResponse;
+import ru.tinkoff.invest.openapi.models.orders.LimitOrder;
+import ru.tinkoff.invest.openapi.models.orders.Order;
+import ru.tinkoff.invest.openapi.models.orders.PlacedLimitOrder;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -43,7 +43,9 @@ final class OrdersContextImpl extends BaseContextImpl implements OrdersContext {
     }
 
     @Override
-    public void getOrders(@NotNull final Consumer<List<Order>> onComplete, @NotNull final Consumer<Throwable> onError) {
+    @NotNull
+    public CompletableFuture<List<Order>> getOrders() {
+        final CompletableFuture<List<Order>> future = new CompletableFuture<>();
         final HttpUrl requestUrl = finalUrl.newBuilder().build();
         final Request request = prepareRequest(requestUrl)
                 .build();
@@ -52,38 +54,43 @@ final class OrdersContextImpl extends BaseContextImpl implements OrdersContext {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
-                onError.accept(e);
+                future.completeExceptionally(e);
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 try {
                     final RestResponse<List<Order>> result = handleResponse(response, listOrderTypeReference);
-                    onComplete.accept(result.payload);
+                    future.complete(result.payload);
                 } catch (OpenApiException ex) {
                     if (ex.getCode().equals(NOT_ENOUGH_BALANCE_CODE)) {
-                        onError.accept(new NotEnoughBalanceException(ex.getMessage(), ex.getCode()));
+                        future.completeExceptionally(new NotEnoughBalanceException(ex.getMessage(), ex.getCode()));
                     } else {
-                        onError.accept(ex);
+                        future.completeExceptionally(ex);
                     }
                 }
             }
         });
+
+        return future;
     }
 
     @Override
-    public void placeLimitOrder(@NotNull final LimitOrder limitOrder, @NotNull final Consumer<PlacedLimitOrder> onComplete, @NotNull final Consumer<Throwable> onError) {
+    @NotNull
+    public CompletableFuture<PlacedLimitOrder> placeLimitOrder(@NotNull final String figi,
+                                                               @NotNull final LimitOrder limitOrder) {
+        final CompletableFuture<PlacedLimitOrder> future = new CompletableFuture<>();
         final String renderedBody;
         try {
             renderedBody = mapper.writeValueAsString(limitOrder);
         } catch (JsonProcessingException ex) {
-            onError.accept(ex);
-            return;
+            future.completeExceptionally(ex);
+            return future;
         }
 
         final HttpUrl requestUrl = finalUrl.newBuilder()
                 .addPathSegment("limit-order")
-                .addQueryParameter("figi", limitOrder.figi)
+                .addQueryParameter("figi", figi)
                 .build();
         final Request request = prepareRequest(requestUrl)
                 .post(RequestBody.create(renderedBody, MediaType.get("application/json")))
@@ -93,23 +100,27 @@ final class OrdersContextImpl extends BaseContextImpl implements OrdersContext {
             @Override
             public void onFailure(@NotNull final Call call, @NotNull final IOException e) {
                 logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
-                onError.accept(e);
+                future.completeExceptionally(e);
             }
 
             @Override
             public void onResponse(@NotNull final Call call, @NotNull final Response response) throws IOException {
                 try {
                     final RestResponse<PlacedLimitOrder> result = handleResponse(response, placedLimitOrderTypeReference);
-                    onComplete.accept(result.payload);
+                    future.complete(result.payload);
                 } catch (OpenApiException ex) {
-                    onError.accept(ex);
+                    future.completeExceptionally(ex);
                 }
             }
         });
+
+        return future;
     }
 
     @Override
-    public void cancelOrder(@NotNull final String orderId, @NotNull final Consumer<Void> onComplete, @NotNull final Consumer<Throwable> onError) {
+    @NotNull
+    public CompletableFuture<Void> cancelOrder(@NotNull final String orderId) {
+        final CompletableFuture<Void> future = new CompletableFuture<>();
         final HttpUrl requestUrl = finalUrl.newBuilder()
                 .addPathSegment("cancel")
                 .addQueryParameter("orderId", orderId)
@@ -122,23 +133,25 @@ final class OrdersContextImpl extends BaseContextImpl implements OrdersContext {
             @Override
             public void onFailure(@NotNull final Call call, @NotNull final IOException e) {
                 logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
-                onError.accept(e);
+                future.completeExceptionally(e);
             }
 
             @Override
             public void onResponse(@NotNull final Call call, @NotNull final Response response) throws IOException {
                 try {
                     handleResponse(response, emptyPayloadTypeReference);
-                    onComplete.accept(null);
+                    future.complete(null);
                 } catch (OpenApiException ex) {
                     if (ex.getCode().equals(ORDER_ERROR_CODE)) {
-                        onError.accept(new OrderAlreadyCancelledException(ex.getMessage(), ex.getCode()));
+                        future.completeExceptionally(new OrderAlreadyCancelledException(ex.getMessage(), ex.getCode()));
                     } else {
-                        onError.accept(ex);
+                        future.completeExceptionally(ex);
                     }
                 }
             }
         });
+
+        return future;
     }
 
 }

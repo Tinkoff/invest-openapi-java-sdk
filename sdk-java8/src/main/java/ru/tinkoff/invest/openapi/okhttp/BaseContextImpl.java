@@ -12,9 +12,9 @@ import okhttp3.Response;
 import org.jetbrains.annotations.NotNull;
 import ru.tinkoff.invest.openapi.Context;
 import ru.tinkoff.invest.openapi.exceptions.OpenApiException;
-import ru.tinkoff.invest.openapi.model.EmptyPayload;
-import ru.tinkoff.invest.openapi.model.ErrorPayload;
-import ru.tinkoff.invest.openapi.model.RestResponse;
+import ru.tinkoff.invest.openapi.models.EmptyPayload;
+import ru.tinkoff.invest.openapi.models.ErrorPayload;
+import ru.tinkoff.invest.openapi.models.RestResponse;
 
 import java.io.IOException;
 import java.io.InputStream;

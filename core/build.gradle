@@ -7,13 +7,8 @@ dependencies {
             [group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.2'],
             [group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jdk8', version: '2.10.2'],
             [group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.10.2'],
-            [group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.3.1'],
-            [group: 'org.reactivestreams', name: 'reactive-streams', version: '1.0.3'],
-            project(':core')
+            [group: 'org.jetbrains', name: 'annotations', version: '13.0'],
     )
-    testCompile group: 'org.junit.jupiter', name: 'junit-jupiter', version: '5.5.2'
-    testCompile group: 'org.mockito', name: 'mockito-core', version: '3.2.4'
-    testCompile group: 'org.reactivestreams', name: 'reactive-streams-tck', version: '1.0.3'
 }
 
 test {
@@ -34,4 +29,3 @@ jar {
         attributes 'Class-Path': configurations.runtime.files.collect { "lib/$it.name" }.join(' ')
     }
 }
-

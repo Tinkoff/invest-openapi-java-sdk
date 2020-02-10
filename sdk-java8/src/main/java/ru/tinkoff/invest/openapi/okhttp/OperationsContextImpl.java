@@ -5,13 +5,13 @@ import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import ru.tinkoff.invest.openapi.OperationsContext;
 import ru.tinkoff.invest.openapi.exceptions.OpenApiException;
-import ru.tinkoff.invest.openapi.model.RestResponse;
-import ru.tinkoff.invest.openapi.model.operations.OperationsList;
+import ru.tinkoff.invest.openapi.models.RestResponse;
+import ru.tinkoff.invest.openapi.models.operations.OperationsList;
 
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.function.Consumer;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -35,11 +35,11 @@ final class OperationsContextImpl extends BaseContextImpl implements OperationsC
     }
 
     @Override
-    public void getOperations(@NotNull final OffsetDateTime from,
-                              @NotNull final OffsetDateTime to,
-                              @NotNull final String figi,
-                              @NotNull final Consumer<OperationsList> onComplete,
-                              @NotNull final Consumer<Throwable> onError) {
+    @NotNull
+    public CompletableFuture<OperationsList> getOperations(@NotNull final OffsetDateTime from,
+                                                           @NotNull final OffsetDateTime to,
+                                                           @NotNull final String figi) {
+        final CompletableFuture<OperationsList> future = new CompletableFuture<>();
         final HttpUrl requestUrl = finalUrl.newBuilder()
                 .addQueryParameter("figi", figi)
                 .addQueryParameter("from", from.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
@@ -52,19 +52,21 @@ final class OperationsContextImpl extends BaseContextImpl implements OperationsC
             @Override
             public void onFailure(@NotNull final Call call, @NotNull final IOException e) {
                 logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
-                onError.accept(e);
+                future.completeExceptionally(e);
             }
 
             @Override
             public void onResponse(@NotNull final Call call, @NotNull final Response response) throws IOException {
                 try {
                     final RestResponse<OperationsList> result = handleResponse(response, operationsListTypeReference);
-                    onComplete.accept(result.payload);
+                    future.complete(result.payload);
                 } catch (OpenApiException ex) {
-                    onError.accept(ex);
+                    future.completeExceptionally(ex);
                 }
             }
         });
+
+        return future;
     }
 
 }

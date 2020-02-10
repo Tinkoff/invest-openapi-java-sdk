@@ -5,11 +5,11 @@ import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import ru.tinkoff.invest.openapi.SandboxContext;
 import ru.tinkoff.invest.openapi.exceptions.OpenApiException;
-import ru.tinkoff.invest.openapi.model.sandbox.CurrencyBalance;
-import ru.tinkoff.invest.openapi.model.sandbox.PositionBalance;
+import ru.tinkoff.invest.openapi.models.sandbox.CurrencyBalance;
+import ru.tinkoff.invest.openapi.models.sandbox.PositionBalance;
 
 import java.io.IOException;
-import java.util.function.Consumer;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,15 +22,16 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
         super(client, url, authToken, logger);
     }
 
-    @NotNull
     @Override
+    @NotNull
     public String getPath() {
         return "sandbox";
     }
 
     @Override
-    public void performRegistration(@NotNull final Consumer<Void> onComplete,
-                                    @NotNull final Consumer<Throwable> onError) {
+    @NotNull
+    public CompletableFuture<Void> performRegistration() {
+        final CompletableFuture<Void> future = new CompletableFuture<>();
         final HttpUrl requestUrl = finalUrl.newBuilder()
                 .addPathSegment("register")
                 .build();
@@ -42,31 +43,33 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
-                onError.accept(e);
+                future.completeExceptionally(e);
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 try {
                     handleResponse(response, emptyPayloadTypeReference);
-                    onComplete.accept(null);
+                    future.complete(null);
                 } catch (OpenApiException ex) {
-                    onError.accept(ex);
+                    future.completeExceptionally(ex);
                 }
             }
         });
+
+        return future;
     }
 
     @Override
-    public void setCurrencyBalance(@NotNull final CurrencyBalance data,
-                                   @NotNull final Consumer<Void> onComplete,
-                                   @NotNull final Consumer<Throwable> onError) {
+    @NotNull
+    public CompletableFuture<Void> setCurrencyBalance(@NotNull final CurrencyBalance data) {
+        final CompletableFuture<Void> future = new CompletableFuture<>();
         final String renderedBody;
         try {
             renderedBody = mapper.writeValueAsString(data);
         } catch (JsonProcessingException ex) {
-            onError.accept(ex);
-            return;
+            future.completeExceptionally(ex);
+            return future;
         }
 
         final HttpUrl requestUrl = finalUrl.newBuilder()
@@ -81,31 +84,33 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
-                onError.accept(e);
+                future.completeExceptionally(e);
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 try {
                     handleResponse(response, emptyPayloadTypeReference);
-                    onComplete.accept(null);
+                    future.complete(null);
                 } catch (OpenApiException ex) {
-                    onError.accept(ex);
+                    future.completeExceptionally(ex);
                 }
             }
         });
+
+        return future;
     }
 
     @Override
-    public void setPositionBalance(@NotNull final PositionBalance data,
-                                   @NotNull final Consumer<Void> onComplete,
-                                   @NotNull final Consumer<Throwable> onError) {
+    @NotNull
+    public CompletableFuture<Void> setPositionBalance(@NotNull final PositionBalance data) {
+        final CompletableFuture<Void> future = new CompletableFuture<>();
         final String renderedBody;
         try {
             renderedBody = mapper.writeValueAsString(data);
         } catch (JsonProcessingException ex) {
-            onError.accept(ex);
-            return;
+            future.completeExceptionally(ex);
+            return future;
         }
 
         final HttpUrl requestUrl = finalUrl.newBuilder()
@@ -120,24 +125,27 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
-                onError.accept(e);
+                future.completeExceptionally(e);
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 try {
                     handleResponse(response, emptyPayloadTypeReference);
-                    onComplete.accept(null);
+                    future.complete(null);
                 } catch (OpenApiException ex) {
-                    onError.accept(ex);
+                    future.completeExceptionally(ex);
                 }
             }
         });
+
+        return future;
     }
 
     @Override
-    public void clearAll(@NotNull final Consumer<Void> onComplete,
-                         @NotNull final Consumer<Throwable> onError) {
+    @NotNull
+    public CompletableFuture<Void> clearAll() {
+        final CompletableFuture<Void> future = new CompletableFuture<>();
         final HttpUrl requestUrl = finalUrl.newBuilder()
                 .addPathSegment("clear")
                 .build();
@@ -149,19 +157,21 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
-                onError.accept(e);
+                future.completeExceptionally(e);
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 try {
                     handleResponse(response, emptyPayloadTypeReference);
-                    onComplete.accept(null);
+                    future.complete(null);
                 } catch (OpenApiException ex) {
-                    onError.accept(ex);
+                    future.completeExceptionally(ex);
                 }
             }
         });
+
+        return future;
     }
 
 }
