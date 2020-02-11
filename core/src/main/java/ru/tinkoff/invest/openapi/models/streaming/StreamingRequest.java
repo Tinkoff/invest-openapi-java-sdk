@@ -308,6 +308,17 @@ public abstract class StreamingRequest {
                     .append(")")
                     .toString();
         }
+
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder("OrderbookSubscribeRequest(");
+            if (Objects.nonNull(requestId)) sb.append("requestId='").append(requestId).append('\'');
+            sb.append(", figi='").append(figi).append('\'');
+            sb.append(", depth=").append(depth);
+            sb.append(')');
+            return sb.toString();
+        }
+
     }
 
     /**
@@ -358,6 +369,17 @@ public abstract class StreamingRequest {
                     .append(")")
                     .toString();
         }
+
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder("OrderbookUnsubscribeRequest(");
+            if (Objects.nonNull(requestId)) sb.append("requestId='").append(requestId).append('\'');
+            sb.append(", figi='").append(figi).append('\'');
+            sb.append(", depth=").append(depth);
+            sb.append(')');
+            return sb.toString();
+        }
+
     }
 
     public static CandleSubscribeRequest subscribeCandle(@NotNull final String figi,
