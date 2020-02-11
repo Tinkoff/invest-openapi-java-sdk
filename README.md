@@ -40,14 +40,14 @@ docker run --rm -u gradle -v "$PWD":/home/gradle/project -w /home/gradle/project
 ```
 Единственной зависимостью в проекте явлется библиотека Jackson для работы с JSON.
 
-Документацию непосредственно по OpenAPI можно найти по [ссылке](https://api-invest.tinkoff.ru/openapi/docs/).
+Документацию непосредственно по OpenAPI можно найти по [ссылке](https://api-invest.tinkoff.ru/ru.tinkoff.invest.openapi/docs/).
 
 ### А если вкратце?
 
 Для непосредственного взаимодействия с OpenAPI нужно создать подключение.
 
 ```java
-import ru.tinkoff.invest.openapi.wrapper.impl.ConnectionFactory;
+import ru.tinkoff.invest.ru.tinkoff.invest.openapi.wrapper.impl.ConnectionFactory;
 
 var token = "super_token"; // токен авторизации
 var connection = ConnectionFactory.connect(token, logger).join(); // содание подключения происходит асинхронно
@@ -61,8 +61,8 @@ var portfolio = context.getPortfolio().join(); // получить текущи�
 `StrategyExecutor`.
 
 ```java
-import ru.tinkoff.invest.openapi.Strategy;
-import ru.tinkoff.invest.openapi.StrategyExecutor;
+import ru.tinkoff.invest.ru.tinkoff.invest.openapi.automata.Strategy;
+import ru.tinkoff.invest.ru.tinkoff.invest.openapi.automata.StrategyExecutor;
 
 final var myStrategy = new Strategy() { /*...*/ };
 final var strategyExecutor = new StrategyExecutor(context, strategy, logger);
@@ -76,14 +76,14 @@ strategyExecutor.run();
 запускает робота. При желании можно запустить робота в Docker-контейнере - есть соответствующий `Dockerfile`. После
 сборки проекта постройте docker-образ и запустите его.
 ```bash
-docker build --tag=openapi-example .
+docker build --tag=ru.tinkoff.invest.openapi-example .
 docker run -ti --mount source=openapi_volume,target=/app/logs \
     -e "token=<auth_token>" \
     -e "ticker=<ticker>" \
     -e "interval=<candle_interval>" \
     -e "max_volume=<your_money>" \
     -e "use_sandbox=<true_or_false>" \
-    openapi-example
+    ru.tinkoff.invest.openapi-example
 ```
 В подключённой директории `openapi_volume` будет файл с подробным логом работы.
 
@@ -100,7 +100,7 @@ docker run -ti --mount source=openapi_volume,target=/app/logs \
 
 ## У меня есть вопрос
 
-[Основной репозиторий с документацией](https://github.com/TinkoffCreditSystems/invest-openapi/) - в нем вы можете задать вопрос в Issues и получать информацию о релизах в Releases.
+[Основной репозиторий с документацией](https://github.com/TinkoffCreditSystems/invest-ru.tinkoff.invest.openapi/) - в нем вы можете задать вопрос в Issues и получать информацию о релизах в Releases.
 
 Если возникают вопросы по данному SDK, нашёлся баг или есть предложения по улучшению, то можно  задать его в Issues, либо писать на почту:
 

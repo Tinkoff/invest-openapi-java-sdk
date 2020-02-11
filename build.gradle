@@ -4,9 +4,6 @@ subprojects {
     group 'ru.tinkoff.invest'
     version '0.4-SNAPSHOT'
 
-    sourceCompatibility = 1.11
-    targetCompatibility = 1.11
-
     repositories {
         mavenCentral()
     }
