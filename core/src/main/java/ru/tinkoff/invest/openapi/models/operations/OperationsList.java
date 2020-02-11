@@ -24,4 +24,11 @@ public final class OperationsList {
         this.operations = operations;
     }
 
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("OperationsList(");
+        sb.append("operations=").append(operations);
+        sb.append(')');
+        return sb.toString();
+    }
 }

@@ -95,4 +95,17 @@ public final class Candle {
         this.time = time;
     }
 
+    @Override
+    public String toString() {
+        return "Candle{" +
+                "figi='" + figi + '\'' +
+                ", interval=" + interval +
+                ", openPrice=" + openPrice +
+                ", closePrice=" + closePrice +
+                ", highestPrice=" + highestPrice +
+                ", lowestPrice=" + lowestPrice +
+                ", tradesValue=" + tradesValue +
+                ", time=" + time +
+                '}';
+    }
 }

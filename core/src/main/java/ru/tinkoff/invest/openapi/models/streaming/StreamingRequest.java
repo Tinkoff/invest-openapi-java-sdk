@@ -2,7 +2,11 @@ package ru.tinkoff.invest.openapi.models.streaming;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ru.tinkoff.invest.openapi.models.market.CandleInterval;
+
+import java.util.Objects;
 
 /**
  * Общий класс для моделей запросов на подписки в streaming.
@@ -20,18 +24,19 @@ public abstract class StreamingRequest {
 
     /**
      * Идентификатор подписки.
-     * Может быть null.
      */
     protected final String requestId;
 
-    protected StreamingRequest(String requestId) {
+    protected StreamingRequest(@Nullable final String requestId) {
         this.requestId = requestId;
     }
 
+    @Nullable
     public String getRequestId() {
         return requestId;
     }
 
+    @NotNull
     public abstract String onOffPairId();
 
     public static abstract class ActivatingRequest extends StreamingRequest {
@@ -60,24 +65,30 @@ public abstract class StreamingRequest {
          */
         private final CandleInterval interval;
 
-        CandleSubscribeRequest(String figi, CandleInterval interval, String requestId) {
+        CandleSubscribeRequest(@NotNull final String figi,
+                               @NotNull final CandleInterval interval,
+                               @Nullable final String requestId) {
             super(requestId);
             this.figi = figi;
             this.interval = interval;
         }
 
-        CandleSubscribeRequest(String figi, CandleInterval interval) {
+        CandleSubscribeRequest(@NotNull final String figi,
+                               @NotNull final CandleInterval interval) {
             this(figi, interval, null);
         }
 
+        @NotNull
         public String getFigi() {
             return figi;
         }
 
+        @NotNull
         public CandleInterval getInterval() {
             return interval;
         }
 
+        @NotNull
         @Override
         public String onOffPairId() {
             return new StringBuilder("Candle(")
@@ -86,6 +97,16 @@ public abstract class StreamingRequest {
                 .append(interval.name())
                 .append(")")
                 .toString();
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder("CandleSubscribeRequest(");
+            if (Objects.nonNull(requestId)) sb.append("requestId='").append(requestId).append('\'');
+            sb.append(", figi='").append(figi).append('\'');
+            sb.append(", interval=").append(interval);
+            sb.append(')');
+            return sb.toString();
         }
     }
 
@@ -104,24 +125,30 @@ public abstract class StreamingRequest {
          */
         private final CandleInterval interval;
 
-        CandleUnsubscribeRequest(String figi, CandleInterval interval, String requestId) {
+        CandleUnsubscribeRequest(@NotNull final String figi,
+                                 @NotNull final CandleInterval interval,
+                                 @Nullable final String requestId) {
             super(requestId);
             this.figi = figi;
             this.interval = interval;
         }
 
-        CandleUnsubscribeRequest(String figi, CandleInterval interval) {
+        CandleUnsubscribeRequest(@NotNull final String figi,
+                                 @NotNull final CandleInterval interval) {
             this(figi, interval, null);
         }
 
+        @NotNull
         public String getFigi() {
             return figi;
         }
 
+        @NotNull
         public CandleInterval getInterval() {
             return interval;
         }
 
+        @NotNull
         @Override
         public String onOffPairId() {
             return new StringBuilder("Candle(")
@@ -130,6 +157,16 @@ public abstract class StreamingRequest {
                     .append(interval.name())
                     .append(")")
                     .toString();
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder("CandleUnsubscribeRequest(");
+            if (Objects.nonNull(requestId)) sb.append("requestId='").append(requestId).append('\'');
+            sb.append(", figi='").append(figi).append('\'');
+            sb.append(", interval=").append(interval);
+            sb.append(')');
+            return sb.toString();
         }
     }
 
@@ -143,19 +180,22 @@ public abstract class StreamingRequest {
          */
         private final String figi;
 
-        InstrumentInfoSubscribeRequest(String figi, String requestId) {
+        InstrumentInfoSubscribeRequest(@NotNull final String figi,
+                                       @Nullable final String requestId) {
             super(requestId);
             this.figi = figi;
         }
 
-        InstrumentInfoSubscribeRequest(String figi) {
+        InstrumentInfoSubscribeRequest(@NotNull final String figi) {
             this(figi,null);
         }
 
+        @NotNull
         public String getFigi() {
             return figi;
         }
 
+        @NotNull
         @Override
         public String onOffPairId() {
             return new StringBuilder("InstrumentInfo(")
@@ -163,6 +203,16 @@ public abstract class StreamingRequest {
                     .append(")")
                     .toString();
         }
+
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder("InstrumentInfoSubscribeRequest(");
+            if (Objects.nonNull(requestId)) sb.append("requestId='").append(requestId).append('\'');
+            sb.append(", figi='").append(figi).append('\'');
+            sb.append(')');
+            return sb.toString();
+        }
+
     }
 
     /**
@@ -175,19 +225,22 @@ public abstract class StreamingRequest {
          */
         private final String figi;
 
-        InstrumentInfoUnsubscribeRequest(String figi, String requestId) {
+        InstrumentInfoUnsubscribeRequest(@NotNull final String figi,
+                                         @Nullable final String requestId) {
             super(requestId);
             this.figi = figi;
         }
 
-        InstrumentInfoUnsubscribeRequest(String figi) {
+        InstrumentInfoUnsubscribeRequest(@NotNull final String figi) {
             this(figi, null);
         }
 
+        @NotNull
         public String getFigi() {
             return figi;
         }
 
+        @NotNull
         @Override
         public String onOffPairId() {
             return new StringBuilder("InstrumentInfo(")
@@ -195,6 +248,16 @@ public abstract class StreamingRequest {
                     .append(")")
                     .toString();
         }
+
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder("InstrumentInfoUnsubscribeRequest(");
+            if (Objects.nonNull(requestId)) sb.append("requestId='").append(requestId).append('\'');
+            sb.append(", figi='").append(figi).append('\'');
+            sb.append(')');
+            return sb.toString();
+        }
+
     }
 
     /**
@@ -212,17 +275,21 @@ public abstract class StreamingRequest {
          */
         private final int depth;
 
-        OrderbookSubscribeRequest(String figi, int depth, String requestId) {
+        OrderbookSubscribeRequest(@NotNull final String figi,
+                                  final int depth,
+                                  @Nullable final String requestId) {
             super(requestId);
             if (depth < 0  || depth > 20) throw new IllegalArgumentException("Глубина должна быть от 1 до 20");
             this.figi = figi;
             this.depth = depth;
         }
 
-        OrderbookSubscribeRequest(String figi, int depth) {
+        OrderbookSubscribeRequest(@NotNull final String figi,
+                                  final int depth) {
             this(figi, depth, null);
         }
 
+        @NotNull
         public String getFigi() {
             return figi;
         }
@@ -231,6 +298,7 @@ public abstract class StreamingRequest {
             return depth;
         }
 
+        @NotNull
         @Override
         public String onOffPairId() {
             return new StringBuilder("Orderbook(")
@@ -257,17 +325,21 @@ public abstract class StreamingRequest {
          */
         private final int depth;
 
-        OrderbookUnsubscribeRequest(String figi, int depth, String requestId) {
+        OrderbookUnsubscribeRequest(@NotNull final String figi,
+                                    final int depth,
+                                    @Nullable final String requestId) {
             super(requestId);
             if (depth < 0  || depth > 20) throw new IllegalArgumentException("Глубина должна быть от 1 до 20");
             this.figi = figi;
             this.depth = depth;
         }
 
-        OrderbookUnsubscribeRequest(String figi, int depth) {
+        OrderbookUnsubscribeRequest(@NotNull final String figi,
+                                    final int depth) {
             this(figi, depth, null);
         }
 
+        @NotNull
         public String getFigi() {
             return figi;
         }
@@ -276,6 +348,7 @@ public abstract class StreamingRequest {
             return depth;
         }
 
+        @NotNull
         @Override
         public String onOffPairId() {
             return new StringBuilder("Orderbook(")
@@ -287,27 +360,29 @@ public abstract class StreamingRequest {
         }
     }
 
-    public static CandleSubscribeRequest subscribeCandle(String figi, CandleInterval interval) {
+    public static CandleSubscribeRequest subscribeCandle(@NotNull final String figi,
+                                                         @NotNull final CandleInterval interval) {
         return new StreamingRequest.CandleSubscribeRequest(figi, interval);
     }
 
-    public static CandleUnsubscribeRequest unsubscribeCandle(String figi, CandleInterval interval) {
+    public static CandleUnsubscribeRequest unsubscribeCandle(@NotNull final String figi,
+                                                             @NotNull final CandleInterval interval) {
         return new StreamingRequest.CandleUnsubscribeRequest(figi, interval);
     }
 
-    public static OrderbookSubscribeRequest subscribeOrderbook(String figi, int depth) {
+    public static OrderbookSubscribeRequest subscribeOrderbook(@NotNull final String figi, final int depth) {
         return new StreamingRequest.OrderbookSubscribeRequest(figi, depth);
     }
 
-    public static OrderbookUnsubscribeRequest unsubscribeOrderbook(String figi, int depth) {
+    public static OrderbookUnsubscribeRequest unsubscribeOrderbook(@NotNull final String figi, final int depth) {
         return new StreamingRequest.OrderbookUnsubscribeRequest(figi, depth);
     }
 
-    public static InstrumentInfoSubscribeRequest subscribeInstrumentInfo(String figi) {
+    public static InstrumentInfoSubscribeRequest subscribeInstrumentInfo(@NotNull final String figi) {
         return new StreamingRequest.InstrumentInfoSubscribeRequest(figi);
     }
 
-    public static InstrumentInfoUnsubscribeRequest unsubscribeInstrumentInfo(String figi) {
+    public static InstrumentInfoUnsubscribeRequest unsubscribeInstrumentInfo(@NotNull final String figi) {
         return new StreamingRequest.InstrumentInfoUnsubscribeRequest(figi);
     }
 }

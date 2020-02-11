@@ -44,4 +44,14 @@ public final class HistoricalCandles {
         this.candles = candles;
     }
 
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("HistoricalCandles(");
+        sb.append("figi='").append(figi).append('\'');
+        sb.append(", interval=").append(interval);
+        sb.append(", candles=").append(candles);
+        sb.append(')');
+        return sb.toString();
+    }
+
 }

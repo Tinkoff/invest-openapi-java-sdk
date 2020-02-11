@@ -33,4 +33,14 @@ public final class PositionBalance {
         this.figi = figi;
         this.balance = balance;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("PositionBalance(");
+        sb.append("figi='").append(figi).append('\'');
+        sb.append(", balance=").append(balance);
+        sb.append(')');
+        return sb.toString();
+    }
+
 }

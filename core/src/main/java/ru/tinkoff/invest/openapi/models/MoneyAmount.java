@@ -34,4 +34,14 @@ public class MoneyAmount {
         this.currency = currency;
         this.value = value;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("MoneyAmount(");
+        sb.append("currency=").append(currency);
+        sb.append(", value=").append(value);
+        sb.append(')');
+        return sb.toString();
+    }
+
 }

@@ -34,4 +34,14 @@ public final class CurrencyBalance {
         this.currency = currency;
         this.balance = balance;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("CurrencyBalance(");
+        sb.append("currency=").append(currency);
+        sb.append(", balance=").append(balance);
+        sb.append(')');
+        return sb.toString();
+    }
+
 }

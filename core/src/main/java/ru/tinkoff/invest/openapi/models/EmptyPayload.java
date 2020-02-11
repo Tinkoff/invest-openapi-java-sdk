@@ -21,4 +21,9 @@ public final class EmptyPayload {
     public static EmptyPayload instance() {
         return EmptyPayload.singleton;
     }
+
+    @Override
+    public String toString() {
+        return "EmptyPayload";
+    }
 }

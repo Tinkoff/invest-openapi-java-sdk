@@ -8,6 +8,7 @@ import ru.tinkoff.invest.openapi.models.MoneyAmount;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Модель портфеля инструментов.
@@ -143,6 +144,31 @@ public final class Portfolio {
             this.name = name;
         }
 
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder("PortfolioPosition(");
+            sb.append("figi='").append(figi).append('\'');
+            if (Objects.nonNull(ticker)) sb.append(", ticker='").append(ticker).append('\'');
+            if (Objects.nonNull(isin)) sb.append(", isin='").append(isin).append('\'');
+            sb.append(", instrumentType=").append(instrumentType);
+            sb.append(", balance=").append(balance);
+            if (Objects.nonNull(blocked))sb.append(", blocked=").append(blocked);
+            if (Objects.nonNull(expectedYield))sb.append(", expectedYield=").append(expectedYield);
+            sb.append(", lots=").append(lots);
+            if (Objects.nonNull(averagePositionPrice))sb.append(", averagePositionPrice=").append(averagePositionPrice);
+            if (Objects.nonNull(averagePositionPriceNoNkd))sb.append(", averagePositionPriceNoNkd=").append(averagePositionPriceNoNkd);
+            sb.append(", name='").append(name).append('\'');
+            sb.append(')');
+            return sb.toString();
+        }
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Portfolio(");
+        sb.append("positions=").append(positions);
+        sb.append(')');
+        return sb.toString();
     }
 
 }

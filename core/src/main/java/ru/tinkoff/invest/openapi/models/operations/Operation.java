@@ -11,6 +11,7 @@ import ru.tinkoff.invest.openapi.models.portfolio.InstrumentType;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Операция с инструментом производённая брокером.
@@ -194,6 +195,35 @@ public final class Operation {
             this.quantity = quantity;
         }
 
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder("Trade(");
+            sb.append("tradeId='").append(tradeId).append('\'');
+            sb.append(", date=").append(date);
+            sb.append(", price=").append(price);
+            sb.append(", quantity=").append(quantity);
+            sb.append(')');
+            return sb.toString();
+        }
     }
 
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Operation(");
+        sb.append("id='").append(id).append('\'');
+        sb.append(", status=").append(status);
+        if (Objects.nonNull(trades)) sb.append(", trades=").append(trades);
+        if (Objects.nonNull(commission)) sb.append(", commission=").append(commission);
+        sb.append(", currency=").append(currency);
+        sb.append(", payment=").append(payment);
+        if (Objects.nonNull(price)) sb.append(", price=").append(price);
+        if (Objects.nonNull(quantity)) sb.append(", quantity=").append(quantity);
+        if (Objects.nonNull(figi)) sb.append(", figi='").append(figi).append('\'');
+        if (Objects.nonNull(instrumentType)) sb.append(", instrumentType=").append(instrumentType);
+        sb.append(", isMarginCall=").append(isMarginCall);
+        sb.append(", date=").append(date);
+        if (Objects.nonNull(operationType)) sb.append(", operationType=").append(operationType);
+        sb.append(')');
+        return sb.toString();
+    }
 }
