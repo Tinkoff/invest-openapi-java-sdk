@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import ru.tinkoff.invest.openapi.models.Currency;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 /**
  * Модель биржевого инструмента.
@@ -54,6 +55,9 @@ public class Instrument {
     @NotNull
     public final String name;
 
+    /**
+     * Тип инструмента.
+     */
     @NotNull
     public final InstrumentType type;
 
@@ -89,5 +93,20 @@ public class Instrument {
         this.currency = currency;
         this.name = name;
         this.type = type;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Instrument(");
+        sb.append("figi='").append(figi).append('\'');
+        sb.append(", ticker='").append(ticker).append('\'');
+        if (Objects.nonNull(isin)) sb.append(", isin='").append(isin).append('\'');
+        if (Objects.nonNull(minPriceIncrement)) sb.append(", minPriceIncrement=").append(minPriceIncrement);
+        sb.append(", lot=").append(lot);
+        if (Objects.nonNull(currency)) sb.append(", currency=").append(currency);
+        sb.append(", name='").append(name).append('\'');
+        sb.append(", type=").append(type);
+        sb.append(')');
+        return sb.toString();
     }
 }

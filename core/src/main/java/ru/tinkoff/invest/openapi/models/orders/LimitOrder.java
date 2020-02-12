@@ -45,4 +45,13 @@ public final class LimitOrder {
         this.price = price;
     }
 
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("LimitOrder(");
+        sb.append("lots=").append(lots);
+        sb.append(", operation=").append(operation);
+        sb.append(", price=").append(price);
+        sb.append(')');
+        return sb.toString();
+    }
 }

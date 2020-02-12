@@ -32,4 +32,12 @@ public final class InstrumentsList {
         this.instruments = instruments;
     }
 
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("InstrumentsList(");
+        sb.append("total=").append(total);
+        sb.append(", instruments=").append(instruments);
+        sb.append(')');
+        return sb.toString();
+    }
 }

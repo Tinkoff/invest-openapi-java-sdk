@@ -65,6 +65,23 @@ public final class PortfolioCurrencies {
             this.blocked = blocked;
         }
 
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder("PortfolioCurrency(");
+            sb.append("currency=").append(currency);
+            sb.append(", balance=").append(balance);
+            sb.append(", blocked=").append(blocked);
+            sb.append(')');
+            return sb.toString();
+        }
+
     }
 
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("PortfolioCurrencies(");
+        sb.append("currencies=").append(currencies);
+        sb.append(')');
+        return sb.toString();
+    }
 }

@@ -6,6 +6,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.tinkoff.invest.openapi.models.MoneyAmount;
 
+import java.util.Objects;
+
 /**
  * Модель размещённой биржевой заявки.
  */
@@ -88,6 +90,21 @@ public final class PlacedLimitOrder {
         this.requestedLots = requestedLots;
         this.executedLots = executedLots;
         this.commission = commission;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("PlacedLimitOrder(");
+        sb.append("id='").append(id).append('\'');
+        sb.append(", operation=").append(operation);
+        sb.append(", status=").append(status);
+        if (Objects.nonNull(rejectReason)) sb.append(", rejectReason='").append(rejectReason).append('\'');
+        if (Objects.nonNull(message)) sb.append(", message='").append(message).append('\'');
+        sb.append(", requestedLots=").append(requestedLots);
+        sb.append(", executedLots=").append(executedLots);
+        if (Objects.nonNull(commission)) sb.append(", commission=").append(commission);
+        sb.append(')');
+        return sb.toString();
     }
 
 }

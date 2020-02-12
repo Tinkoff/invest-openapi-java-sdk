@@ -51,4 +51,13 @@ public class RestResponse<Payload> {
         this.payload = payload;
     }
 
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("RestResponse(");
+        sb.append("trackingId='").append(trackingId).append('\'');
+        sb.append(", status=").append(status);
+        sb.append(", payload=").append(payload);
+        sb.append(')');
+        return sb.toString();
+    }
 }

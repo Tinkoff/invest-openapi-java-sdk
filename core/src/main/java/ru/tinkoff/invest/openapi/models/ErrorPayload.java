@@ -37,4 +37,14 @@ public class ErrorPayload {
         this.message = message;
         this.code = code;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("ErrorPayload(");
+        sb.append("message='").append(message).append('\'');
+        sb.append(", code='").append(code).append('\'');
+        sb.append(')');
+        return sb.toString();
+    }
+
 }

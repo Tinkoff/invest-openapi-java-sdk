@@ -102,4 +102,20 @@ public final class Order {
         this.type = type;
         this.price = price;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Order(");
+        sb.append("id='").append(id).append('\'');
+        sb.append(", figi='").append(figi).append('\'');
+        sb.append(", operation=").append(operation);
+        sb.append(", status=").append(status);
+        sb.append(", requestedLots=").append(requestedLots);
+        sb.append(", executedLots=").append(executedLots);
+        sb.append(", type=").append(type);
+        sb.append(", price=").append(price);
+        sb.append(')');
+        return sb.toString();
+    }
+
 }
