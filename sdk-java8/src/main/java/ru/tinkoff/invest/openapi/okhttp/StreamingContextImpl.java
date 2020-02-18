@@ -88,6 +88,7 @@ class StreamingContextImpl implements StreamingContext {
         for (final WebSocket ws : this.wsClients) {
             ws.close(1000, null);
         }
+        client.dispatcher().executorService().shutdown();
     }
 
     public void restore(@NotNull final StreamingApiListener listener) throws Exception {
