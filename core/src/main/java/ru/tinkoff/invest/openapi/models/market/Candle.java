@@ -27,30 +27,35 @@ public final class Candle {
     /**
      * Цена открытия.
      */
+    @JsonProperty(value = "o")
     @NotNull
     public final BigDecimal openPrice;
 
     /**
      * Цена закрытия.
      */
+    @JsonProperty(value = "c")
     @NotNull
     public final BigDecimal closePrice;
 
     /**
      * Максимальная цена.
      */
+    @JsonProperty(value = "h")
     @NotNull
     public final BigDecimal highestPrice;
 
     /**
      * Минимальная цена.
      */
+    @JsonProperty(value = "l")
     @NotNull
     public final BigDecimal lowestPrice;
 
     /**
      * Объём торгов.
      */
+    @JsonProperty(value = "v")
     @NotNull
     public final BigDecimal tradesValue;
 
