@@ -29,6 +29,8 @@ public final class LimitOrder {
     /**
      * Создаёт экземпляр со всеми его компонентами.
      *
+     * Выбрасывает {@code IllegalArgumentException} при указании лотов менее, чем 1.
+     *
      * @param lots Количество лотов.
      * @param operation Тип операции.
      * @param price Желаемая цена.

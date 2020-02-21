@@ -1,5 +1,7 @@
 package ru.tinkoff.invest.openapi.exceptions;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -9,7 +11,8 @@ public class OrderAlreadyCancelledException extends OpenApiException {
 
     private final String orderId;
 
-    public OrderAlreadyCancelledException(final String message, final String code) {
+    public OrderAlreadyCancelledException(@NotNull final String message,
+                                          @NotNull final String code) {
         super(message, code);
 
         final Matcher matchResult = orderIdExtractionPattern.matcher(message);
@@ -19,4 +22,5 @@ public class OrderAlreadyCancelledException extends OpenApiException {
     public String getCurrency() {
         return orderId;
     }
+
 }
