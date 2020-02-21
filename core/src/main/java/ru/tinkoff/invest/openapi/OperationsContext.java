@@ -1,6 +1,7 @@
 package ru.tinkoff.invest.openapi;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ru.tinkoff.invest.openapi.models.operations.OperationsList;
 
 import java.time.OffsetDateTime;
@@ -16,11 +17,11 @@ public interface OperationsContext extends Context {
      *
      * @param from Дата/время начала промежутка времени.
      * @param to Дата/время конца промежутка времени.
-     * @param figi Идентификатор инструмента. Может быть пустым или null.
+     * @param figi Идентификатор инструмента.
      */
     @NotNull
     CompletableFuture<OperationsList> getOperations(@NotNull OffsetDateTime from,
                                                     @NotNull OffsetDateTime to,
-                                                    @NotNull String figi);
+                                                    @Nullable String figi);
 
 }
