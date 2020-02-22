@@ -12,6 +12,7 @@ import okhttp3.Response;
 import org.jetbrains.annotations.NotNull;
 import ru.tinkoff.invest.openapi.Context;
 import ru.tinkoff.invest.openapi.exceptions.OpenApiException;
+import ru.tinkoff.invest.openapi.exceptions.WrongTokenException;
 import ru.tinkoff.invest.openapi.models.EmptyPayload;
 import ru.tinkoff.invest.openapi.models.ErrorPayload;
 import ru.tinkoff.invest.openapi.models.RestResponse;
@@ -22,7 +23,6 @@ import java.util.Objects;
 import java.util.logging.Logger;
 
 public abstract class BaseContextImpl implements Context {
-    protected static final String ACCESS_DENIED_MESSAGE_CODE = "ACCESS_DENIED";
 
     protected static final TypeReference<RestResponse<ErrorPayload>> errorTypeReference =
             new TypeReference<RestResponse<ErrorPayload>>() {
@@ -71,9 +71,7 @@ public abstract class BaseContextImpl implements Context {
                 final InputStream bodyStream = Objects.requireNonNull(response.body()).byteStream();
                 return mapper.readValue(bodyStream, tr);
             case 401:
-                throw new OpenApiException(
-                        "You have no access to that resource.",
-                        ACCESS_DENIED_MESSAGE_CODE);
+                throw new WrongTokenException();
             default:
                 final InputStream errorStream = Objects.requireNonNull(response.body()).byteStream();
                 final RestResponse<ErrorPayload> answerBody = mapper.readValue(errorStream, errorTypeReference);
@@ -83,4 +81,5 @@ public abstract class BaseContextImpl implements Context {
                 throw new OpenApiException(error.message, error.code);
         }
     }
+
 }

@@ -3,6 +3,7 @@ package ru.tinkoff.invest.openapi.okhttp;
 import com.fasterxml.jackson.core.type.TypeReference;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ru.tinkoff.invest.openapi.OperationsContext;
 import ru.tinkoff.invest.openapi.exceptions.OpenApiException;
 import ru.tinkoff.invest.openapi.models.RestResponse;
@@ -11,6 +12,7 @@ import ru.tinkoff.invest.openapi.models.operations.OperationsList;
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,10 +40,12 @@ final class OperationsContextImpl extends BaseContextImpl implements OperationsC
     @NotNull
     public CompletableFuture<OperationsList> getOperations(@NotNull final OffsetDateTime from,
                                                            @NotNull final OffsetDateTime to,
-                                                           @NotNull final String figi) {
+                                                           @Nullable final String figi) {
         final CompletableFuture<OperationsList> future = new CompletableFuture<>();
-        final HttpUrl requestUrl = finalUrl.newBuilder()
-                .addQueryParameter("figi", figi)
+        HttpUrl.Builder builder = finalUrl.newBuilder();
+        if (Objects.nonNull(figi) && !figi.isEmpty())
+            builder = builder.addQueryParameter("figi", figi);
+        final HttpUrl requestUrl = builder
                 .addQueryParameter("from", from.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
                 .addQueryParameter("to", to.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
                 .build();

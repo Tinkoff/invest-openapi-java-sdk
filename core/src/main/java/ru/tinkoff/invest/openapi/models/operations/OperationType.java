@@ -8,6 +8,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public enum OperationType {
     @JsonProperty("Buy")
     Buy,
+    @JsonProperty("BuyCard")
+    BuyCard,
     @JsonProperty("Sell")
     Sell,
     @JsonProperty("BrokerCommission")
@@ -18,18 +20,32 @@ public enum OperationType {
     ServiceCommission,
     @JsonProperty("MarginCommission")
     MarginCommission,
-    @JsonProperty("BuyCard")
-    BuyCard,
-    @JsonProperty("Dividend")
-    Dividend,
+    @JsonProperty("OtherCommission")
+    OtherCommission,
+    @JsonProperty("PayIn")
+    PayIn,
+    @JsonProperty("PayOut")
+    PayOut,
+    @JsonProperty("Tax")
+    Tax,
+    @JsonProperty("TaxLucre")
+    TaxLucre,
     @JsonProperty("TaxDividend")
     TaxDividend,
     @JsonProperty("TaxCoupon")
     TaxCoupon,
-    @JsonProperty("Coupon")
-    Coupon,
+    @JsonProperty("TaxBack")
+    TaxBack,
+    @JsonProperty("Repayment")
+    Repayment,
     @JsonProperty("PartRepayment")
     PartRepayment,
-    @JsonProperty("PayIn")
-    PayIn
+    @JsonProperty("Coupon")
+    Coupon,
+    @JsonProperty("Dividend")
+    Dividend,
+    @JsonProperty("SecurityIn")
+    SecurityIn,
+    @JsonProperty("SecurityOut")
+    SecurityOut
 }

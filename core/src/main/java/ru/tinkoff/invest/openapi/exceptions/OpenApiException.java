@@ -17,10 +17,10 @@ public class OpenApiException extends Exception {
     @JsonCreator
     public OpenApiException(@JsonProperty("message")
                             @NotNull
-                                    String message,
+                            final String message,
                             @JsonProperty("code")
                             @NotNull
-                                    String code) {
+                            final String code) {
         super(message);
         this.code = code;
     }
@@ -29,4 +29,5 @@ public class OpenApiException extends Exception {
     public String getCode() {
         return code;
     }
+    
 }
