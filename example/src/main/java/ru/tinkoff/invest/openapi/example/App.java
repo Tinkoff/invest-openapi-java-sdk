@@ -44,12 +44,12 @@ public class App {
 
             if (parameters.sandboxMode) {
                 // ОБЯЗАТЕЛЬНО нужно выполнить регистрацию в "песочнице"
-                ((OkHttpSandboxOpenApi) api).sandboxContext.performRegistration().join();
+                ((OkHttpSandboxOpenApi) api).sandboxContext.performRegistration(null).join();
             }
 
-            final var currentOrders = api.ordersContext.getOrders().join();
+            final var currentOrders = api.ordersContext.getOrders(null).join();
             logger.info("Количество текущих заявок: " + currentOrders.size());
-            final var currentPositions = api.portfolioContext.getPortfolio().join();
+            final var currentPositions = api.portfolioContext.getPortfolio(null).join();
             logger.info("Количество текущих позиций: " + currentPositions.positions.size());
 
             for (int i = 0; i < parameters.tickers.length; i++) {
@@ -70,7 +70,7 @@ public class App {
                 }
 
                 logger.info("Получаем валютные балансы... ");
-                final var portfolioCurrencies = api.portfolioContext.getPortfolioCurrencies().join();
+                final var portfolioCurrencies = api.portfolioContext.getPortfolioCurrencies(null).join();
 
                 final var portfolioCurrencyOpt = portfolioCurrencies.currencies.stream()
                         .filter(pc -> pc.currency == instrument.currency)

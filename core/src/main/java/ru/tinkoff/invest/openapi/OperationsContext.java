@@ -18,10 +18,12 @@ public interface OperationsContext extends Context {
      * @param from Дата/время начала промежутка времени.
      * @param to Дата/время конца промежутка времени.
      * @param figi Идентификатор инструмента.
+     * @param brokerAccountId Идентификатор брокерского счёта.
      */
     @NotNull
     CompletableFuture<OperationsList> getOperations(@NotNull OffsetDateTime from,
                                                     @NotNull OffsetDateTime to,
-                                                    @Nullable String figi);
+                                                    @Nullable String figi,
+                                                    @Nullable String brokerAccountId);
 
 }

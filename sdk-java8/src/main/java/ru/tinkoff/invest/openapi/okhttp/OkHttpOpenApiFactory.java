@@ -30,6 +30,7 @@ public class OkHttpOpenApiFactory extends OpenApiFactoryBase {
         final OperationsContext operationsContext = new OperationsContextImpl(client, apiUrl, this.authToken, this.logger);
         final OrdersContext ordersContext = new OrdersContextImpl(client, apiUrl, this.authToken, this.logger);
         final PortfolioContext portfolioContext = new PortfolioContextImpl(client, apiUrl, this.authToken, this.logger);
+        final UserContext userContext = new UserContextImpl(client, apiUrl, this.authToken, this.logger);
         final StreamingContext streamingContext = new StreamingContextImpl(client, this.config.streamingUrl, this.authToken, config.streamingParallelism, streamingEventCallback, streamingErrorCallback, this.logger);
 
         if (this.sandboxMode) {
@@ -40,6 +41,7 @@ public class OkHttpOpenApiFactory extends OpenApiFactoryBase {
                     operationsContext,
                     ordersContext,
                     portfolioContext,
+                    userContext,
                     streamingContext,
                     sandboxContext
             );
@@ -49,6 +51,7 @@ public class OkHttpOpenApiFactory extends OpenApiFactoryBase {
                     operationsContext,
                     ordersContext,
                     portfolioContext,
+                    userContext,
                     streamingContext
             );
         }

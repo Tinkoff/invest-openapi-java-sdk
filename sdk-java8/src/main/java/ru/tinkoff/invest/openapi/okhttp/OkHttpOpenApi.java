@@ -9,8 +9,9 @@ public class OkHttpOpenApi extends OpenApi {
                   @NotNull final OperationsContext operationsContext,
                   @NotNull final OrdersContext ordersContext,
                   @NotNull final PortfolioContext portfolioContext,
+                  @NotNull final UserContext userContext,
                   @NotNull final StreamingContext streamingContext) {
-        super(marketContext, operationsContext, ordersContext, portfolioContext, streamingContext);
+        super(marketContext, operationsContext, ordersContext, portfolioContext, userContext, streamingContext);
     }
 
 }

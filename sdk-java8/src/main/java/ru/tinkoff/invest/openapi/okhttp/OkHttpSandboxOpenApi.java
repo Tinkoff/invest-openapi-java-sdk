@@ -12,9 +12,10 @@ public class OkHttpSandboxOpenApi extends OkHttpOpenApi {
                          @NotNull final OperationsContext operationsContext,
                          @NotNull final OrdersContext ordersContext,
                          @NotNull final PortfolioContext portfolioContext,
+                         @NotNull final UserContext userContext,
                          @NotNull final StreamingContext streamingContext,
                          @NotNull final SandboxContext sandboxContext) {
-        super(marketContext, operationsContext, ordersContext, portfolioContext, streamingContext);
+        super(marketContext, operationsContext, ordersContext, portfolioContext, userContext, streamingContext);
         this.sandboxContext = sandboxContext;
     }
 
