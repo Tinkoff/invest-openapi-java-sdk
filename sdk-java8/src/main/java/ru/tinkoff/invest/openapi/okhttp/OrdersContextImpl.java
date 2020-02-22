@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ru.tinkoff.invest.openapi.OrdersContext;
 import ru.tinkoff.invest.openapi.exceptions.NotEnoughBalanceException;
 import ru.tinkoff.invest.openapi.exceptions.OpenApiException;
@@ -15,6 +16,7 @@ import ru.tinkoff.invest.openapi.models.orders.PlacedLimitOrder;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -44,9 +46,14 @@ final class OrdersContextImpl extends BaseContextImpl implements OrdersContext {
 
     @Override
     @NotNull
-    public CompletableFuture<List<Order>> getOrders() {
+    public CompletableFuture<List<Order>> getOrders(@Nullable final String brokerAccountId) {
         final CompletableFuture<List<Order>> future = new CompletableFuture<>();
-        final HttpUrl requestUrl = finalUrl.newBuilder().build();
+
+        HttpUrl.Builder builder = finalUrl.newBuilder();
+        if (Objects.nonNull(brokerAccountId) && !brokerAccountId.isEmpty())
+            builder.addQueryParameter("brokerAccountId", brokerAccountId);
+        final HttpUrl requestUrl = builder
+                .build();
         final Request request = prepareRequest(requestUrl)
                 .build();
 
@@ -78,7 +85,8 @@ final class OrdersContextImpl extends BaseContextImpl implements OrdersContext {
     @Override
     @NotNull
     public CompletableFuture<PlacedLimitOrder> placeLimitOrder(@NotNull final String figi,
-                                                               @NotNull final LimitOrder limitOrder) {
+                                                               @NotNull final LimitOrder limitOrder,
+                                                               @Nullable final String brokerAccountId) {
         final CompletableFuture<PlacedLimitOrder> future = new CompletableFuture<>();
         final String renderedBody;
         try {
@@ -88,7 +96,10 @@ final class OrdersContextImpl extends BaseContextImpl implements OrdersContext {
             return future;
         }
 
-        final HttpUrl requestUrl = finalUrl.newBuilder()
+        HttpUrl.Builder builder = finalUrl.newBuilder();
+        if (Objects.nonNull(brokerAccountId) && !brokerAccountId.isEmpty())
+            builder.addQueryParameter("brokerAccountId", brokerAccountId);
+        final HttpUrl requestUrl = builder
                 .addPathSegment("limit-order")
                 .addQueryParameter("figi", figi)
                 .build();
@@ -119,9 +130,14 @@ final class OrdersContextImpl extends BaseContextImpl implements OrdersContext {
 
     @Override
     @NotNull
-    public CompletableFuture<Void> cancelOrder(@NotNull final String orderId) {
+    public CompletableFuture<Void> cancelOrder(@NotNull final String orderId,
+                                               @Nullable final String brokerAccountId) {
         final CompletableFuture<Void> future = new CompletableFuture<>();
-        final HttpUrl requestUrl = finalUrl.newBuilder()
+
+        HttpUrl.Builder builder = finalUrl.newBuilder();
+        if (Objects.nonNull(brokerAccountId) && !brokerAccountId.isEmpty())
+            builder.addQueryParameter("brokerAccountId", brokerAccountId);
+        final HttpUrl requestUrl = builder
                 .addPathSegment("cancel")
                 .addQueryParameter("orderId", orderId)
                 .build();

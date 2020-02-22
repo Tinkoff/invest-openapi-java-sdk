@@ -40,11 +40,14 @@ final class OperationsContextImpl extends BaseContextImpl implements OperationsC
     @NotNull
     public CompletableFuture<OperationsList> getOperations(@NotNull final OffsetDateTime from,
                                                            @NotNull final OffsetDateTime to,
-                                                           @Nullable final String figi) {
+                                                           @Nullable final String figi,
+                                                           @Nullable final String brokerAccountId) {
         final CompletableFuture<OperationsList> future = new CompletableFuture<>();
         HttpUrl.Builder builder = finalUrl.newBuilder();
         if (Objects.nonNull(figi) && !figi.isEmpty())
-            builder = builder.addQueryParameter("figi", figi);
+            builder.addQueryParameter("figi", figi);
+        if (Objects.nonNull(brokerAccountId) && !brokerAccountId.isEmpty())
+            builder.addQueryParameter("brokerAccountId", brokerAccountId);
         final HttpUrl requestUrl = builder
                 .addQueryParameter("from", from.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
                 .addQueryParameter("to", to.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
