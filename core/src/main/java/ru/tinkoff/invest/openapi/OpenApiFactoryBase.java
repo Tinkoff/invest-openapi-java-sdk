@@ -13,18 +13,14 @@ import java.util.logging.Logger;
 
 abstract public class OpenApiFactoryBase {
 
-    public final boolean sandboxMode;
-
     protected final OpenApiConfig config;
     protected final String authToken;
     protected final Logger logger;
 
     public OpenApiFactoryBase(@NotNull final String token,
-                              final boolean sandboxMode,
                               @NotNull final Logger logger) {
         this.logger = logger;
         this.authToken = "Bearer " + token;
-        this.sandboxMode = sandboxMode;
 
         this.config = extractConfig();
     }
@@ -32,6 +28,10 @@ abstract public class OpenApiFactoryBase {
     @NotNull
     abstract public OpenApi createOpenApiClient(@NotNull Consumer<StreamingEvent> streamingEventCallback,
                                                 @NotNull Consumer<Throwable> streamingErrorCallback);
+
+    @NotNull
+    abstract public SandboxOpenApi createSandboxOpenApiClient(@NotNull Consumer<StreamingEvent> streamingEventCallback,
+                                                              @NotNull Consumer<Throwable> streamingErrorCallback);
 
     /**
      * Извлечение параметров конфигурации.

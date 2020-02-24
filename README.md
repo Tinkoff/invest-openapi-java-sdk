@@ -5,17 +5,21 @@
 
 ## Начало работы
 
-Для сборки библиотеки понадобится Gradle версии не ниже 5, а также JDK версии не ниже 11. Затем в терминале перейдите
+Для сборки библиотеки понадобится Gradle версии не ниже 5, а также JDK версии не ниже 8. Затем в терминале перейдите
 в директорию проекта и выполните следующую команду
 ```bash
 gradlew build
 ```
 Или с помощью docker
 ```
-docker run --rm -u gradle -v "$PWD":/home/gradle/project -w /home/gradle/project gradle:jdk11 gradle build
+docker run --rm -u gradle -v "$PWD":/home/gradle/project -w /home/gradle/project gradle:jdk8 gradle build
 ```
-После успешной сборки в поддиректории `sdk/build/libs` появится jar-файл, который можно подключить к любому другому
-Java-проекту (или Java-совместимому, например, на таких языках, как Kotlin и Scala).
+
+Скорее всего вы увидите ошибки, связанные с подпроектом example - он требует JDK версии 11. Однако, сам SDK должен
+скомпилироваться.
+
+После успешной сборки в поддиректории `sdk-java8/build/libs` появится jar-файл, который можно подключить к любому
+другому Java-проекту (или Java-совместимому, например, на таких языках, как Kotlin и Scala).
 
 ### Где взять токен аутентификации?
 
@@ -36,73 +40,60 @@ gradlew javadoc
 ```
 Или с помощью docker
 ```
-docker run --rm -u gradle -v "$PWD":/home/gradle/project -w /home/gradle/project gradle:jdk11 gradle javadoc
+docker run --rm -u gradle -v "$PWD":/home/gradle/project -w /home/gradle/project gradle:jdk8 gradle javadoc
 ```
-Единственной зависимостью в проекте явлется библиотека Jackson для работы с JSON.
 
-Документацию непосредственно по OpenAPI можно найти по [ссылке](https://api-invest.tinkoff.ru/ru.tinkoff.invest.openapi/docs/).
+Проект разделён на 3 части:
+
+- core - содержит интерфейсы всех частей REST API и Streaming API, а также модели данных, которые они используют;
+- sdk-java8 - содержит реализацию core-интерфейсов с использованием http-клиента из библиотеки OkHttp;
+- example - простой пример использования core-интерфесов, реализованных в sdk-java8 (для компиляции необходим jdk11).
+
+Единственной зависимостью в core-части явлется библиотека Jackson для работы с JSON.
+
+Документацию непосредственно по OpenAPI можно найти по [ссылке](https://tinkoffcreditsystems.github.io/invest-openapi/).
 
 ### А если вкратце?
 
 Для непосредственного взаимодействия с OpenAPI нужно создать подключение.
 
 ```java
-import ru.tinkoff.invest.ru.tinkoff.invest.openapi.wrapper.impl.ConnectionFactory;
+import ru.tinkoff.invest.openapi.OpenApi;
+import ru.tinkoff.invest.openapi.SandboxOpenApi;
+import ru.tinkoff.invest.openapi.okhttp.OkHttpOpenApiFactory;
 
 var token = "super_token"; // токен авторизации
-var connection = ConnectionFactory.connect(token, logger).join(); // содание подключения происходит асинхронно
-// Для работы в "песочнице" используйте connectSandbox
-var context = connection.context();
+var sandboxMode = true;
+var factory = new OkHttpOpenApiFactory(parameters.ssoToken, logger);
+OpenApi api;
 
-// Вся работа происходит через объект контекста, все запросы асинхронны
-var portfolio = context.getPortfolio().join(); // получить текущий портфель
-```
-Для написания собственной торговой стратегии реализуйте интерфейс `Strategy`. Затем запустите исполнение стратегии через
-`StrategyExecutor`.
+if (sandboxMode) {
+    api = factory.createSandboxOpenApiClient(
+            se -> logger.info("Из Streaming API пришло событие"),
+            ex -> logger.severe("Что-то произошло со Streaming API")
+    );
+    // ОБЯЗАТЕЛЬНО нужно выполнить регистрацию в "песочнице"
+    ((SandboxOpenApi) api).getSandboxContext().performRegistration(null).join();
+} else {
+    api = factory.createOpenApiClient(
+            se -> logger.info("Из Streaming API пришло событие"),
+            ex -> logger.severe("Что-то произошло со Streaming API")
+    );
+}
 
-```java
-import ru.tinkoff.invest.ru.tinkoff.invest.openapi.automata.Strategy;
-import ru.tinkoff.invest.ru.tinkoff.invest.openapi.automata.StrategyExecutor;
-
-final var myStrategy = new Strategy() { /*...*/ };
-final var strategyExecutor = new StrategyExecutor(context, strategy, logger);
-strategyExecutor.run();
+// Вся работа происходит через объекты контекста, все запросы асинхронны
+var portfolio = api.portfolioContext.getPortfolio().join(); // получить текущий портфель
 ```
 
 ### А пример готового робота есть?
 
-В качестве примера готовой простой стратегии исследуйте устройство класса `SimpleStopLossStrategy`. Его использование
-продемонстрировано в подпроекте _example_. После сборки в поддиректории `example/build/libs` появится jar-файл, который
-запускает робота. При желании можно запустить робота в Docker-контейнере - есть соответствующий `Dockerfile`. После
-сборки проекта постройте docker-образ и запустите его.
-```bash
-docker build --tag=ru.tinkoff.invest.openapi-example .
-docker run -ti --mount source=openapi_volume,target=/app/logs \
-    -e "token=<auth_token>" \
-    -e "ticker=<ticker>" \
-    -e "interval=<candle_interval>" \
-    -e "max_volume=<your_money>" \
-    -e "use_sandbox=<true_or_false>" \
-    ru.tinkoff.invest.openapi-example
-```
-В подключённой директории `openapi_volume` будет файл с подробным логом работы.
-
-Краткое описание стратегии:
-* При старте происходит закупка заданного инструмента на сумму не превыщающую заданный в параметрах потолок. Наличие уже
-закупленного актива игнорируется.
-* Происходит слежение за ценами посредством изучения информации приходящей в свечах с заданным в параметрах интервалом.
-За текущую цену берётся средняя цена свечи.
-* В процессе слежения за ценой имитируются механизмы наподобие стоп-лоссов и тейк-профитов.
-* Если инструмент не торгуется, то робот бездействует.
-
-**ПРИВЕДЁННЫЙ В КАЧЕСТВЕ ПРИМЕРА РОБОТ ОЧЕНЬ ПРОСТ - НЕ РЕКОМЕНДУЕТСЯ ИСПОЛЬЗОВАТЬ ЕГО В РЕАЛЬНЫХ ТОРГАХ!** В параметрах
-запуска можно указать включение режима "песочницы".
+Пример готового робота пока отсутствует, но планируется к добавлению.
 
 ## У меня есть вопрос
 
-[Основной репозиторий с документацией](https://github.com/TinkoffCreditSystems/invest-ru.tinkoff.invest.openapi/) - в нем вы можете задать вопрос в Issues и получать информацию о релизах в Releases.
+[Основной репозиторий с документацией](https://github.com/TinkoffCreditSystems/invest-openapi/issues) - в нем вы можете задать вопрос в Issues и получать информацию о релизах в Releases.
 
-Если возникают вопросы по данному SDK, нашёлся баг или есть предложения по улучшению, то можно  задать его в Issues, либо писать на почту:
+Если возникают вопросы по данному SDK, нашёлся баг или есть предложения по улучшению, то можно задать его в Issues, либо писать на почту:
 
 * Мельникову Никите (n.v.melnikov@tinkoff.ru)
 * Иванову Владимиру (v.ivanov8@tinkoff.ru)
