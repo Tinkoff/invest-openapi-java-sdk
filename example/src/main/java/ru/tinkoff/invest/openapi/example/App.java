@@ -1,11 +1,12 @@
 package ru.tinkoff.invest.openapi.example;
 
+import ru.tinkoff.invest.openapi.OpenApi;
+import ru.tinkoff.invest.openapi.SandboxOpenApi;
 import ru.tinkoff.invest.openapi.StreamingContext;
 import ru.tinkoff.invest.openapi.models.market.Instrument;
 import ru.tinkoff.invest.openapi.models.portfolio.PortfolioCurrencies;
 import ru.tinkoff.invest.openapi.models.streaming.StreamingRequest;
 import ru.tinkoff.invest.openapi.okhttp.OkHttpOpenApiFactory;
-import ru.tinkoff.invest.openapi.okhttp.OkHttpSandboxOpenApi;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -36,20 +37,26 @@ public class App {
 
         try {
             logger.info("Создаём подключение... ");
-            final var factory = new OkHttpOpenApiFactory(parameters.ssoToken, parameters.sandboxMode, logger);
-            final var api = factory.createOpenApiClient(
-                    se -> logger.info("Из Streaming API пришло событие"),
-                    ex -> logger.severe("Что-то произошло со Streaming API")
-            );
+            final var factory = new OkHttpOpenApiFactory(parameters.ssoToken, logger);
+            final OpenApi api;
 
             if (parameters.sandboxMode) {
+                api = factory.createSandboxOpenApiClient(
+                        se -> logger.info("Из Streaming API пришло событие"),
+                        ex -> logger.severe("Что-то произошло со Streaming API")
+                );
                 // ОБЯЗАТЕЛЬНО нужно выполнить регистрацию в "песочнице"
-                ((OkHttpSandboxOpenApi) api).sandboxContext.performRegistration(null).join();
+                ((SandboxOpenApi) api).getSandboxContext().performRegistration(null).join();
+            } else {
+                api = factory.createOpenApiClient(
+                        se -> logger.info("Из Streaming API пришло событие"),
+                        ex -> logger.severe("Что-то произошло со Streaming API")
+                );
             }
 
-            final var currentOrders = api.ordersContext.getOrders(null).join();
+            final var currentOrders = api.getOrdersContext().getOrders(null).join();
             logger.info("Количество текущих заявок: " + currentOrders.size());
-            final var currentPositions = api.portfolioContext.getPortfolio(null).join();
+            final var currentPositions = api.getPortfolioContext().getPortfolio(null).join();
             logger.info("Количество текущих позиций: " + currentPositions.positions.size());
 
             for (int i = 0; i < parameters.tickers.length; i++) {
@@ -57,7 +64,7 @@ public class App {
                 final var candleInterval = parameters.candleIntervals[i];
 
                 logger.info("Ищём по тикеру " + ticker + "... ");
-                final var instrumentsList = api.marketContext.searchMarketInstrumentsByTicker(ticker).join();
+                final var instrumentsList = api.getMarketContext().searchMarketInstrumentsByTicker(ticker).join();
 
                 final var instrumentOpt = instrumentsList.instruments.stream().findFirst();
 
@@ -70,7 +77,7 @@ public class App {
                 }
 
                 logger.info("Получаем валютные балансы... ");
-                final var portfolioCurrencies = api.portfolioContext.getPortfolioCurrencies(null).join();
+                final var portfolioCurrencies = api.getPortfolioContext().getPortfolioCurrencies(null).join();
 
                 final var portfolioCurrencyOpt = portfolioCurrencies.currencies.stream()
                         .filter(pc -> pc.currency == instrument.currency)
@@ -85,10 +92,10 @@ public class App {
                     logger.info("Нужной валюты " + portfolioCurrency.currency + " на счету " + portfolioCurrency.balance.toPlainString());
                 }
 
-                api.streamingContext.sendRequest(StreamingRequest.subscribeCandle(instrument.figi, candleInterval));
+                api.getStreamingContext().sendRequest(StreamingRequest.subscribeCandle(instrument.figi, candleInterval));
             }
 
-            initCleanupProcedure(api.streamingContext, logger);
+            initCleanupProcedure(api.getStreamingContext(), logger);
 
             final var result = new CompletableFuture<Void>();
             result.join();

@@ -3,10 +3,10 @@ package ru.tinkoff.invest.openapi.okhttp;
 import org.jetbrains.annotations.NotNull;
 import ru.tinkoff.invest.openapi.*;
 
-public class OkHttpSandboxOpenApi extends OkHttpOpenApi {
+public class OkHttpSandboxOpenApi extends OkHttpOpenApi implements SandboxOpenApi {
 
     @NotNull
-    public final SandboxContext sandboxContext;
+    private final SandboxContext sandboxContext;
 
     OkHttpSandboxOpenApi(@NotNull final MarketContext marketContext,
                          @NotNull final OperationsContext operationsContext,
@@ -19,4 +19,9 @@ public class OkHttpSandboxOpenApi extends OkHttpOpenApi {
         this.sandboxContext = sandboxContext;
     }
 
+    @NotNull
+    @Override
+    public SandboxContext getSandboxContext() {
+        return sandboxContext;
+    }
 }
