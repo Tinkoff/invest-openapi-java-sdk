@@ -29,7 +29,7 @@ final class UserContextImpl extends BaseContextImpl implements UserContext {
     @NotNull
     @Override
     public String getPath() {
-        return "operations";
+        return "user";
     }
 
     @Override
