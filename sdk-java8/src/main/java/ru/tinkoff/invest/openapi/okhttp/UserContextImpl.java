@@ -37,6 +37,7 @@ final class UserContextImpl extends BaseContextImpl implements UserContext {
     public CompletableFuture<AccountsList> getAccounts() {
         final CompletableFuture<AccountsList> future = new CompletableFuture<>();
         final HttpUrl requestUrl = finalUrl.newBuilder()
+                .addPathSegment("accounts")
                 .build();
         final Request request = prepareRequest(requestUrl)
                 .build();
