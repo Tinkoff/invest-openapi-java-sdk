@@ -52,7 +52,9 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
     @NotNull
     public CompletableFuture<InstrumentsList> getMarketStocks() {
         final CompletableFuture<InstrumentsList> future = new CompletableFuture<>();
-        final HttpUrl requestUrl = finalUrl.newBuilder().addPathSegment("stocks").build();
+        final HttpUrl requestUrl = finalUrl.newBuilder()
+                .addPathSegment("stocks")
+                .build();
         final Request request = prepareRequest(requestUrl)
                 .build();
 
@@ -81,7 +83,9 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
     @NotNull
     public CompletableFuture<InstrumentsList> getMarketBonds() {
         final CompletableFuture<InstrumentsList> future = new CompletableFuture<>();
-        final HttpUrl requestUrl = finalUrl.newBuilder().addPathSegment("bonds").build();
+        final HttpUrl requestUrl = finalUrl.newBuilder()
+                .addPathSegment("bonds")
+                .build();
         final Request request = prepareRequest(requestUrl)
                 .build();
 
@@ -110,7 +114,9 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
     @NotNull
     public CompletableFuture<InstrumentsList> getMarketEtfs() {
         final CompletableFuture<InstrumentsList> future = new CompletableFuture<>();
-        final HttpUrl requestUrl = finalUrl.newBuilder().addPathSegment("etfs").build();
+        final HttpUrl requestUrl = finalUrl.newBuilder()
+                .addPathSegment("etfs")
+                .build();
         final Request request = prepareRequest(requestUrl)
                 .build();
 
@@ -139,7 +145,9 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
     @NotNull
     public CompletableFuture<InstrumentsList> getMarketCurrencies() {
         final CompletableFuture<InstrumentsList> future = new CompletableFuture<>();
-        final HttpUrl requestUrl = finalUrl.newBuilder().addPathSegment("currencies").build();
+        final HttpUrl requestUrl = finalUrl.newBuilder()
+                .addPathSegment("currencies")
+                .build();
         final Request request = prepareRequest(requestUrl)
                 .build();
 
