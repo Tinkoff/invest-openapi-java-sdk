@@ -3,12 +3,12 @@ package ru.tinkoff.invest.openapi;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.tinkoff.invest.openapi.models.orders.LimitOrder;
+import ru.tinkoff.invest.openapi.models.orders.MarketOrder;
 import ru.tinkoff.invest.openapi.models.orders.Order;
-import ru.tinkoff.invest.openapi.models.orders.PlacedLimitOrder;
+import ru.tinkoff.invest.openapi.models.orders.PlacedOrder;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 
 /**
  * Интерфейс работы с OpenAPI в части касающейся заявок.
@@ -31,9 +31,21 @@ public interface OrdersContext extends Context {
      * @param brokerAccountId Идентификатор брокерского счёта.
      */
     @NotNull
-    CompletableFuture<PlacedLimitOrder> placeLimitOrder(@NotNull String figi,
-                                                        @NotNull LimitOrder limitOrder,
-                                                        @Nullable String brokerAccountId);
+    CompletableFuture<PlacedOrder> placeLimitOrder(@NotNull String figi,
+                                                   @NotNull LimitOrder limitOrder,
+                                                   @Nullable String brokerAccountId);
+
+    /**
+     * Размещение рыночной заявки.
+     *
+     * @param figi Идентификатор инструмента.
+     * @param marketOrder Параметры отправляемой заявки.
+     * @param brokerAccountId Идентификатор брокерского счёта.
+     */
+    @NotNull
+    CompletableFuture<PlacedOrder> placeMarketOrder(@NotNull String figi,
+                                                    @NotNull MarketOrder marketOrder,
+                                                    @Nullable String brokerAccountId);
 
     /**
      * Отзыв лимитной заявки.

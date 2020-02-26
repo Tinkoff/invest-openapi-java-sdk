@@ -11,7 +11,7 @@ import java.util.Objects;
 /**
  * Модель размещённой биржевой заявки.
  */
-public final class PlacedLimitOrder {
+public final class PlacedOrder {
 
     /**
      * Идентификатор заявки.
@@ -60,28 +60,28 @@ public final class PlacedLimitOrder {
     public final MoneyAmount commission;
 
     @JsonCreator
-    public PlacedLimitOrder(@JsonProperty(value = "orderId", required = true)
-                            @NotNull
-                            final String id,
-                            @JsonProperty(value = "operation", required = true)
-                            @NotNull
-                            final Operation operation,
-                            @JsonProperty(value = "status", required = true)
-                            @NotNull
-                            final Status status,
-                            @JsonProperty(value = "rejectReason")
-                            @Nullable
-                            final String rejectReason,
-                            @JsonProperty(value = "message")
-                            @Nullable
-                            final String message,
-                            @JsonProperty(value = "requestedLots", required = true)
-                            final int requestedLots,
-                            @JsonProperty(value = "executedLots", required = true)
-                            final int executedLots,
-                            @JsonProperty("commission")
-                            @Nullable
-                            final MoneyAmount commission) {
+    public PlacedOrder(@JsonProperty(value = "orderId", required = true)
+                       @NotNull
+                       final String id,
+                       @JsonProperty(value = "operation", required = true)
+                       @NotNull
+                       final Operation operation,
+                       @JsonProperty(value = "status", required = true)
+                       @NotNull
+                       final Status status,
+                       @JsonProperty(value = "rejectReason")
+                       @Nullable
+                       final String rejectReason,
+                       @JsonProperty(value = "message")
+                       @Nullable
+                       final String message,
+                       @JsonProperty(value = "requestedLots", required = true)
+                       final int requestedLots,
+                       @JsonProperty(value = "executedLots", required = true)
+                       final int executedLots,
+                       @JsonProperty("commission")
+                       @Nullable
+                       final MoneyAmount commission) {
         this.id = id;
         this.operation = operation;
         this.status = status;
