@@ -8,6 +8,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public enum BrokerAccountType {
     @JsonProperty("Tinkoff")
     Tinkoff,
-    @JsonProperty("TinkoffIis ")
+    @JsonProperty("TinkoffIis")
     TinkoffIis
 }
