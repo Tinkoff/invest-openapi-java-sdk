@@ -2,7 +2,6 @@ package ru.tinkoff.invest.openapi.example;
 
 import ru.tinkoff.invest.openapi.OpenApi;
 import ru.tinkoff.invest.openapi.SandboxOpenApi;
-import ru.tinkoff.invest.openapi.StreamingContext;
 import ru.tinkoff.invest.openapi.models.market.Instrument;
 import ru.tinkoff.invest.openapi.models.portfolio.PortfolioCurrencies;
 import ru.tinkoff.invest.openapi.models.streaming.StreamingRequest;
@@ -14,6 +13,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 import java.util.logging.*;
 
 public class App {
@@ -35,24 +35,22 @@ public class App {
             return;
         }
 
+        final var factory = new OkHttpOpenApiFactory(parameters.ssoToken, logger);
         try {
-            logger.info("Создаём подключение... ");
-            final var factory = new OkHttpOpenApiFactory(parameters.ssoToken, logger);
             final OpenApi api;
 
+            logger.info("Создаём подключение... ");
             if (parameters.sandboxMode) {
-                api = factory.createSandboxOpenApiClient(
-                        se -> logger.info("Из Streaming API пришло событие"),
-                        ex -> logger.severe("Что-то произошло со Streaming API")
-                );
+                api = factory.createSandboxOpenApiClient(Executors.newSingleThreadExecutor());
                 // ОБЯЗАТЕЛЬНО нужно выполнить регистрацию в "песочнице"
                 ((SandboxOpenApi) api).getSandboxContext().performRegistration(null).join();
             } else {
-                api = factory.createOpenApiClient(
-                        se -> logger.info("Из Streaming API пришло событие"),
-                        ex -> logger.severe("Что-то произошло со Streaming API")
-                );
+                api = factory.createOpenApiClient(Executors.newSingleThreadExecutor());
             }
+
+            final var listener = new StreamingApiSubscriber(logger, Executors.newSingleThreadExecutor());
+
+            api.getStreamingContext().getEventPublisher().subscribe(listener);
 
             final var currentOrders = api.getOrdersContext().getOrders(null).join();
             logger.info("Количество текущих заявок: " + currentOrders.size());
@@ -95,11 +93,13 @@ public class App {
                 api.getStreamingContext().sendRequest(StreamingRequest.subscribeCandle(instrument.figi, candleInterval));
             }
 
-            initCleanupProcedure(api.getStreamingContext(), logger);
+            initCleanupProcedure(api, logger);
 
             final var result = new CompletableFuture<Void>();
             result.join();
-        } catch (Exception ex) {
+
+            api.close();
+        } catch (final Exception ex) {
             logger.log(Level.SEVERE, "Что-то пошло не так.", ex);
         }
     }
@@ -108,7 +108,7 @@ public class App {
         final var logManager = LogManager.getLogManager();
         final var classLoader = App.class.getClassLoader();
 
-        try (InputStream input = classLoader.getResourceAsStream("logging.properties")) {
+        try (final InputStream input = classLoader.getResourceAsStream("logging.properties")) {
 
             if (input == null) {
                 throw new FileNotFoundException();
@@ -135,12 +135,12 @@ public class App {
         }
     }
 
-    private static void initCleanupProcedure(final StreamingContext sc, final Logger logger) {
+    private static void initCleanupProcedure(final OpenApi api, final Logger logger) {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 logger.info("Закрываем соединение... ");
-                sc.close();
-            } catch (Exception e) {
+                api.close();
+            } catch (final Exception e) {
                 logger.log(Level.SEVERE, "Что-то произошло при закрытии соединения!", e);
             }
         }));

@@ -9,6 +9,7 @@ dependencies {
             [group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.10.2'],
             [group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.3.1'],
             [group: 'org.reactivestreams', name: 'reactive-streams', version: '1.0.3'],
+            [group: 'org.reactivestreams', name: 'reactive-streams-examples', version: '1.0.3'],
             project(':core')
     )
     testCompile group: 'org.junit.jupiter', name: 'junit-jupiter', version: '5.5.2'

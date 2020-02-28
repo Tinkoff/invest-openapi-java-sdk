@@ -7,6 +7,7 @@ dependencies {
             [group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.2'],
             [group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jdk8', version: '2.10.2'],
             [group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.10.2'],
+            [group: 'org.reactivestreams', name: 'reactive-streams', version: '1.0.3'],
             [group: 'org.jetbrains', name: 'annotations', version: '13.0'],
     )
 }

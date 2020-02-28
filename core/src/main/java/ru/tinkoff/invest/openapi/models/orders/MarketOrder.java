@@ -2,8 +2,6 @@ package ru.tinkoff.invest.openapi.models.orders;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.math.BigDecimal;
-
 /**
  * Модель лимитной заявки.
  */

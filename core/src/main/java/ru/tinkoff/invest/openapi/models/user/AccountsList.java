@@ -3,8 +3,6 @@ package ru.tinkoff.invest.openapi.models.user;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jetbrains.annotations.NotNull;
-import ru.tinkoff.invest.openapi.models.operations.Operation;
-
 import java.util.List;
 
 /**

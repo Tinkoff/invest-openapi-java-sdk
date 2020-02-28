@@ -16,9 +16,11 @@ import java.util.concurrent.CompletableFuture;
 public interface OrdersContext extends Context {
 
     /**
-     * Получение списка активных заявок.
+     * Асинхронное получение списка активных заявок.
      *
      * @param brokerAccountId Идентификатор брокерского счёта.
+     * 
+     * @return Список заявок.
      */
     @NotNull
     CompletableFuture<List<Order>> getOrders(@Nullable String brokerAccountId);
@@ -29,6 +31,8 @@ public interface OrdersContext extends Context {
      * @param figi Идентификатор инструмента.
      * @param limitOrder Параметры отправляемой заявки.
      * @param brokerAccountId Идентификатор брокерского счёта.
+     * 
+     * @return Размещённая заявка.
      */
     @NotNull
     CompletableFuture<PlacedOrder> placeLimitOrder(@NotNull String figi,
@@ -41,6 +45,8 @@ public interface OrdersContext extends Context {
      * @param figi Идентификатор инструмента.
      * @param marketOrder Параметры отправляемой заявки.
      * @param brokerAccountId Идентификатор брокерского счёта.
+     * 
+     * @return Размещённая заявка.
      */
     @NotNull
     CompletableFuture<PlacedOrder> placeMarketOrder(@NotNull String figi,
@@ -52,6 +58,8 @@ public interface OrdersContext extends Context {
      *
      * @param orderId Идентификатор заявки.
      * @param brokerAccountId Идентификатор брокерского счёта.
+     * 
+     * @return Ничего.
      */
     @NotNull
     CompletableFuture<Void> cancelOrder(@NotNull String orderId, @Nullable String brokerAccountId);

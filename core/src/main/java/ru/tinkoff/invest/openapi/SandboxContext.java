@@ -17,6 +17,8 @@ public interface SandboxContext extends Context {
      * Регистрация в системе "песочницы". Проводится один раз для клиента.
      *
      * @param brokerAccountType Тип брокерского счёта.
+     * 
+     * @return Ничего.
      */
     @NotNull
     CompletableFuture<Void> performRegistration(@Nullable BrokerAccountType brokerAccountType);
@@ -26,6 +28,8 @@ public interface SandboxContext extends Context {
      *
      * @param data Жалаемые параметры позиции.
      * @param brokerAccountId Идентификатор брокерского счёта.
+     * 
+     * @return Ничего.
      */
     @NotNull
     CompletableFuture<Void> setCurrencyBalance(@NotNull CurrencyBalance data, @Nullable String brokerAccountId);
@@ -35,6 +39,8 @@ public interface SandboxContext extends Context {
      *
      * @param data Жалаемые параметры позиции.
      * @param brokerAccountId Идентификатор брокерского счёта.
+     * 
+     * @return Ничего.
      */
     @NotNull
     CompletableFuture<Void> setPositionBalance(@NotNull PositionBalance data, @Nullable String brokerAccountId);
@@ -43,6 +49,8 @@ public interface SandboxContext extends Context {
      * Сброс всех установленных значений по активам.
      *
      * @param brokerAccountId Идентификатор брокерского счёта.
+     * 
+     * @return Ничего.
      */
     @NotNull
     CompletableFuture<Void> clearAll(@Nullable String brokerAccountId);

@@ -4,7 +4,6 @@ import org.jetbrains.annotations.NotNull;
 import ru.tinkoff.invest.openapi.models.Currency;
 
 import java.math.BigDecimal;
-import java.util.Objects;
 
 /**
  * Данные для запроса на выставление баланса по валюте.

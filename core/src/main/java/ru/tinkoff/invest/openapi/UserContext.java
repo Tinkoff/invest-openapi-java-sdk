@@ -1,12 +1,10 @@
 package ru.tinkoff.invest.openapi;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import ru.tinkoff.invest.openapi.models.operations.OperationsList;
-import ru.tinkoff.invest.openapi.models.user.AccountsList;
-
-import java.time.OffsetDateTime;
 import java.util.concurrent.CompletableFuture;
+
+import org.jetbrains.annotations.NotNull;
+
+import ru.tinkoff.invest.openapi.models.user.AccountsList;
 
 /**
  * Интерфейс работы с OpenAPI в части касающейся получения информации о клиенте.
@@ -14,7 +12,9 @@ import java.util.concurrent.CompletableFuture;
 public interface UserContext extends Context {
 
     /**
-     * Получение списка брокерских счетов.
+     * Асинхронное получение списка брокерских счетов.
+     * 
+     * @return Список счетов.
      */
     @NotNull
     CompletableFuture<AccountsList> getAccounts();

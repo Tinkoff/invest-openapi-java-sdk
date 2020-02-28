@@ -5,6 +5,8 @@ package ru.tinkoff.invest.openapi.exceptions;
  */
 public class WrongTokenException extends OpenApiException {
 
+    private static final long serialVersionUID = -4989718480862810249L;
+
     public static String ACCESS_DENIED_MESSAGE_CODE = "ACCESS_DENIED";
 
     public WrongTokenException() {

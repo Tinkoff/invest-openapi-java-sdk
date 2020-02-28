@@ -1,9 +1,8 @@
 package ru.tinkoff.invest.openapi.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Модель ответа от REST API.
