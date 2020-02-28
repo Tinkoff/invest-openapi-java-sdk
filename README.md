@@ -93,7 +93,4 @@ var portfolio = api.portfolioContext.getPortfolio().join(); // получить 
 
 [Основной репозиторий с документацией](https://github.com/TinkoffCreditSystems/invest-openapi/issues) - в нем вы можете задать вопрос в Issues и получать информацию о релизах в Releases.
 
-Если возникают вопросы по данному SDK, нашёлся баг или есть предложения по улучшению, то можно задать его в Issues, либо писать на почту:
-
-* Мельникову Никите (n.v.melnikov@tinkoff.ru)
-* Иванову Владимиру (v.ivanov8@tinkoff.ru)
+Если возникают вопросы по данному SDK, нашёлся баг или есть предложения по улучшению, то можно задать его в Issues, либо писать на почту openapi_invest@tinkoff.ru
