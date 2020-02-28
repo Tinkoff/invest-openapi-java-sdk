@@ -3,7 +3,6 @@ package ru.tinkoff.invest.openapi.models.sandbox;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
-import java.util.Objects;
 
 /**
  * Данные для запроса на выставление баланса по позиции.

@@ -8,55 +8,59 @@ import okhttp3.*;
 import okio.ByteString;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import org.reactivestreams.Publisher;
+
 import ru.tinkoff.invest.openapi.StreamingContext;
 import ru.tinkoff.invest.openapi.models.streaming.StreamingEvent;
 import ru.tinkoff.invest.openapi.models.streaming.StreamingRequest;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Consumer;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 class StreamingContextImpl implements StreamingContext {
 
-    private static final TypeReference<StreamingEvent> streamingEventTypeReference =
-            new TypeReference<StreamingEvent>() {
-            };
+    private static final TypeReference<StreamingEvent> streamingEventTypeReference = new TypeReference<StreamingEvent>() {
+    };
 
     private final WebSocket[] wsClients;
     private final ArrayList<Set<StreamingRequest.ActivatingRequest>> requestsHistory;
     private final ObjectMapper mapper;
-    private final Consumer<StreamingEvent> streamingEventCallback;
-    private final Consumer<Throwable> streamingErrorCallback;
     private final Logger logger;
     private final OkHttpClient client;
-    private final Request wsRequest;
+    private final okhttp3.Request wsRequest;
+    private final StreamingEventPublisher publisher;
+    
+    private boolean hasStopped;
 
     StreamingContextImpl(@NotNull final OkHttpClient client,
                          @NotNull final String streamingUrl,
                          @NotNull final String authToken,
                          final int streamingParallelism,
-                         @NotNull final Consumer<StreamingEvent> streamingEventCallback,
-                         @NotNull final Consumer<Throwable> streamingErrorCallback,
-                         @NotNull final Logger logger) {
-        this.streamingEventCallback = streamingEventCallback;
-        this.streamingErrorCallback = streamingErrorCallback;
+                         @NotNull final Logger logger,
+                         @NotNull final Executor executor) {
         this.logger = logger;
+        this.publisher = new StreamingEventPublisher(logger, executor);
         this.client = client;
         this.mapper = new ObjectMapper();
         this.mapper.registerModule(new JavaTimeModule());
+        this.hasStopped = false;
 
         this.wsClients = new WebSocket[streamingParallelism];
         this.requestsHistory = new ArrayList<>(streamingParallelism);
-        this.wsRequest = new Request.Builder()
-                .url(streamingUrl)
-                .header("Authorization", authToken)
-                .build();
+        this.wsRequest = new okhttp3.Request.Builder().url(streamingUrl).header("Authorization", authToken).build();
         for (int i = 0; i < streamingParallelism; i++) {
-            final StreamingApiListener streamingCallback = new StreamingContextImpl.StreamingApiListener(i + 1);
+            final StreamingApiListener streamingCallback = new StreamingApiListener(i + 1);
             this.wsClients[i] = this.client.newWebSocket(this.wsRequest, streamingCallback);
             this.requestsHistory.add(new HashSet<>());
         }
@@ -64,11 +68,11 @@ class StreamingContextImpl implements StreamingContext {
 
     @Override
     public void sendRequest(@NotNull final StreamingRequest request) {
-        int clientIndex = request.hashCode() % this.wsClients.length;
-        final WebSocket wsClient = this.wsClients[clientIndex];
-
         try {
             final String message = mapper.writeValueAsString(request);
+
+            final int clientIndex = request.hashCode() % this.wsClients.length;
+            final WebSocket wsClient = this.wsClients[clientIndex];
 
             final Set<StreamingRequest.ActivatingRequest> wsClientHistory = this.requestsHistory.get(clientIndex);
             wsClientHistory.removeIf(hr -> hr.onOffPairId().equals(request.onOffPairId()));
@@ -78,17 +82,211 @@ class StreamingContextImpl implements StreamingContext {
 
             wsClient.send(message);
         } catch (JsonProcessingException ex) {
-            logger.log(Level.SEVERE, "Что-то произошло при посыле сообщения в Streaming API клиент #" + (clientIndex + 1), ex);
-            streamingErrorCallback.accept(ex);
+            logger.log(Level.SEVERE, "Не удалось сериализовать сообщение в JSON", ex);
+        }
+    }
+
+    static class StreamingEventPublisher implements Publisher<StreamingEvent> {
+
+        private final List<SubscriptionImpl> subscriptions;
+        private final Executor executor;
+
+        StreamingEventPublisher(@NotNull final Logger logger, @NotNull final Executor executor) {
+            this.subscriptions = new LinkedList<>();
+            this.executor = executor;
+        }
+
+        @Override
+        public void subscribe(Subscriber<? super StreamingEvent> s) {
+            final SubscriptionImpl sub = new SubscriptionImpl(s);
+            subscriptions.add(sub);
+            sub.init();
+        }
+
+        static interface Signal {};
+        enum Cancel implements Signal { Instance; };
+        enum Subscribe implements Signal { Instance; };
+        static final class Send implements Signal { 
+            @NotNull final StreamingEvent payload;
+            Send(@NotNull final StreamingEvent payload) {
+                this.payload = payload;
+            }
+        };
+        static final class Request implements Signal {
+            final long n;
+            Request(final long n) {
+                this.n = n;
+            }
+        };
+
+        final class SubscriptionImpl implements Subscription, Runnable {
+            final Subscriber<? super StreamingEvent> subscriber; // We need a reference to the `Subscriber` so we can talk to it
+            private boolean cancelled = false; // This flag will track whether this `Subscription` is to be considered cancelled or not
+            private long demand = 0; // Here we track the current demand, i.e. what has been requested but not yet delivered
+
+            SubscriptionImpl(@NotNull final Subscriber<? super StreamingEvent> subscriber) {
+                this.subscriber = subscriber;
+            }
+
+            // This `ConcurrentLinkedQueue` will track signals that are sent to this `Subscription`, like `request` and `cancel`
+            private final ConcurrentLinkedDeque<Signal> inboundSignals = new ConcurrentLinkedDeque<Signal>();
+
+            // We are using this `AtomicBoolean` to make sure that this `Subscription` doesn't run concurrently with itself,
+            // which would violate rule 1.3 among others (no concurrent notifications).
+            private final AtomicBoolean on = new AtomicBoolean(false);
+
+            // This method will register inbound demand from our `Subscriber` and validate it against rule 3.9 and rule 3.17
+            private void doRequest(final long n) {
+                if (n < 1)
+                    terminateDueTo(new IllegalArgumentException(subscriber + " violated the Reactive Streams rule 3.9 by requesting a non-positive number of elements."));
+                else if (demand + n < 1) {
+                    // As governed by rule 3.17, when demand overflows `Long.MAX_VALUE` we treat the signalled demand as "effectively unbounded"
+                    demand = Long.MAX_VALUE;  // Here we protect from the overflow and treat it as "effectively unbounded"
+                } else {
+                    demand += n; // Here we record the downstream demand
+                }
+            }
+
+            // This handles cancellation requests, and is idempotent, thread-safe and not synchronously performing heavy computations as specified in rule 3.5
+            private void doCancel() {
+                cancelled = true;
+                subscriptions.remove(this);
+            }
+
+            // Instead of executing `subscriber.onSubscribe` synchronously from within `Publisher.subscribe`
+            // we execute it asynchronously, this is to avoid executing the user code (`Iterable.iterator`) on the calling thread.
+            // It also makes it easier to follow rule 1.9
+            private void doSubscribe() {
+                if (!cancelled) {
+                    // Deal with setting up the subscription with the subscriber
+                    try {
+                        subscriber.onSubscribe(this);
+                    } catch(final Throwable t) { // Due diligence to obey 2.13
+                        terminateDueTo(new IllegalStateException(subscriber + " violated the Reactive Streams rule 2.13 by throwing an exception from onSubscribe.", t));
+                    }
+                }
+            }
+
+            // This is our behavior for producing elements downstream
+            private void doSend(@NotNull final StreamingEvent next) {
+                try {
+                    subscriber.onNext(next); // Then we signal the next element downstream to the `Subscriber`
+                    --demand;    // This makes sure that rule 1.1 is upheld (sending more than was demanded)
+                } catch(final Throwable t) {
+                    // We can only get here if `onNext` or `onComplete` threw, and they are not allowed to according to 2.13, so we can only cancel and log here.
+                    doCancel(); // Make sure that we are cancelled, since we cannot do anything else since the `Subscriber` is faulty.
+                    (new IllegalStateException(subscriber + " violated the Reactive Streams rule 2.13 by throwing an exception from onNext or onComplete.", t)).printStackTrace(System.err);
+                }
+            }
+
+            // This is a helper method to ensure that we always `cancel` when we signal `onError` as per rule 1.6
+            private void terminateDueTo(final Throwable t) {
+                cancelled = true; // When we signal onError, the subscription must be considered as cancelled, as per rule 1.6
+                try {
+                    subscriber.onError(t); // Then we signal the error downstream, to the `Subscriber`
+                } catch(final Throwable t2) { // If `onError` throws an exception, this is a spec violation according to rule 1.9, and all we can do is to log it.
+                    (new IllegalStateException(subscriber + " violated the Reactive Streams rule 2.13 by throwing an exception from onError.", t2)).printStackTrace(System.err);
+                }
+            }
+
+            // What `signal` does is that it sends signals to the `Subscription` asynchronously
+            private void signal(final Signal signal) {
+                if (signal instanceof Request) {
+                    inboundSignals.offerFirst(signal);
+                } else {
+                    inboundSignals.offerLast(signal);
+                }
+
+                tryScheduleToExecute(); // Then we try to schedule it for execution, if it isn't already
+            }
+
+            // This is the main "event loop" if you so will
+            @Override public final void run() {
+                if(on.get()) { // establishes a happens-before relationship with the end of the previous run
+                    try {
+                        final Signal s = inboundSignals.peek(); // We take a signal off the queue
+                        if (!cancelled) { // to make sure that we follow rule 1.8, 3.6 and 3.7
+                            // Below we simply unpack the `Signal`s and invoke the corresponding methods
+                            if (s instanceof Request) {
+                                doRequest(((Request)s).n);
+                                inboundSignals.poll();
+                            } else if (s instanceof Send && demand > 0) {
+                                doSend(((Send)s).payload);
+                                inboundSignals.poll();
+                            } else if (s == Cancel.Instance) {
+                                doCancel();
+                                inboundSignals.poll();
+                            } else if (s == Subscribe.Instance) {
+                                doSubscribe();
+                                inboundSignals.poll();
+                            }
+                        }
+                    } finally {
+                        on.set(false); // establishes a happens-before relationship with the beginning of the next run
+                        if(!inboundSignals.isEmpty()) // If we still have signals to process
+                            tryScheduleToExecute(); // Then we try to schedule ourselves to execute again
+                    }
+                }
+            }
+
+            // This method makes sure that this `Subscription` is only running on one Thread at a time,
+            // this is important to make sure that we follow rule 1.3
+            private final void tryScheduleToExecute() {
+                if(on.compareAndSet(false, true)) {
+                    try {
+                        executor.execute(this);
+                    } catch(Throwable t) { // If we can't run on the `Executor`, we need to fail gracefully
+                        if (!cancelled) {
+                            doCancel(); // First of all, this failure is not recoverable, so we need to follow rule 1.4 and 1.6
+                            try {
+                                terminateDueTo(new IllegalStateException("Publisher terminated due to unavailable Executor.", t));
+                            } finally {
+                                inboundSignals.clear(); // We're not going to need these anymore
+                                // This subscription is cancelled by now, but letting it become schedulable again means
+                                // that we can drain the inboundSignals queue if anything arrives after clearing
+                                on.set(false);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Our implementation of `Subscription.request` sends a signal to the Subscription that more elements are in demand
+            @Override public void request(final long n) {
+                signal(new Request(n));
+            }
+            // Our implementation of `Subscription.cancel` sends a signal to the Subscription that the `Subscriber` is not interested in any more elements
+            @Override public void cancel() {
+                signal(Cancel.Instance);
+            }
+            // The reason for the `init` method is that we want to ensure the `SubscriptionImpl`
+            // is completely constructed before it is exposed to the thread pool, therefor this
+            // method is only intended to be invoked once, and immediately after the constructor has
+            // finished.
+            void init() {
+                signal(Subscribe.Instance);
+            }
         }
     }
 
     @Override
-    public void close() {
-        for (final WebSocket ws : this.wsClients) {
-            ws.close(1000, null);
+    @NotNull
+    public Publisher<StreamingEvent> getEventPublisher() {
+        return this.publisher;
+    }
+
+    public boolean hasStopped() {
+        return this.hasStopped;
+    }
+
+    public synchronized void stop() {
+        if (!this.hasStopped) {
+            for (final WebSocket ws : this.wsClients) {
+                ws.close(1000, null);
+            }
+
+            this.hasStopped = true;
         }
-        client.dispatcher().executorService().shutdown();
     }
 
     public void restore(@NotNull final StreamingApiListener listener) throws Exception {
@@ -111,7 +309,7 @@ class StreamingContextImpl implements StreamingContext {
         }
     }
 
-    class StreamingApiListener extends WebSocketListener implements StreamingEventHandler {
+    class StreamingApiListener extends WebSocketListener {
 
         final int id;
 
@@ -132,10 +330,12 @@ class StreamingContextImpl implements StreamingContext {
 
             try {
                 final StreamingEvent event = mapper.readValue(text, streamingEventTypeReference);
-                this.handleEvent(event);
+                final StreamingEventPublisher.Signal signal = new StreamingEventPublisher.Send(event);
+                for (final StreamingEventPublisher.SubscriptionImpl sub : publisher.subscriptions) {
+                    sub.signal(signal);
+                }
             } catch (JsonProcessingException ex) {
-                logger.log(Level.SEVERE, "Что-то произошло при обработке события в Streaming API клиенте #" + id, ex);
-                this.handleError(ex);
+                logger.log(Level.SEVERE, "Не удалось десериализовать JSON пришедший из Streaming API", ex);
             }
         }
 
@@ -172,18 +372,7 @@ class StreamingContextImpl implements StreamingContext {
                 restore(this);
             } catch (Exception ex) {
                 logger.log(Level.SEVERE, "При восстановлении Streaming API клиента #" + id + " что-то произошло", ex);
-                streamingErrorCallback.accept(ex);
             }
-        }
-
-        @Override
-        public void handleEvent(@NotNull final StreamingEvent event) {
-            streamingEventCallback.accept(event);
-        }
-
-        @Override
-        public void handleError(@NotNull final Throwable error) {
-            streamingErrorCallback.accept(error);
         }
     }
 

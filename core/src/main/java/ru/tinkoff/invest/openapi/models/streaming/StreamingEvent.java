@@ -527,6 +527,8 @@ public abstract class StreamingEvent {
 
     static class StreamingEventDeserializer extends StdDeserializer<StreamingEvent> {
 
+        private static final long serialVersionUID = -4598785717730517692L;
+
         public StreamingEventDeserializer() {
             this(null);
         }

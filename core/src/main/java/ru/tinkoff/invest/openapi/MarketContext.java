@@ -6,7 +6,6 @@ import ru.tinkoff.invest.openapi.models.market.*;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 
 /**
  * Интерфейс работы с OpenAPI в части касающейся получения рыночной информации.
@@ -14,45 +13,57 @@ import java.util.function.Consumer;
 public interface MarketContext extends Context {
 
     /**
-     * Получение списка акций, доступных для торговли.
+     * Асинхронное получение списка акций, доступных для торговли.
+     * 
+     * @return Список акций.
      */
     @NotNull
     CompletableFuture<InstrumentsList> getMarketStocks();
 
     /**
-     * Получение списка бондов, доступных для торговли.
+     * Асинхронное получение бондов, доступных для торговли.
+     * 
+     * @return Список облигаций.
      */
     @NotNull
     CompletableFuture<InstrumentsList> getMarketBonds();
 
     /**
-     * Получение списка фондов, доступных для торговли.
+     * Асинхронное получение списка фондов, доступных для торговли.
+     * 
+     * @return Список фондов.
      */
     @NotNull
     CompletableFuture<InstrumentsList> getMarketEtfs();
 
     /**
-     * Получение списка валют, доступных для торговли.
+     * Асинхронное получение списка валют, доступных для торговли.
+     * 
+     * @return Список валют.
      */
     @NotNull
     CompletableFuture<InstrumentsList> getMarketCurrencies();
 
     /**
-     * Получение текущего состояния торгового "стакана".
+     * Асинхронное получение текущего состояния торгового "стакана".
      *
      * @param figi     Идентификатор инструмента.
      * @param depth    Глубина стакана.
+     * 
+     * @return "Стакан" по инструменту или ничего, если инструмент не найден.  
      */
     @NotNull
     CompletableFuture<Optional<Orderbook>> getMarketOrderbook(@NotNull String figi, int depth);
 
     /**
-     * Получение исторических данных по свечам.
+     * Асинхронное получение исторических данных по свечам.
      *
      * @param figi     Идентификатор инструмента.
      * @param from     Начальный момент рассматриваемого отрезка временного интервала.
      * @param to       Конечный момент рассматриваемого отрезка временного интервала.
      * @param interval Разрешающий интервал свечей.
+     * 
+     * @return Данные по свечам инструмента или ничего, если инструмент не найден.
      */
     @NotNull
     CompletableFuture<Optional<HistoricalCandles>> getMarketCandles(@NotNull String figi,
@@ -61,17 +72,21 @@ public interface MarketContext extends Context {
                                                                     @NotNull CandleInterval interval);
 
     /**
-     * Поиск инструментов по тикеру.
+     * Асинхронный поиск инструментов по тикеру.
      *
-     * @param ticker   Искомый тикер.
+     * @param ticker Искомый тикер.
+     * 
+     * @return Список инструментов.
      */
     @NotNull
     CompletableFuture<InstrumentsList> searchMarketInstrumentsByTicker(@NotNull String ticker);
 
     /**
-     * Поиск инструмента по идентификатору.
+     * Асинронный поиск инструмента по идентификатору.
      *
-     * @param figi     Искомый тикер.
+     * @param figi Искомый тикер.
+     * 
+     * @return Найденный инструмент или ничего, если инструмент не найден.
      */
     @NotNull
     CompletableFuture<Optional<Instrument>> searchMarketInstrumentByFigi(@NotNull String figi);

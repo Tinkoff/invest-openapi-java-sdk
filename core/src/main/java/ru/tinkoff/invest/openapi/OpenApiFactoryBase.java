@@ -1,13 +1,11 @@
 package ru.tinkoff.invest.openapi;
 
 import org.jetbrains.annotations.NotNull;
-import ru.tinkoff.invest.openapi.models.streaming.StreamingEvent;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
-import java.util.function.Consumer;
+import java.util.concurrent.Executor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,12 +24,10 @@ abstract public class OpenApiFactoryBase {
     }
 
     @NotNull
-    abstract public OpenApi createOpenApiClient(@NotNull Consumer<StreamingEvent> streamingEventCallback,
-                                                @NotNull Consumer<Throwable> streamingErrorCallback);
+    abstract public OpenApi createOpenApiClient(@NotNull final Executor executor);
 
     @NotNull
-    abstract public SandboxOpenApi createSandboxOpenApiClient(@NotNull Consumer<StreamingEvent> streamingEventCallback,
-                                                              @NotNull Consumer<Throwable> streamingErrorCallback);
+    abstract public SandboxOpenApi createSandboxOpenApiClient(@NotNull final Executor executor);
 
     /**
      * Извлечение параметров конфигурации.

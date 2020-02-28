@@ -3,7 +3,7 @@ package ru.tinkoff.invest.openapi.models.user;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Перечислние возможных типов операции.
+ * Перечислние возможных типов юрокерских счетов.
  */
 public enum BrokerAccountType {
     @JsonProperty("Tinkoff")
