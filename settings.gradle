@@ -1,3 +1,0 @@
-include 'core'
-include 'sdk-java8'
-include 'example'
