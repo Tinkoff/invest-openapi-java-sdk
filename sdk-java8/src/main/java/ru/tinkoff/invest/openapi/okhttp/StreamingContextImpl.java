@@ -191,10 +191,10 @@ class StreamingContextImpl implements StreamingContext {
 
             // What `signal` does is that it sends signals to the `Subscription` asynchronously
             private void signal(final Signal signal) {
-                if (signal instanceof Request) {
-                    inboundSignals.offerFirst(signal);
-                } else {
+                if (signal instanceof Send) {
                     inboundSignals.offerLast(signal);
+                } else {
+                    inboundSignals.offerFirst(signal);
                 }
 
                 tryScheduleToExecute(); // Then we try to schedule it for execution, if it isn't already
