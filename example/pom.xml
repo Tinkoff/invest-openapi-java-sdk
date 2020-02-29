@@ -6,7 +6,7 @@
     <parent>
         <groupId>ru.tinkoff.invest</groupId>
         <artifactId>openapi-java-sdk</artifactId>
-        <version>0.4</version>
+        <version>0.4-SNAPSHOT</version>
     </parent>
     <artifactId>openapi-java-sdk-example</artifactId>
     <packaging>jar</packaging>
@@ -79,6 +79,7 @@
                 <version>3.1.1</version>
                 <configuration>
                     <source>11</source>
+                    <sourcepath>src/example/main/java</sourcepath>
                 </configuration>
                 <executions>
                     <execution>
@@ -96,7 +97,7 @@
         <dependency>
             <groupId>ru.tinkoff.invest</groupId>
             <artifactId>openapi-java-sdk-java8</artifactId>
-            <version>0.4</version>
+            <version>0.4-SNAPSHOT</version>
         </dependency>
 
         <dependency>
