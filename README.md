@@ -70,7 +70,7 @@ import ru.tinkoff.invest.openapi.OpenApi;
 import ru.tinkoff.invest.openapi.SandboxOpenApi;
 import ru.tinkoff.invest.openapi.okhttp.OkHttpOpenApiFactory;
 import java.util.concurrent.Executors;
-import rg.reactivestreams.Subscriber;
+import org.reactivestreams.Subscriber;
 import java.util.Logger;
 
 Logger logger = /* ваш вариант логгера */
@@ -87,7 +87,7 @@ if (sandboxMode) {
     api = factory.createOpenApiClient(Executors.newSingleThreadExecutor());
 }
 
-Subscriber o listener = /* ваш вариант слушателя */
+Subscriber listener = /* ваш вариант слушателя */
 api.getStreamingContext().getEventPublisher().subscribe(listener);
 
 // оформляем подписку на поток "свечей"
