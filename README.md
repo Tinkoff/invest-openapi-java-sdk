@@ -69,22 +69,25 @@ docker run -it --rm --name invest-openapi-java-sdk -v "$PWD":/usr/src/invest-ope
 import ru.tinkoff.invest.openapi.OpenApi;
 import ru.tinkoff.invest.openapi.SandboxOpenApi;
 import ru.tinkoff.invest.openapi.okhttp.OkHttpOpenApiFactory;
+import java.util.concurrent.Executors;
+import rg.reactivestreams.Subscriber;
+import java.util.Logger;
 
-java.util.Logger logger = /* ваш вариант логгера */
+Logger logger = /* ваш вариант логгера */
 var token = "super_token"; // токен авторизации
 var sandboxMode = true;
 var factory = new OkHttpOpenApiFactory(token, logger);
 OpenApi api;
 
 if (sandboxMode) {
-    api = factory.createSandboxOpenApiClient(xecutors.newSingleThreadExecutor());
+    api = factory.createSandboxOpenApiClient(Executors.newSingleThreadExecutor());
     // ОБЯЗАТЕЛЬНО нужно выполнить регистрацию в "песочнице"
     ((SandboxOpenApi) api).getSandboxContext().performRegistration(null).join();
 } else {
-    api = factory.createOpenApiClient(xecutors.newSingleThreadExecutor());
+    api = factory.createOpenApiClient(Executors.newSingleThreadExecutor());
 }
 
-org.reactivestreams.Subscriber listener = /* ваш вариант слушателя */
+Subscriber o listener = /* ваш вариант слушателя */
 api.getStreamingContext().getEventPublisher().subscribe(listener);
 
 // оформляем подписку на поток "свечей"
