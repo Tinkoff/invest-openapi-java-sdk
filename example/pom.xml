@@ -6,7 +6,7 @@
     <parent>
         <groupId>ru.tinkoff.invest</groupId>
         <artifactId>openapi-java-sdk</artifactId>
-        <version>0.4-SNAPSHOT</version>
+        <version>0.5-SNAPSHOT</version>
     </parent>
     <artifactId>openapi-java-sdk-example</artifactId>
     <packaging>jar</packaging>
@@ -105,7 +105,7 @@
         <dependency>
             <groupId>ru.tinkoff.invest</groupId>
             <artifactId>openapi-java-sdk-java8</artifactId>
-            <version>0.4-SNAPSHOT</version>
+            <version>0.5-SNAPSHOT</version>
         </dependency>
 
         <dependency>
