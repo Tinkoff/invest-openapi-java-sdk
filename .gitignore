@@ -7,5 +7,6 @@ logs/
 .classpath
 bin/
 .vscode/
+target/
 
 gradle.properties

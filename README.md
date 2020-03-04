@@ -5,26 +5,32 @@
 
 ## Начало работы
 
-Для сборки библиотеки понадобится Gradle версии не ниже 5, а также JDK версии не ниже 8. Затем в терминале перейдите
+Для сборки библиотеки понадобится Apache Maven версии не ниже 3, а также JDK версии не ниже 8. Затем в терминале перейдите
 в директорию проекта и выполните следующую команду
 ```bash
-gradlew build
+mvn clean package
 ```
 Или с помощью docker
+```bash
+# Linux/Mac версия
+
+docker run -it --rm --name invest-openapi-java-sdk -v "$PWD":/usr/src/invest-openapi-java-sdk -w /usr/src/invest-openapi-java-sdk maven:3.6-jdk-11-slim mvn clean package
 ```
-docker run --rm -u gradle -v "$PWD":/home/gradle/project -w /home/gradle/project gradle:jdk8 gradle build
+```PowerShell
+# Windows PowerShell версия
+
+docker run -it --rm --name invest-openapi-java-sdk -v "$(pwd):/usr/src/invest-openapi-java-sdk".ToLower() -w /usr/src/invest-openapi-java-sdk maven:3.6-jdk-11-slim mvn clean package
 ```
 
 Скорее всего вы увидите ошибки, связанные с подпроектом example - он требует JDK версии 11. Однако, сам SDK должен
 скомпилироваться.
 
-После успешной сборки в поддиректории `sdk-java8/build/libs` появится jar-файл, который можно подключить к любому
+После успешной сборки в поддиректории `sdk-java8\target` появится jar-файл `openapi-java-sdk-java8-<version>`, который можно подключить к любому
 другому Java-проекту (или Java-совместимому, например, на таких языках, как Kotlin и Scala).
 
 ### Где взять токен аутентификации?
 
 В разделе инвестиций вашего [личного кабинета tinkoff](https://www.tinkoff.ru/invest/). Далее:
-
 
 * Перейдите в настройки
 * Проверьте, что функция "Подтверждение сделок кодом" отключена
@@ -36,11 +42,13 @@ docker run --rm -u gradle -v "$PWD":/home/gradle/project -w /home/gradle/project
 
 Для проекта можно сгенерировать javadoc-документацию с помощью команды
 ```bash
-gradlew javadoc
+mvn javadoc:javadoc
 ```
 Или с помощью docker
-```
-docker run --rm -u gradle -v "$PWD":/home/gradle/project -w /home/gradle/project gradle:jdk8 gradle javadoc
+```bash
+# Linux/Mac версия
+
+docker run -it --rm --name invest-openapi-java-sdk -v "$PWD":/usr/src/invest-openapi-java-sdk -w /usr/src/invest-openapi-java-sdk maven:3.6-jdk-11-slim mvn javadoc:javadoc
 ```
 
 Проект разделён на 3 части:
@@ -49,7 +57,7 @@ docker run --rm -u gradle -v "$PWD":/home/gradle/project -w /home/gradle/project
 - sdk-java8 - содержит реализацию core-интерфейсов с использованием http-клиента из библиотеки OkHttp;
 - example - простой пример использования core-интерфесов, реализованных в sdk-java8 (для компиляции необходим jdk11).
 
-Единственной зависимостью в core-части явлется библиотека Jackson для работы с JSON.
+Модели данных core-части подготовлены для работы с JSON при помощи Jackson аннотаций.
 
 Документацию непосредственно по OpenAPI можно найти по [ссылке](https://tinkoffcreditsystems.github.io/invest-openapi/).
 
@@ -61,25 +69,29 @@ docker run --rm -u gradle -v "$PWD":/home/gradle/project -w /home/gradle/project
 import ru.tinkoff.invest.openapi.OpenApi;
 import ru.tinkoff.invest.openapi.SandboxOpenApi;
 import ru.tinkoff.invest.openapi.okhttp.OkHttpOpenApiFactory;
+import java.util.concurrent.Executors;
+import org.reactivestreams.Subscriber;
+import java.util.Logger;
 
+Logger logger = /* ваш вариант логгера */
 var token = "super_token"; // токен авторизации
 var sandboxMode = true;
-var factory = new OkHttpOpenApiFactory(parameters.ssoToken, logger);
+var factory = new OkHttpOpenApiFactory(token, logger);
 OpenApi api;
 
 if (sandboxMode) {
-    api = factory.createSandboxOpenApiClient(
-            se -> logger.info("Из Streaming API пришло событие"),
-            ex -> logger.severe("Что-то произошло со Streaming API")
-    );
+    api = factory.createSandboxOpenApiClient(Executors.newSingleThreadExecutor());
     // ОБЯЗАТЕЛЬНО нужно выполнить регистрацию в "песочнице"
     ((SandboxOpenApi) api).getSandboxContext().performRegistration(null).join();
 } else {
-    api = factory.createOpenApiClient(
-            se -> logger.info("Из Streaming API пришло событие"),
-            ex -> logger.severe("Что-то произошло со Streaming API")
-    );
+    api = factory.createOpenApiClient(Executors.newSingleThreadExecutor());
 }
+
+Subscriber listener = /* ваш вариант слушателя */
+api.getStreamingContext().getEventPublisher().subscribe(listener);
+
+// оформляем подписку на поток "свечей"
+api.getStreamingContext().sendRequest(StreamingRequest.subscribeCandle("<какой-то figi>", CandleInterval.FIVE_MIN));
 
 // Вся работа происходит через объекты контекста, все запросы асинхронны
 var portfolio = api.portfolioContext.getPortfolio().join(); // получить текущий портфель
