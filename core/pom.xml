@@ -6,7 +6,7 @@
     <parent>
         <groupId>ru.tinkoff.invest</groupId>
         <artifactId>openapi-java-sdk</artifactId>
-        <version>0.4</version>
+        <version>0.4.1-SNAPSHOT</version>
     </parent>
     <artifactId>openapi-java-sdk-core</artifactId>
     <packaging>jar</packaging>
@@ -52,14 +52,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <version>3.0.0-M1</version>
-                <configuration>
-                    <skip>false</skip>
-                </configuration>
             </plugin>
         </plugins>
     </build>
