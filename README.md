@@ -61,6 +61,18 @@ docker run -it --rm --name invest-openapi-java-sdk -v "$PWD":/usr/src/invest-ope
 
 Документацию непосредственно по OpenAPI можно найти по [ссылке](https://tinkoffcreditsystems.github.io/invest-openapi/).
 
+Каждая часть может быть подключена в качестве зависимости
+
+```xml
+<dependency>
+  <groupId>ru.tinkoff.invest</groupId>
+  <artifactId>openapi-java-sdk-core</artifactId>
+<!--  <artifactId>openapi-java-sdk-java8</artifactId>-->
+<!--  <artifactId>openapi-java-sdk-example</artifactId>-->
+  <version>0.4.1</version>
+</dependency>
+```
+
 ### А если вкратце?
 
 Для непосредственного взаимодействия с OpenAPI нужно создать подключение.
