@@ -50,7 +50,7 @@ class StreamingContextImpl implements StreamingContext {
                          @NotNull final Logger logger,
                          @NotNull final Executor executor) {
         this.logger = logger;
-        this.publisher = new StreamingEventPublisher(logger, executor);
+        this.publisher = new StreamingEventPublisher(executor);
         this.client = client;
         this.mapper = new ObjectMapper();
         this.mapper.registerModule(new JavaTimeModule());
@@ -91,7 +91,7 @@ class StreamingContextImpl implements StreamingContext {
         private final List<SubscriptionImpl> subscriptions;
         private final Executor executor;
 
-        StreamingEventPublisher(@NotNull final Logger logger, @NotNull final Executor executor) {
+        StreamingEventPublisher(@NotNull final Executor executor) {
             this.subscriptions = new LinkedList<>();
             this.executor = executor;
         }
@@ -103,21 +103,43 @@ class StreamingContextImpl implements StreamingContext {
             sub.init();
         }
 
-        static interface Signal {};
-        enum Cancel implements Signal { Instance; };
-        enum Subscribe implements Signal { Instance; };
+        interface Signal {}
+        enum Cancel implements Signal {
+            Instance;
+
+            @Override
+            public String toString() {
+                return "Signal.Cancel";
+            }
+        }
+        enum Subscribe implements Signal {
+            Instance;
+
+            @Override
+            public String toString() {
+                return "Signal.Subscribe";
+            }
+        }
         static final class Send implements Signal { 
             @NotNull final StreamingEvent payload;
             Send(@NotNull final StreamingEvent payload) {
                 this.payload = payload;
             }
-        };
+            @Override
+            public String toString() {
+                return "Signal.Send";
+            }
+        }
         static final class Request implements Signal {
             final long n;
             Request(final long n) {
                 this.n = n;
             }
-        };
+            @Override
+            public String toString() {
+                return "Signal.Request";
+            }
+        }
 
         final class SubscriptionImpl implements Subscription, Runnable {
             final Subscriber<? super StreamingEvent> subscriber; // We need a reference to the `Subscriber` so we can talk to it
@@ -129,7 +151,7 @@ class StreamingContextImpl implements StreamingContext {
             }
 
             // This `ConcurrentLinkedQueue` will track signals that are sent to this `Subscription`, like `request` and `cancel`
-            private final ConcurrentLinkedDeque<Signal> inboundSignals = new ConcurrentLinkedDeque<Signal>();
+            private final ConcurrentLinkedDeque<Signal> inboundSignals = new ConcurrentLinkedDeque<>();
 
             // We are using this `AtomicBoolean` to make sure that this `Subscription` doesn't run concurrently with itself,
             // which would violate rule 1.3 among others (no concurrent notifications).
@@ -208,17 +230,17 @@ class StreamingContextImpl implements StreamingContext {
                         if (!cancelled) { // to make sure that we follow rule 1.8, 3.6 and 3.7
                             // Below we simply unpack the `Signal`s and invoke the corresponding methods
                             if (s instanceof Request) {
+                                inboundSignals.poll();
                                 doRequest(((Request)s).n);
-                                inboundSignals.poll();
                             } else if (s instanceof Send && demand > 0) {
+                                inboundSignals.poll();
                                 doSend(((Send)s).payload);
-                                inboundSignals.poll();
                             } else if (s == Cancel.Instance) {
+                                inboundSignals.poll();
                                 doCancel();
-                                inboundSignals.poll();
                             } else if (s == Subscribe.Instance) {
-                                doSubscribe();
                                 inboundSignals.poll();
+                                doSubscribe();
                             }
                         }
                     } finally {
@@ -231,7 +253,7 @@ class StreamingContextImpl implements StreamingContext {
 
             // This method makes sure that this `Subscription` is only running on one Thread at a time,
             // this is important to make sure that we follow rule 1.3
-            private final void tryScheduleToExecute() {
+            private void tryScheduleToExecute() {
                 if(on.compareAndSet(false, true)) {
                     try {
                         executor.execute(this);
