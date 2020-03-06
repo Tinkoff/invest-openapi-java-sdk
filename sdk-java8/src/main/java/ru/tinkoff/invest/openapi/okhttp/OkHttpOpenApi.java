@@ -109,7 +109,7 @@ public class OkHttpOpenApi implements OpenApi {
     @Override
     public void close() throws Exception {
         if (!hasClosed) {
-            this.streamingContext.stop();
+            if (!this.streamingContext.hasStopped()) this.streamingContext.stop();
             this.client.dispatcher().executorService().shutdown();
             this.hasClosed = true;
         }        

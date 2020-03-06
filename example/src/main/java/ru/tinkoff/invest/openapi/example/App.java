@@ -139,7 +139,7 @@ public class App {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 logger.info("Закрываем соединение... ");
-                api.close();
+                if (!api.hasClosed()) api.close();
             } catch (final Exception e) {
                 logger.log(Level.SEVERE, "Что-то произошло при закрытии соединения!", e);
             }
