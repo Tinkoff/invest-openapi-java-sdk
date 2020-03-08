@@ -1,0 +1,119 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>ru.tinkoff.invest</groupId>
+    <artifactId>openapi-java-sdk</artifactId>
+    <packaging>pom</packaging>
+    <version>0.5-SNAPSHOT</version>
+
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>Java SDK for Tinkoff Open API</description>
+    <url>https://tinkoffcreditsystems.github.io/invest-openapi/</url>
+
+    <developers>
+        <developer>
+            <name>Vladimir Ivanov</name>
+            <email>v.ivanov8@tinkoff.ru</email>
+            <organization>Tinkoff Bank</organization>
+            <organizationUrl>https://www.tinkoff.ru/</organizationUrl>
+        </developer>
+        <developer>
+            <name>Nikita Melnikov</name>
+            <email>n.v.melnikov@tinkoff.ru</email>
+            <organization>Tinkoff Bank</organization>
+            <organizationUrl>https://www.tinkoff.ru/</organizationUrl>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+          <name>Apache License, Version 2.0</name>
+          <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+          <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:git://github.com/TinkoffCreditSystems/invest-openapi-java-sdk.git</connection>
+        <developerConnection>scm:git:ssh://github.com:TinkoffCreditSystems/invest-openapi-java-sdk.git</developerConnection>
+        <url>https://github.com/TinkoffCreditSystems/invest-openapi-java-sdk/tree/master</url>
+    </scm>
+
+    <modules>
+        <module>core</module>
+        <module>sdk-java8</module>
+        <module>example</module>
+    </modules>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <distributionManagement>
+        <snapshotRepository>
+          <id>ossrh</id>
+          <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+          <id>ossrh</id>
+          <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+      </distributionManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.1.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>3.0.0-M1</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

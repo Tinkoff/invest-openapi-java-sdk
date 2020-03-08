@@ -7,6 +7,8 @@ import java.util.regex.Pattern;
 
 public class OrderAlreadyCancelledException extends OpenApiException {
 
+    private static final long serialVersionUID = -5527556849561779960L;
+
     private static Pattern orderIdExtractionPattern = Pattern.compile("^.+id (.+)$");
 
     private final String orderId;

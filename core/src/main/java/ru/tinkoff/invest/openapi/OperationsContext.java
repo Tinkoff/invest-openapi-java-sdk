@@ -13,15 +13,19 @@ import java.util.concurrent.CompletableFuture;
 public interface OperationsContext extends Context {
 
     /**
-     * Получение списка прошедших операций по заданному инструменту за определённый промежуток времени.
+     * Асинхронное получение списка прошедших операций по заданному инструменту за определённый промежуток времени.
      *
      * @param from Дата/время начала промежутка времени.
      * @param to Дата/время конца промежутка времени.
      * @param figi Идентификатор инструмента.
+     * @param brokerAccountId Идентификатор брокерского счёта.
+     * 
+     * @return Список операций.
      */
     @NotNull
     CompletableFuture<OperationsList> getOperations(@NotNull OffsetDateTime from,
                                                     @NotNull OffsetDateTime to,
-                                                    @Nullable String figi);
+                                                    @Nullable String figi,
+                                                    @Nullable String brokerAccountId);
 
 }

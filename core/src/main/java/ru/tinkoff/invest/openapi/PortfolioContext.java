@@ -1,6 +1,7 @@
 package ru.tinkoff.invest.openapi;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ru.tinkoff.invest.openapi.models.portfolio.Portfolio;
 import ru.tinkoff.invest.openapi.models.portfolio.PortfolioCurrencies;
 
@@ -12,15 +13,23 @@ import java.util.concurrent.CompletableFuture;
 public interface PortfolioContext extends Context {
 
     /**
-     * Получение информации по портфелю инструментов.
+     * Асинхронное получение информации по портфелю инструментов.
+     *
+     * @param brokerAccountId Идентификатор брокерского счёта.
+     * 
+     * @return Портфель инструментов.
      */
     @NotNull
-    CompletableFuture<Portfolio> getPortfolio();
+    CompletableFuture<Portfolio> getPortfolio(@Nullable String brokerAccountId);
 
     /**
-     * Получение информации по валютным активам.
+     * Асинхронное получение информации по валютным активам.
+     *
+     * @param brokerAccountId Идентификатор брокерского счёта.
+     * 
+     * @return Портфель валют.
      */
     @NotNull
-    CompletableFuture<PortfolioCurrencies> getPortfolioCurrencies();
+    CompletableFuture<PortfolioCurrencies> getPortfolioCurrencies(@Nullable String brokerAccountId);
 
 }

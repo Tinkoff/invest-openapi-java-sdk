@@ -3,12 +3,15 @@ package ru.tinkoff.invest.openapi.okhttp;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ru.tinkoff.invest.openapi.SandboxContext;
 import ru.tinkoff.invest.openapi.exceptions.OpenApiException;
 import ru.tinkoff.invest.openapi.models.sandbox.CurrencyBalance;
 import ru.tinkoff.invest.openapi.models.sandbox.PositionBalance;
+import ru.tinkoff.invest.openapi.models.user.BrokerAccountType;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,13 +33,20 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
 
     @Override
     @NotNull
-    public CompletableFuture<Void> performRegistration() {
+    public CompletableFuture<Void> performRegistration(@Nullable final BrokerAccountType brokerAccountType) {
         final CompletableFuture<Void> future = new CompletableFuture<>();
         final HttpUrl requestUrl = finalUrl.newBuilder()
                 .addPathSegment("register")
                 .build();
+        final RequestBody requestBody;
+        if (Objects.nonNull(brokerAccountType)) {
+            requestBody = RequestBody.create("{\"brokerAccountType\": \"" + brokerAccountType + "\"}", MediaType.get("application/json"));
+        } else {
+            requestBody = RequestBody.create(new byte[] {});
+        }
+
         final Request request = prepareRequest(requestUrl)
-                .post(RequestBody.create(new byte[] {}))
+                .post(requestBody)
                 .build();
 
         client.newCall(request).enqueue(new Callback() {
@@ -62,7 +72,8 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
 
     @Override
     @NotNull
-    public CompletableFuture<Void> setCurrencyBalance(@NotNull final CurrencyBalance data) {
+    public CompletableFuture<Void> setCurrencyBalance(@NotNull final CurrencyBalance data,
+                                                      @Nullable final String brokerAccountId) {
         final CompletableFuture<Void> future = new CompletableFuture<>();
         final String renderedBody;
         try {
@@ -72,7 +83,10 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
             return future;
         }
 
-        final HttpUrl requestUrl = finalUrl.newBuilder()
+        HttpUrl.Builder builder = finalUrl.newBuilder();
+        if (Objects.nonNull(brokerAccountId) && !brokerAccountId.isEmpty())
+            builder.addQueryParameter("brokerAccountId", brokerAccountId);
+        final HttpUrl requestUrl = builder
                 .addPathSegment("currencies")
                 .addPathSegment("balance")
                 .build();
@@ -103,7 +117,8 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
 
     @Override
     @NotNull
-    public CompletableFuture<Void> setPositionBalance(@NotNull final PositionBalance data) {
+    public CompletableFuture<Void> setPositionBalance(@NotNull final PositionBalance data,
+                                                      @Nullable final String brokerAccountId) {
         final CompletableFuture<Void> future = new CompletableFuture<>();
         final String renderedBody;
         try {
@@ -113,7 +128,10 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
             return future;
         }
 
-        final HttpUrl requestUrl = finalUrl.newBuilder()
+        HttpUrl.Builder builder = finalUrl.newBuilder();
+        if (Objects.nonNull(brokerAccountId) && !brokerAccountId.isEmpty())
+            builder.addQueryParameter("brokerAccountId", brokerAccountId);
+        final HttpUrl requestUrl = builder
                 .addPathSegment("positions")
                 .addPathSegment("balance")
                 .build();
@@ -144,9 +162,13 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
 
     @Override
     @NotNull
-    public CompletableFuture<Void> clearAll() {
+    public CompletableFuture<Void> clearAll(@Nullable final String brokerAccountId) {
         final CompletableFuture<Void> future = new CompletableFuture<>();
-        final HttpUrl requestUrl = finalUrl.newBuilder()
+
+        HttpUrl.Builder builder = finalUrl.newBuilder();
+        if (Objects.nonNull(brokerAccountId) && !brokerAccountId.isEmpty())
+            builder.addQueryParameter("brokerAccountId", brokerAccountId);
+        final HttpUrl requestUrl = builder
                 .addPathSegment("clear")
                 .build();
         final Request request = prepareRequest(requestUrl)

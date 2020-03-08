@@ -4,17 +4,20 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ru.tinkoff.invest.openapi.OrdersContext;
 import ru.tinkoff.invest.openapi.exceptions.NotEnoughBalanceException;
 import ru.tinkoff.invest.openapi.exceptions.OpenApiException;
 import ru.tinkoff.invest.openapi.exceptions.OrderAlreadyCancelledException;
 import ru.tinkoff.invest.openapi.models.RestResponse;
 import ru.tinkoff.invest.openapi.models.orders.LimitOrder;
+import ru.tinkoff.invest.openapi.models.orders.MarketOrder;
 import ru.tinkoff.invest.openapi.models.orders.Order;
-import ru.tinkoff.invest.openapi.models.orders.PlacedLimitOrder;
+import ru.tinkoff.invest.openapi.models.orders.PlacedOrder;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,8 +29,8 @@ final class OrdersContextImpl extends BaseContextImpl implements OrdersContext {
 
     private static final TypeReference<RestResponse<List<Order>>> listOrderTypeReference =
             new TypeReference<RestResponse<List<Order>>>() {};
-    private static final TypeReference<RestResponse<PlacedLimitOrder>> placedLimitOrderTypeReference =
-            new TypeReference<RestResponse<PlacedLimitOrder>>() {};
+    private static final TypeReference<RestResponse<PlacedOrder>> placedOrderTypeReference =
+            new TypeReference<RestResponse<PlacedOrder>>() {};
 
     public OrdersContextImpl(@NotNull final OkHttpClient client,
                              @NotNull final String url,
@@ -44,9 +47,14 @@ final class OrdersContextImpl extends BaseContextImpl implements OrdersContext {
 
     @Override
     @NotNull
-    public CompletableFuture<List<Order>> getOrders() {
+    public CompletableFuture<List<Order>> getOrders(@Nullable final String brokerAccountId) {
         final CompletableFuture<List<Order>> future = new CompletableFuture<>();
-        final HttpUrl requestUrl = finalUrl.newBuilder().build();
+
+        HttpUrl.Builder builder = finalUrl.newBuilder();
+        if (Objects.nonNull(brokerAccountId) && !brokerAccountId.isEmpty())
+            builder.addQueryParameter("brokerAccountId", brokerAccountId);
+        final HttpUrl requestUrl = builder
+                .build();
         final Request request = prepareRequest(requestUrl)
                 .build();
 
@@ -77,9 +85,10 @@ final class OrdersContextImpl extends BaseContextImpl implements OrdersContext {
 
     @Override
     @NotNull
-    public CompletableFuture<PlacedLimitOrder> placeLimitOrder(@NotNull final String figi,
-                                                               @NotNull final LimitOrder limitOrder) {
-        final CompletableFuture<PlacedLimitOrder> future = new CompletableFuture<>();
+    public CompletableFuture<PlacedOrder> placeLimitOrder(@NotNull final String figi,
+                                                          @NotNull final LimitOrder limitOrder,
+                                                          @Nullable final String brokerAccountId) {
+        final CompletableFuture<PlacedOrder> future = new CompletableFuture<>();
         final String renderedBody;
         try {
             renderedBody = mapper.writeValueAsString(limitOrder);
@@ -88,7 +97,10 @@ final class OrdersContextImpl extends BaseContextImpl implements OrdersContext {
             return future;
         }
 
-        final HttpUrl requestUrl = finalUrl.newBuilder()
+        HttpUrl.Builder builder = finalUrl.newBuilder();
+        if (Objects.nonNull(brokerAccountId) && !brokerAccountId.isEmpty())
+            builder.addQueryParameter("brokerAccountId", brokerAccountId);
+        final HttpUrl requestUrl = builder
                 .addPathSegment("limit-order")
                 .addQueryParameter("figi", figi)
                 .build();
@@ -106,7 +118,7 @@ final class OrdersContextImpl extends BaseContextImpl implements OrdersContext {
             @Override
             public void onResponse(@NotNull final Call call, @NotNull final Response response) throws IOException {
                 try {
-                    final RestResponse<PlacedLimitOrder> result = handleResponse(response, placedLimitOrderTypeReference);
+                    final RestResponse<PlacedOrder> result = handleResponse(response, placedOrderTypeReference);
                     future.complete(result.payload);
                 } catch (OpenApiException ex) {
                     future.completeExceptionally(ex);
@@ -119,9 +131,60 @@ final class OrdersContextImpl extends BaseContextImpl implements OrdersContext {
 
     @Override
     @NotNull
-    public CompletableFuture<Void> cancelOrder(@NotNull final String orderId) {
+    public CompletableFuture<PlacedOrder> placeMarketOrder(@NotNull final String figi,
+                                                           @NotNull final MarketOrder marketOrder,
+                                                           @Nullable final String brokerAccountId) {
+        final CompletableFuture<PlacedOrder> future = new CompletableFuture<>();
+        final String renderedBody;
+        try {
+            renderedBody = mapper.writeValueAsString(marketOrder);
+        } catch (JsonProcessingException ex) {
+            future.completeExceptionally(ex);
+            return future;
+        }
+
+        HttpUrl.Builder builder = finalUrl.newBuilder();
+        if (Objects.nonNull(brokerAccountId) && !brokerAccountId.isEmpty())
+            builder.addQueryParameter("brokerAccountId", brokerAccountId);
+        final HttpUrl requestUrl = builder
+                .addPathSegment("market-order")
+                .addQueryParameter("figi", figi)
+                .build();
+        final Request request = prepareRequest(requestUrl)
+                .post(RequestBody.create(renderedBody, MediaType.get("application/json")))
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull final Call call, @NotNull final IOException e) {
+                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                future.completeExceptionally(e);
+            }
+
+            @Override
+            public void onResponse(@NotNull final Call call, @NotNull final Response response) throws IOException {
+                try {
+                    final RestResponse<PlacedOrder> result = handleResponse(response, placedOrderTypeReference);
+                    future.complete(result.payload);
+                } catch (OpenApiException ex) {
+                    future.completeExceptionally(ex);
+                }
+            }
+        });
+
+        return future;
+    }
+
+    @Override
+    @NotNull
+    public CompletableFuture<Void> cancelOrder(@NotNull final String orderId,
+                                               @Nullable final String brokerAccountId) {
         final CompletableFuture<Void> future = new CompletableFuture<>();
-        final HttpUrl requestUrl = finalUrl.newBuilder()
+
+        HttpUrl.Builder builder = finalUrl.newBuilder();
+        if (Objects.nonNull(brokerAccountId) && !brokerAccountId.isEmpty())
+            builder.addQueryParameter("brokerAccountId", brokerAccountId);
+        final HttpUrl requestUrl = builder
                 .addPathSegment("cancel")
                 .addQueryParameter("orderId", orderId)
                 .build();
