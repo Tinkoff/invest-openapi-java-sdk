@@ -58,7 +58,7 @@ public class Instrument {
     /**
      * Тип инструмента.
      */
-    @Nullable
+    @NotNull
     public final InstrumentType type;
 
     @JsonCreator
@@ -82,8 +82,8 @@ public class Instrument {
                       @JsonProperty(value = "name", required = true)
                       @NotNull
                       final String name,
-                      @JsonProperty(value = "type")
-                      @Nullable
+                      @JsonProperty(value = "type", required = true)
+                      @NotNull
                       final InstrumentType type) {
         this.figi = figi;
         this.ticker = ticker;
