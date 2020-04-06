@@ -11,5 +11,17 @@ public enum Currency {
     @JsonProperty("USD")
     USD,
     @JsonProperty("EUR")
-    EUR
+    EUR,
+    @JsonProperty("CHF")
+    CHF,
+    @JsonProperty("CNY")
+    CNY,
+    @JsonProperty("GBP")
+    GPB,
+    @JsonProperty("HKD")
+    HKD,
+    @JsonProperty("JPY")
+    JPY,
+    @JsonProperty("TRY")
+    TRY
 }
