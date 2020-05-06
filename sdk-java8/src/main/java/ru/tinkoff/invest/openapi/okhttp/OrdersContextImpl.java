@@ -9,7 +9,7 @@ import ru.tinkoff.invest.openapi.OrdersContext;
 import ru.tinkoff.invest.openapi.exceptions.NotEnoughBalanceException;
 import ru.tinkoff.invest.openapi.exceptions.OpenApiException;
 import ru.tinkoff.invest.openapi.exceptions.OrderAlreadyCancelledException;
-import ru.tinkoff.invest.openapi.models.RestResponse;
+import ru.tinkoff.invest.openapi.payload.RestResponse;
 import ru.tinkoff.invest.openapi.models.orders.LimitOrder;
 import ru.tinkoff.invest.openapi.models.orders.MarketOrder;
 import ru.tinkoff.invest.openapi.models.orders.Order;

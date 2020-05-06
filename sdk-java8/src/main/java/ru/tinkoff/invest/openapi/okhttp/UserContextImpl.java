@@ -5,7 +5,7 @@ import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import ru.tinkoff.invest.openapi.UserContext;
 import ru.tinkoff.invest.openapi.exceptions.OpenApiException;
-import ru.tinkoff.invest.openapi.models.RestResponse;
+import ru.tinkoff.invest.openapi.payload.RestResponse;
 import ru.tinkoff.invest.openapi.models.user.AccountsList;
 
 import java.io.IOException;

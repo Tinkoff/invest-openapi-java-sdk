@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.tinkoff.invest.openapi.PortfolioContext;
 import ru.tinkoff.invest.openapi.exceptions.OpenApiException;
-import ru.tinkoff.invest.openapi.models.RestResponse;
+import ru.tinkoff.invest.openapi.payload.RestResponse;
 import ru.tinkoff.invest.openapi.models.portfolio.Portfolio;
 import ru.tinkoff.invest.openapi.models.portfolio.PortfolioCurrencies;
 

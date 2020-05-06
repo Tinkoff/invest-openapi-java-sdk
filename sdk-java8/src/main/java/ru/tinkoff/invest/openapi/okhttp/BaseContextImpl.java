@@ -13,9 +13,9 @@ import org.jetbrains.annotations.NotNull;
 import ru.tinkoff.invest.openapi.Context;
 import ru.tinkoff.invest.openapi.exceptions.OpenApiException;
 import ru.tinkoff.invest.openapi.exceptions.WrongTokenException;
-import ru.tinkoff.invest.openapi.models.EmptyPayload;
-import ru.tinkoff.invest.openapi.models.ErrorPayload;
-import ru.tinkoff.invest.openapi.models.RestResponse;
+import ru.tinkoff.invest.openapi.payload.EmptyPayload;
+import ru.tinkoff.invest.openapi.payload.ErrorPayload;
+import ru.tinkoff.invest.openapi.payload.RestResponse;
 
 import java.io.IOException;
 import java.io.InputStream;

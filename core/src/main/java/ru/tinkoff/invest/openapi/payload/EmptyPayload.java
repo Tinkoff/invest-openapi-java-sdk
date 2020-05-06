@@ -1,4 +1,4 @@
-package ru.tinkoff.invest.openapi.models;
+package ru.tinkoff.invest.openapi.payload;
 
 /**
  * Модель пустого ответа.

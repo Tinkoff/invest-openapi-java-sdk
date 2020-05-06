@@ -1,4 +1,4 @@
-package ru.tinkoff.invest.openapi.models;
+package ru.tinkoff.invest.openapi.payload;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

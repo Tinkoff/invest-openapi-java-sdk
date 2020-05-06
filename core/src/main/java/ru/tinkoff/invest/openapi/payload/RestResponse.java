@@ -1,8 +1,9 @@
-package ru.tinkoff.invest.openapi.models;
+package ru.tinkoff.invest.openapi.payload;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.jetbrains.annotations.NotNull;
+import ru.tinkoff.invest.openapi.models.ResponseStatus;
 
 /**
  * Модель ответа от REST API.

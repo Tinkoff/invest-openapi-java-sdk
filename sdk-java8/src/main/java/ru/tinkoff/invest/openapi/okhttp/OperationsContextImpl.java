@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.tinkoff.invest.openapi.OperationsContext;
 import ru.tinkoff.invest.openapi.exceptions.OpenApiException;
-import ru.tinkoff.invest.openapi.models.RestResponse;
+import ru.tinkoff.invest.openapi.payload.RestResponse;
 import ru.tinkoff.invest.openapi.models.operations.OperationsList;
 
 import java.io.IOException;
