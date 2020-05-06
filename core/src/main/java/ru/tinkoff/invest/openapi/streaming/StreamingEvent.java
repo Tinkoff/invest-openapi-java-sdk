@@ -1,4 +1,4 @@
-package ru.tinkoff.invest.openapi.models.streaming;
+package ru.tinkoff.invest.openapi.streaming;
 
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.core.JsonParseException;

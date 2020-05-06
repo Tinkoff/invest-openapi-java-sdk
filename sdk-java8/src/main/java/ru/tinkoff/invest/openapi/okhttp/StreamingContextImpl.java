@@ -13,8 +13,8 @@ import org.reactivestreams.Subscription;
 import org.reactivestreams.Publisher;
 
 import ru.tinkoff.invest.openapi.StreamingContext;
-import ru.tinkoff.invest.openapi.models.streaming.StreamingEvent;
-import ru.tinkoff.invest.openapi.models.streaming.StreamingRequest;
+import ru.tinkoff.invest.openapi.streaming.StreamingEvent;
+import ru.tinkoff.invest.openapi.streaming.StreamingRequest;
 
 import java.util.ArrayList;
 import java.util.HashSet;

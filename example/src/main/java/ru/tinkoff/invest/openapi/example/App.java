@@ -4,7 +4,7 @@ import ru.tinkoff.invest.openapi.OpenApi;
 import ru.tinkoff.invest.openapi.SandboxOpenApi;
 import ru.tinkoff.invest.openapi.models.market.Instrument;
 import ru.tinkoff.invest.openapi.models.portfolio.PortfolioCurrencies;
-import ru.tinkoff.invest.openapi.models.streaming.StreamingRequest;
+import ru.tinkoff.invest.openapi.streaming.StreamingRequest;
 import ru.tinkoff.invest.openapi.okhttp.OkHttpOpenApiFactory;
 
 import java.io.FileNotFoundException;
