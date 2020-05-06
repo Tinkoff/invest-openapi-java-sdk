@@ -10,3 +10,4 @@ bin/
 target/
 
 gradle.properties
+*.iml
