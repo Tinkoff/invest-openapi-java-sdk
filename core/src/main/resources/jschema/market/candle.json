@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "javaType": "ru.tinkoff.invest.openapi.models.market.Candle",
+  "description": "Модель \"свечи\".",
+  "required": [
+    "figi",
+    "interval",
+    "o",
+    "c",
+    "h",
+    "l",
+    "v",
+    "time"
+  ],
+  "properties": {
+    "figi": {
+      "type": "string",
+      "description": "Идентификатор инструмента."
+    },
+    "interval": {
+      "$ref": "../market/candle_interval.json",
+      "description": "Инетрвал времени описываемый \"свечой\"."
+    },
+    "o": {
+      "type": "number",
+      "description": "Цена открытия.",
+      "javaName": "openPrice"
+    },
+    "c": {
+      "type": "number",
+      "description": "Цена закрытия.",
+      "javaName": "closePrice"
+    },
+    "h": {
+      "type": "number",
+      "description": "Максимальная цена.",
+      "javaName": "highestPrice"
+    },
+    "l": {
+      "type": "number",
+      "description": "Минимальная цена.",
+      "javaName": "lowestPrice"
+    },
+    "v": {
+      "type": "number",
+      "description": "Объём торгов.",
+      "javaName": "tradesValue"
+    },
+    "time": {
+      "type": "date-time",
+      "description": "Время формирования данной свечи."
+    }
+  }
+}

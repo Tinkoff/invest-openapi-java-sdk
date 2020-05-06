@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "javaType": "ru.tinkoff.invest.openapi.models.sandbox.PositionBalance",
+  "description": "Данные для запроса на выставление баланса по позиции.",
+  "required": [
+    "figi",
+    "balance"
+  ],
+  "properties": {
+    "currency": {
+      "type": "string",
+      "description": "Идентификатор инструмента, по которому необходимо произвести выставление баланса."
+    },
+    "balance": {
+      "type": "number",
+      "description": "Значение баланса, которое необходимо выставить."
+    }
+  }
+}

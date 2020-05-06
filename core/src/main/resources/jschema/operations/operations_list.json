@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "javaType": "ru.tinkoff.invest.openapi.models.operations.OperationsList",
+  "description": "Модель списка операций возвращаемая OpenAPI.",
+  "required": [
+    "operations"
+  ],
+  "properties": {
+    "operations": {
+      "type": "array",
+      "description": "Непосредственно список операций.",
+      "items": {
+        "$ref": "../operations/operation.json"
+      }
+    }
+  }
+}

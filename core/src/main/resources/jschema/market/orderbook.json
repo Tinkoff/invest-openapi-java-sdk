@@ -1,0 +1,87 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "javaType": "ru.tinkoff.invest.openapi.models.market.Orderbook",
+  "description": "Модель биржевого \"стакана\".",
+  "required": [
+    "figi",
+    "depth",
+    "bids",
+    "asks",
+    "tradeStatus",
+    "minPriceIncrement"
+  ],
+  "properties": {
+    "figi": {
+      "type": "string",
+      "description": "Идентификатор инструмента."
+    },
+    "depth": {
+      "type": "integer",
+      "description": "Глубина стакана."
+    },
+    "bids": {
+      "type": "array",
+      "description": "Список выставленных заявок на продажу.",
+      "items": {
+        "$ref": "#/definitions/item"
+      }
+    },
+    "asks": {
+      "type": "array",
+      "description": "Список выставленных заявок на покупку.",
+      "items": {
+        "$ref": "#/definitions/item"
+      }
+    },
+    "tradeStatus": {
+      "$ref": "../market/trade_status.json",
+      "description": "Текущий торговый статус инструмента."
+    },
+    "minPriceIncrement": {
+      "type": "number",
+      "description": "Минимальный шаг цены по инструменту."
+    },
+    "faceValue": {
+      "type": "number",
+      "description": "Номинал для облигации."
+    },
+    "lastPrice": {
+      "type": "number",
+      "description": "Цена последней совершённой сделки."
+    },
+    "closePrice": {
+      "type": "number",
+      "description": "Цена закрытия."
+    },
+    "limitUp": {
+      "type": "number",
+      "description": "Верхний предел цены."
+    },
+    "limitDown": {
+      "type": "number",
+      "description": "Нижний предел цены."
+    }
+  },
+  "definitions": {
+    "item": {
+      "type": "object",
+      "javaType": "ru.tinkoff.invest.openapi.models.market.Item",
+      "description": "Модель элемента стакана.",
+      "required": [
+        "price",
+        "quantity"
+      ],
+      "properties": {
+        "price": {
+          "type": "number",
+          "description": "Цена предложения."
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Количество предложений по цене."
+        }
+      }
+    }
+  }
+}

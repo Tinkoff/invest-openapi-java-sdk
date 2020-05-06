@@ -11,3 +11,5 @@ target/
 
 gradle.properties
 *.iml
+
+core/src/main/java/ru/tinkoff/invest/openapi/models/

@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "javaType": "ru.tinkoff.invest.openapi.models.portfolio.PortfolioCurrencies",
+  "description": "Модель портфеля валют.",
+  "required": [
+    "currencies"
+  ],
+  "properties": {
+    "currencies": {
+      "type": "array",
+      "description": "Список валютных позиций.",
+      "items": {
+        "$ref": "#/definitions/portfolio_currency"
+      }
+    }
+  },
+  "definitions": {
+    "portfolio_currency": {
+      "type": "object",
+      "javaType": "ru.tinkoff.invest.openapi.models.portfolio.PortfolioCurrency",
+      "description": "Модель валютной позиции.",
+      "required": [
+        "currency",
+        "balance"
+      ],
+      "properties": {
+        "currency": {
+          "$ref": "../currency.json",
+          "description": "Валюта."
+        },
+        "balance": {
+          "type": "number",
+          "description": "Объём позиции."
+        },
+        "blocked": {
+          "type": "number",
+          "description": "Заблокированный объём."
+        }
+      }
+    }
+  }
+}

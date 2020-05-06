@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "javaType": "ru.tinkoff.invest.openapi.models.sandbox.CurrencyBalance",
+  "description": "Данные для запроса на выставление баланса по валюте.",
+  "required": [
+    "currency",
+    "balance"
+  ],
+  "properties": {
+    "currency": {
+      "$ref": "../currency.json",
+      "description": "Валюта, по которой необходимо произвести выставление баланса."
+    },
+    "balance": {
+      "type": "number",
+      "description": "Значение баланса, которое необходимо выставить."
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "string",
+  "javaType": "ru.tinkoff.invest.openapi.models.operations.OperationStatus",
+  "description": "Возможные статусы операции.",
+  "enum": [
+    "Done",
+    "Decline",
+    "Progress"
+  ],
+  "javaEnums": [
+    {"name": "Done"},
+    {"name": "Decline"},
+    {"name": "Progress"}
+  ]
+}

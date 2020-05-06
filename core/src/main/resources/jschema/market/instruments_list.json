@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "javaType": "ru.tinkoff.invest.openapi.models.market.InstrumentsList",
+  "description": "Модель списка инструментов.",
+  "required": [
+    "total",
+    "instruments"
+  ],
+  "properties": {
+    "total": {
+      "type": "integer",
+      "description": "Полное количество инструментов."
+    },
+    "instruments": {
+      "type": "array",
+      "description": "Непосредственно список инструментов.",
+      "items": {
+        "$ref": "../market/instrument.json"
+      }
+    }
+  }
+}

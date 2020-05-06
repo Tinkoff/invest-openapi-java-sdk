@@ -61,6 +61,43 @@
                     <skip>false</skip>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.jsonschema2pojo</groupId>
+                <artifactId>jsonschema2pojo-maven-plugin</artifactId>
+                <version>1.0.2</version>
+                <configuration>
+                    <sourceDirectory>${basedir}/src/main/resources/jschema</sourceDirectory>
+                    <outputDirectory>src/main/java</outputDirectory>
+                    <targetPackage>ru.tinkoff.invest.openapi.models</targetPackage>
+                    <sourceType>jsonschema</sourceType>
+                    <annotationStyle>jackson2</annotationStyle>
+                    <includeAdditionalProperties>false</includeAdditionalProperties>
+<!--                    <includeConstructors>true</includeConstructors>-->
+                    <includeGetters>false</includeGetters>
+                    <includeSetters>false</includeSetters>
+                    <includeHashcodeAndEquals>true</includeHashcodeAndEquals>
+                    <includeToString>true</includeToString>
+                    <dateTimeType>java.time.OffsetDateTime</dateTimeType>
+                    <useBigDecimals>true</useBigDecimals>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>src/main/java/ru/tinkoff/invest/openapi/models</directory>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 

@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "javaType": "ru.tinkoff.invest.openapi.models.portfolio.Portfolio",
+  "description": "Модель портфеля инструментов.",
+  "required": [
+    "positions"
+  ],
+  "properties": {
+    "positions": {
+      "type": "array",
+      "description": "Список позиций.",
+      "items": {
+        "$ref": "#/definitions/portfolio_position"
+      }
+    }
+  },
+  "definitions": {
+    "portfolio_position": {
+      "type": "object",
+      "javaType": "ru.tinkoff.invest.openapi.models.portfolio.PortfolioPosition",
+      "description": "Модель позиции в портфеле.",
+      "required": [
+        "figi",
+        "instrumentType",
+        "balance",
+        "lots",
+        "name"
+      ],
+      "properties": {
+        "figi": {
+          "type": "string",
+          "description": "Идентификатор инструмента."
+        },
+        "ticker": {
+          "type": "string",
+          "description": "Краткий биржевой идентификатор (\"тикер\")."
+        },
+        "isin": {
+          "type": "string",
+          "description": "Международный идентификационный код ценной бумаги."
+        },
+        "instrumentType": {
+          "$ref": "../market/instrument_type.json",
+          "description": "Тип инструмента."
+        },
+        "balance": {
+          "type": "number",
+          "description": "Объём позиции."
+        },
+        "blocked": {
+          "type": "number",
+          "description": "Заблокированный объём."
+        },
+        "expectedYield": {
+          "$ref": "../money_amount.json",
+          "description": "Ожидаемая доходность."
+        },
+        "lots": {
+          "type": "integer",
+          "description": "Количество лотов."
+        },
+        "averagePositionPrice": {
+          "$ref": "../money_amount.json",
+          "description": "Средняя цена позиции."
+        },
+        "averagePositionPriceNoNkd": {
+          "$ref": "../money_amount.json",
+          "description": "Средняя цена без учёта НКД."
+        },
+        "name": {
+          "type": "string",
+          "description": "Человеческое имя инструмента."
+        }
+      }
+    }
+  }
+}

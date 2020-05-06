@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "javaType": "ru.tinkoff.invest.openapi.models.orders.Order",
+  "description": "Модель биржевой заявки.",
+  "required": [
+    "id",
+    "figi",
+    "operation",
+    "status",
+    "requestedLots",
+    "executedLots",
+    "type",
+    "price"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Идентификатор заявки."
+    },
+    "figi": {
+      "type": "string",
+      "description": "Идентификатор инструмента."
+    },
+    "operation": {
+      "$ref": "../orders/operation.json",
+      "description": "Тип операции заявки."
+    },
+    "status": {
+      "$ref": "../orders/status.json",
+      "description": "Текущий статус."
+    },
+    "requestedLots": {
+      "type": "integer",
+      "description": "Запрашиваемое для исполнения количество лотов."
+    },
+    "executedLots": {
+      "type": "integer",
+      "description": "Фактически исполненное количество лотов."
+    },
+    "type": {
+      "$ref": "../orders/order_type.json",
+      "description": "Тип заявки."
+    },
+    "price": {
+      "type": "number",
+      "description": "Желаемая цена."
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "javaType": "ru.tinkoff.invest.openapi.models.orders.LimitOrder",
+  "description": "Модель лимитной заявки.",
+  "required": [
+    "lots",
+    "operation",
+    "price"
+  ],
+  "properties": {
+    "lots": {
+      "type": "integer",
+      "description": "Количество лотов.",
+      "minimum": 1
+    },
+    "operation": {
+      "$ref": "../orders/operation.json",
+      "description": "Тип операции."
+    },
+    "price": {
+      "type": "number",
+      "description": "Желаемая цена."
+    }
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "javaType": "ru.tinkoff.invest.openapi.models.operations.Operation",
+  "description": "Операция с инструментом производённая брокером.",
+  "required": [
+    "id",
+    "status",
+    "currency",
+    "payment",
+    "isMarginCall",
+    "date"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Идентификатор операции."
+    },
+    "status": {
+      "$ref": "../operations/operation_status.json",
+      "description": "Статус операции."
+    },
+    "trades": {
+      "type": "array",
+      "description": "Сделки, произведённые в рамках операции.",
+      "items": {
+        "$ref": "#/definitions/trade"
+      }
+    },
+    "commission": {
+      "$ref": "../money_amount.json",
+      "description": "Размер коммиссии."
+    },
+    "currency": {
+      "$ref": "../currency.json",
+      "description": "Валюта, в которой производится операция."
+    },
+    "payment": {
+      "type": "number",
+      "description": "Полная сумма операции."
+    },
+    "price": {
+      "type": "number",
+      "description": "Цена за единицу."
+    },
+    "quantity": {
+      "type": "integer",
+      "description": "Объём операции."
+    },
+    "figi": {
+      "type": "string",
+      "description": "Идентификатор инструмента."
+    },
+    "instrumentType": {
+      "$ref": "../market/instrument_type.json",
+      "description": "Тип инструмента."
+    },
+    "isMarginCall": {
+      "type": "boolean",
+      "description": "Флаг маржинальной торговли."
+    },
+    "date": {
+      "type": "date-time",
+      "description": "Дата/время исполнения операции."
+    },
+    "operationType": {
+      "$ref": "../operations/operation_type.json",
+      "description": "Тип операции."
+    }
+  },
+  "definitions": {
+    "trade": {
+      "type": "object",
+      "javaType": "ru.tinkoff.invest.openapi.models.operations.Trade",
+      "description": "Модель сделки в рамках операции.",
+      "required": [
+        "tradeId",
+        "date",
+        "price",
+        "quantity"
+      ],
+      "properties": {
+        "tradeId": {
+          "type": "string",
+          "description": "Идентификатор сделки."
+        },
+        "date": {
+          "type": "date-time",
+          "description": "Дата/время совершения сделки."
+        },
+        "price": {
+          "type": "number",
+          "description": "Цена за единицу."
+        },
+        "quantity": {
+          "type": "integer",
+          "description": "Объём сделки."
+        }
+      }
+    }
+  }
+}

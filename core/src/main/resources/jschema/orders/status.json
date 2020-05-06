@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "string",
+  "javaType": "ru.tinkoff.invest.openapi.models.orders.Status",
+  "description": "Перечисление возможных статусов заявки.",
+  "enum": [
+    "New",
+    "PartiallyFill",
+    "Fill",
+    "Cancelled",
+    "Replaced",
+    "PendingCancel",
+    "Rejected",
+    "PendingReplace",
+    "PendingNew"
+  ],
+  "javaEnums": [
+    {"name": "New"},
+    {"name": "PartiallyFill"},
+    {"name": "Fill"},
+    {"name": "Cancelled"},
+    {"name": "Replaced"},
+    {"name": "PendingCancel"},
+    {"name": "Rejected"},
+    {"name": "PendingReplace"},
+    {"name": "PendingNew"}
+  ]
+}

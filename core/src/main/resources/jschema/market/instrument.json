@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "javaType": "ru.tinkoff.invest.openapi.models.market.Instrument",
+  "description": "Модель биржевого инструмента.",
+  "required": [
+    "figi",
+    "ticker",
+    "lot",
+    "name"
+  ],
+  "properties": {
+    "figi": {
+      "type": "string",
+      "description": "Идентификатор инструмента."
+    },
+    "ticker": {
+      "type": "string",
+      "description": "Краткий биржевой идентификатор (\"тикер\")."
+    },
+    "isin": {
+      "type": "string",
+      "description": "Международный идентификационный код ценной бумаги."
+    },
+    "minPriceIncrement": {
+      "type": "number",
+      "description": "Минимальный шаг цены."
+    },
+    "lot": {
+      "type": "integer",
+      "description": "Размер лота."
+    },
+    "currency": {
+      "$ref": "../currency.json",
+      "description": "Валюта цены инструмента."
+    },
+    "name": {
+      "type": "string",
+      "description": "Название компании-эмитента"
+    },
+    "type": {
+      "$ref": "../market/instrument_type.json",
+      "description": "Тип инструмента."
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "string",
+  "javaType": "ru.tinkoff.invest.openapi.models.user.BrokerAccountType",
+  "description": "Перечислние возможных типов юрокерских счетов.",
+  "enum": [
+    "Tinkoff",
+    "TinkoffIis"
+  ],
+  "javaEnums": [
+    {"name": "Tinkoff"},
+    {"name": "TinkoffIis"}
+  ]
+}

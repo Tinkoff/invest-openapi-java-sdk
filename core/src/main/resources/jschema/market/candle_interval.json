@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "string",
+  "javaType": "ru.tinkoff.invest.openapi.models.market.CandleInterval",
+  "description": "Возможные интервалы времени у свечей.",
+  "enum": [
+    "1min",
+    "2min",
+    "3min",
+    "5min",
+    "10min",
+    "15min",
+    "30min",
+    "hour",
+    "2hour",
+    "4hour",
+    "day",
+    "week",
+    "month"
+  ],
+  "javaEnums": [
+    {"name": "ONE_MIN"},
+    {"name": "TWO_MIN"},
+    {"name": "THREE_MIN"},
+    {"name": "FIVE_MIN"},
+    {"name": "TEN_MIN"},
+    {"name": "QUARTER_HOUR"},
+    {"name": "HALF_HOUR"},
+    {"name": "HOUR"},
+    {"name": "TWO_HOURS"},
+    {"name": "FOUR_HOURS"},
+    {"name": "DAY"},
+    {"name": "WEEK"},
+    {"name": "MONTH"}
+  ]
+}

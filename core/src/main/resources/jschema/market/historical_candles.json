@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "javaType": "ru.tinkoff.invest.openapi.models.market.HistoricalCandles",
+  "description": "Модель даных по историческим свечам.",
+  "required": [
+    "figi",
+    "interval",
+    "candles"
+  ],
+  "properties": {
+    "figi": {
+      "type": "string",
+      "description": "Идентификатор инструмента описываемого свечами."
+    },
+    "interval": {
+      "$ref": "../market/candle_interval.json",
+      "description": "Интервал времени свечей."
+    },
+    "candles": {
+      "type": "array",
+      "description": "Список свечей.",
+      "items": {
+        "$ref": "../market/candle.json"
+      }
+    }
+  }
+}

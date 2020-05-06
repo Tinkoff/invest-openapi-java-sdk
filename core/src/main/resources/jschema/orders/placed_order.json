@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "javaType": "ru.tinkoff.invest.openapi.models.orders.PlacedOrder",
+  "description": "Модель размещённой биржевой заявки.",
+  "required": [
+    "id",
+    "operation",
+    "status",
+    "requestedLots",
+    "executedLots"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Идентификатор заявки."
+    },
+    "operation": {
+      "$ref": "../orders/operation.json",
+      "description": "Тип операции."
+    },
+    "status": {
+      "$ref": "../orders/status.json",
+      "description": "Текущий статус."
+    },
+    "rejectReason": {
+      "type": "string",
+      "description": "Код причина отказа в размещении."
+    },
+    "message": {
+      "type": "string",
+      "description": "Причина отказа в размещении (человеческий текст)."
+    },
+    "requestedLots": {
+      "type": "integer",
+      "description": "Желаемое количество лотов."
+    },
+    "executedLots": {
+      "type": "integer",
+      "description": "Реально исполненное количество лотов."
+    },
+    "commission": {
+      "$ref": "../money_amount.json",
+      "description": "Размер коммиссии."
+    }
+  }
+}
