@@ -4,6 +4,7 @@ import ru.tinkoff.invest.openapi.OpenApi;
 import ru.tinkoff.invest.openapi.SandboxOpenApi;
 import ru.tinkoff.invest.openapi.models.market.Instrument;
 import ru.tinkoff.invest.openapi.models.portfolio.PortfolioCurrencies;
+import ru.tinkoff.invest.openapi.models.portfolio.PortfolioCurrency;
 import ru.tinkoff.invest.openapi.streaming.StreamingRequest;
 import ru.tinkoff.invest.openapi.okhttp.OkHttpOpenApiFactory;
 
@@ -81,7 +82,7 @@ public class App {
                         .filter(pc -> pc.currency == instrument.currency)
                         .findFirst();
 
-                final PortfolioCurrencies.PortfolioCurrency portfolioCurrency;
+                final PortfolioCurrency portfolioCurrency;
                 if (portfolioCurrencyOpt.isEmpty()) {
                     logger.severe("Не нашлось нужной валютной позиции.");
                     return;
