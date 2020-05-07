@@ -48,7 +48,8 @@
       "javaName": "tradesValue"
     },
     "time": {
-      "type": "date-time",
+      "type": "string",
+      "format": "date-time",
       "description": "Время формирования данной свечи."
     }
   }

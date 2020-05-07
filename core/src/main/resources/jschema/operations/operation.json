@@ -60,7 +60,8 @@
       "description": "Флаг маржинальной торговли."
     },
     "date": {
-      "type": "date-time",
+      "type": "string",
+      "format": "date-time",
       "description": "Дата/время исполнения операции."
     },
     "operationType": {
@@ -85,7 +86,8 @@
           "description": "Идентификатор сделки."
         },
         "date": {
-          "type": "date-time",
+          "type": "string",
+          "format": "date-time",
           "description": "Дата/время совершения сделки."
         },
         "price": {
