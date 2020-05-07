@@ -3,7 +3,6 @@ package ru.tinkoff.invest.openapi.example;
 import ru.tinkoff.invest.openapi.OpenApi;
 import ru.tinkoff.invest.openapi.SandboxOpenApi;
 import ru.tinkoff.invest.openapi.models.market.Instrument;
-import ru.tinkoff.invest.openapi.models.portfolio.PortfolioCurrencies;
 import ru.tinkoff.invest.openapi.models.portfolio.PortfolioCurrency;
 import ru.tinkoff.invest.openapi.streaming.StreamingRequest;
 import ru.tinkoff.invest.openapi.okhttp.OkHttpOpenApiFactory;
