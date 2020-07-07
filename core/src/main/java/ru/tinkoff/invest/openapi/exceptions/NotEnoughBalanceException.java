@@ -18,6 +18,7 @@ public class NotEnoughBalanceException extends OpenApiException {
         super(message, code);
 
         final Matcher matchResult = currencyExtractionPattern.matcher(message);
+        matchResult.matches();
         this.currency = matchResult.group(matchResult.groupCount());
     }
 
