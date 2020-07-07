@@ -18,6 +18,7 @@ public class OrderAlreadyCancelledException extends OpenApiException {
         super(message, code);
 
         final Matcher matchResult = orderIdExtractionPattern.matcher(message);
+        matchResult.matches();
         this.orderId = matchResult.group(matchResult.groupCount());
     }
 
