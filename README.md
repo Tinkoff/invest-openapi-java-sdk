@@ -1,5 +1,4 @@
-[![Release](https://jitpack.io/v/TinkoffCreditSystems/invest-openapi-java-sdk.svg?style=flat-square)]
-(https://jitpack.io/#TinkoffCreditSystems/invest-openapi-java-sdk)
+[![Release](https://jitpack.io/v/TinkoffCreditSystems/invest-openapi-java-sdk.svg?style=flat-square)](https://jitpack.io/#TinkoffCreditSystems/invest-openapi-java-sdk)
 
 # OpenAPI SDK для Java
 
