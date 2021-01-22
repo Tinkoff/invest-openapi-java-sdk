@@ -57,11 +57,11 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
             }
 
             @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+            public void onResponse(@NotNull Call call, @NotNull Response response) {
                 try {
                     handleResponse(response, emptyPayloadTypeReference);
                     future.complete(null);
-                } catch (OpenApiException ex) {
+                } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 }
             }
@@ -102,11 +102,11 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
             }
 
             @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+            public void onResponse(@NotNull Call call, @NotNull Response response) {
                 try {
                     handleResponse(response, emptyPayloadTypeReference);
                     future.complete(null);
-                } catch (OpenApiException ex) {
+                } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 }
             }
@@ -147,11 +147,11 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
             }
 
             @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+            public void onResponse(@NotNull Call call, @NotNull Response response) {
                 try {
                     handleResponse(response, emptyPayloadTypeReference);
                     future.complete(null);
-                } catch (OpenApiException ex) {
+                } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 }
             }
@@ -183,11 +183,11 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
             }
 
             @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+            public void onResponse(@NotNull Call call, @NotNull Response response) {
                 try {
                     handleResponse(response, emptyPayloadTypeReference);
                     future.complete(null);
-                } catch (OpenApiException ex) {
+                } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 }
             }

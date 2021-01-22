@@ -50,11 +50,11 @@ final class UserContextImpl extends BaseContextImpl implements UserContext {
             }
 
             @Override
-            public void onResponse(@NotNull final Call call, @NotNull final Response response) throws IOException {
+            public void onResponse(@NotNull final Call call, @NotNull final Response response) {
                 try {
                     final RestResponse<AccountsList> result = handleResponse(response, accountsListTypeReference);
                     future.complete(result.payload);
-                } catch (OpenApiException ex) {
+                } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 }
             }

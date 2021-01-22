@@ -63,11 +63,11 @@ final class OperationsContextImpl extends BaseContextImpl implements OperationsC
             }
 
             @Override
-            public void onResponse(@NotNull final Call call, @NotNull final Response response) throws IOException {
+            public void onResponse(@NotNull final Call call, @NotNull final Response response) {
                 try {
                     final RestResponse<OperationsList> result = handleResponse(response, operationsListTypeReference);
                     future.complete(result.payload);
-                } catch (OpenApiException ex) {
+                } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 }
             }

@@ -70,7 +70,7 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
                 try {
                     final RestResponse<InstrumentsList> result = handleResponse(response, instrumentsListTypeReference);
                     future.complete(result.payload);
-                } catch (OpenApiException ex) {
+                } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 }
             }
@@ -97,11 +97,11 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
             }
 
             @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+            public void onResponse(@NotNull Call call, @NotNull Response response) {
                 try {
                     final RestResponse<InstrumentsList> result = handleResponse(response, instrumentsListTypeReference);
                     future.complete(result.payload);
-                } catch (OpenApiException ex) {
+                } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 }
             }
@@ -128,11 +128,11 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
             }
 
             @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+            public void onResponse(@NotNull Call call, @NotNull Response response) {
                 try {
                     final RestResponse<InstrumentsList> result = handleResponse(response, instrumentsListTypeReference);
                     future.complete(result.payload);
-                } catch (OpenApiException ex) {
+                } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 }
             }
@@ -159,11 +159,11 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
             }
 
             @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+            public void onResponse(@NotNull Call call, @NotNull Response response) {
                 try {
                     final RestResponse<InstrumentsList> result = handleResponse(response, instrumentsListTypeReference);
                     future.complete(result.payload);
-                } catch (OpenApiException ex) {
+                } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 }
             }
@@ -192,7 +192,7 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
             }
 
             @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+            public void onResponse(@NotNull Call call, @NotNull Response response) {
                 try {
                     final RestResponse<Orderbook> result = handleResponse(response, orderbookTypeReference);
                     future.complete(Optional.of(result.payload));
@@ -202,6 +202,8 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
                     } else {
                         future.completeExceptionally(ex);
                     }
+                } catch (Exception ex) {
+                    future.completeExceptionally(ex);
                 }
             }
         });
@@ -243,7 +245,7 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
             }
 
             @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+            public void onResponse(@NotNull Call call, @NotNull Response response) {
                 try {
                     final RestResponse<HistoricalCandles> result =
                             handleResponse(response, historicalCandlesTypeReference);
@@ -254,6 +256,8 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
                     } else {
                         future.completeExceptionally(ex);
                     }
+                } catch (Exception ex) {
+                    future.completeExceptionally(ex);
                 }
             }
         });
@@ -285,7 +289,7 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
                 try {
                     final RestResponse<InstrumentsList> result = handleResponse(response, instrumentsListTypeReference);
                     future.complete(result.payload);
-                } catch (OpenApiException ex) {
+                } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 }
             }
@@ -324,6 +328,8 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
                     } else {
                         future.completeExceptionally(ex);
                     }
+                } catch (Exception ex) {
+                    future.completeExceptionally(ex);
                 }
             }
         });

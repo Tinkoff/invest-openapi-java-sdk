@@ -5,7 +5,6 @@ import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.tinkoff.invest.openapi.PortfolioContext;
-import ru.tinkoff.invest.openapi.exceptions.OpenApiException;
 import ru.tinkoff.invest.openapi.models.RestResponse;
 import ru.tinkoff.invest.openapi.models.portfolio.Portfolio;
 import ru.tinkoff.invest.openapi.models.portfolio.PortfolioCurrencies;
@@ -59,11 +58,11 @@ final class PortfolioContextImpl extends BaseContextImpl implements PortfolioCon
             }
 
             @Override
-            public void onResponse(@NotNull final Call call, @NotNull final Response response) throws IOException {
+            public void onResponse(@NotNull final Call call, @NotNull final Response response) {
                 try {
                     final RestResponse<Portfolio> result = handleResponse(response, portfolioTypeReference);
                     future.complete(result.payload);
-                } catch (OpenApiException ex) {
+                } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 }
             }
@@ -94,11 +93,11 @@ final class PortfolioContextImpl extends BaseContextImpl implements PortfolioCon
             }
 
             @Override
-            public void onResponse(@NotNull final Call call, @NotNull final Response response) throws IOException {
+            public void onResponse(@NotNull final Call call, @NotNull final Response response) {
                 try {
                     final RestResponse<PortfolioCurrencies> result = handleResponse(response, portfolioCurrenciesTypeReference);
                     future.complete(result.payload);
-                } catch (OpenApiException ex) {
+                } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 }
             }
