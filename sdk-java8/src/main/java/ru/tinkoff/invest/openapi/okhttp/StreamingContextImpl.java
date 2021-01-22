@@ -306,6 +306,7 @@ class StreamingContextImpl implements StreamingContext {
             for (final WebSocket ws : this.wsClients) {
                 ws.close(1000, null);
             }
+            client.dispatcher().executorService().shutdown();
 
             this.hasStopped = true;
         }
@@ -388,9 +389,17 @@ class StreamingContextImpl implements StreamingContext {
                               @Nullable final Response response) {
             super.onFailure(webSocket, t, response);
 
-            logger.log(Level.SEVERE, "Что-то произошло в Streaming API клиенте #" + id, t);
+            if (Objects.nonNull(response)) {
+                int responseCode = response.code();
+                if (responseCode == 401 || responseCode == 403) {
+                    logger.log(Level.SEVERE, "Для Streaming API передан неверный токен.", t);
+                    stop();
+                    return;
+                }
+            }
 
             try {
+                logger.log(Level.SEVERE, "Что-то произошло в Streaming API клиенте #" + id, t);
                 restore(this);
             } catch (Exception ex) {
                 logger.log(Level.SEVERE, "При восстановлении Streaming API клиента #" + id + " что-то произошло", ex);
