@@ -1,3 +1,6 @@
+[![Release](https://jitpack.io/v/User/Repo.svg?style=flat-square)]
+(https://jitpack.io/#User/Repo)
+
 # OpenAPI SDK для Java
 
 Данный проект представляет собой инструментарий на языке Java для работы с OpenAPI Тинькофф Инвестиции, который можно
