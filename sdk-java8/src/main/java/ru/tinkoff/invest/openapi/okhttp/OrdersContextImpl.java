@@ -66,7 +66,7 @@ final class OrdersContextImpl extends BaseContextImpl implements OrdersContext {
             }
 
             @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+            public void onResponse(@NotNull Call call, @NotNull Response response) {
                 try {
                     final RestResponse<List<Order>> result = handleResponse(response, listOrderTypeReference);
                     future.complete(result.payload);
@@ -76,6 +76,8 @@ final class OrdersContextImpl extends BaseContextImpl implements OrdersContext {
                     } else {
                         future.completeExceptionally(ex);
                     }
+                } catch (Exception ex) {
+                    future.completeExceptionally(ex);
                 }
             }
         });
@@ -116,11 +118,11 @@ final class OrdersContextImpl extends BaseContextImpl implements OrdersContext {
             }
 
             @Override
-            public void onResponse(@NotNull final Call call, @NotNull final Response response) throws IOException {
+            public void onResponse(@NotNull final Call call, @NotNull final Response response) {
                 try {
                     final RestResponse<PlacedOrder> result = handleResponse(response, placedOrderTypeReference);
                     future.complete(result.payload);
-                } catch (OpenApiException ex) {
+                } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 }
             }
@@ -162,11 +164,11 @@ final class OrdersContextImpl extends BaseContextImpl implements OrdersContext {
             }
 
             @Override
-            public void onResponse(@NotNull final Call call, @NotNull final Response response) throws IOException {
+            public void onResponse(@NotNull final Call call, @NotNull final Response response) {
                 try {
                     final RestResponse<PlacedOrder> result = handleResponse(response, placedOrderTypeReference);
                     future.complete(result.payload);
-                } catch (OpenApiException ex) {
+                } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 }
             }
@@ -200,7 +202,7 @@ final class OrdersContextImpl extends BaseContextImpl implements OrdersContext {
             }
 
             @Override
-            public void onResponse(@NotNull final Call call, @NotNull final Response response) throws IOException {
+            public void onResponse(@NotNull final Call call, @NotNull final Response response) {
                 try {
                     handleResponse(response, emptyPayloadTypeReference);
                     future.complete(null);
@@ -210,6 +212,8 @@ final class OrdersContextImpl extends BaseContextImpl implements OrdersContext {
                     } else {
                         future.completeExceptionally(ex);
                     }
+                } catch (Exception ex) {
+                    future.completeExceptionally(ex);
                 }
             }
         });
