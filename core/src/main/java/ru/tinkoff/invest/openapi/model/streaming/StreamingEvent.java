@@ -140,7 +140,7 @@ public abstract class StreamingEvent {
         }
 
         @NotNull
-        public CandleInterval getinterval() {
+        public CandleInterval getInterval() {
             return interval;
         }
 
