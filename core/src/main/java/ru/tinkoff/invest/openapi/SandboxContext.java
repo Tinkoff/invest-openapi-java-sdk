@@ -2,9 +2,9 @@ package ru.tinkoff.invest.openapi;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.tinkoff.invest.openapi.models.sandbox.CurrencyBalance;
-import ru.tinkoff.invest.openapi.models.sandbox.PositionBalance;
-import ru.tinkoff.invest.openapi.models.user.BrokerAccountType;
+import ru.tinkoff.invest.openapi.model.rest.SandboxRegisterRequest;
+import ru.tinkoff.invest.openapi.model.rest.SandboxSetCurrencyBalanceRequest;
+import ru.tinkoff.invest.openapi.model.rest.SandboxSetPositionBalanceRequest;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -21,7 +21,7 @@ public interface SandboxContext extends Context {
      * @return Ничего.
      */
     @NotNull
-    CompletableFuture<Void> performRegistration(@Nullable BrokerAccountType brokerAccountType);
+    CompletableFuture<Void> performRegistration(@NotNull SandboxRegisterRequest registerRequest);
 
     /**
      * Установка значения валютного актива.
@@ -32,7 +32,8 @@ public interface SandboxContext extends Context {
      * @return Ничего.
      */
     @NotNull
-    CompletableFuture<Void> setCurrencyBalance(@NotNull CurrencyBalance data, @Nullable String brokerAccountId);
+    CompletableFuture<Void> setCurrencyBalance(@NotNull SandboxSetCurrencyBalanceRequest balanceRequest,
+                                               @Nullable String brokerAccountId);
 
     /**
      * Установка позиции по инструменту.
@@ -43,7 +44,8 @@ public interface SandboxContext extends Context {
      * @return Ничего.
      */
     @NotNull
-    CompletableFuture<Void> setPositionBalance(@NotNull PositionBalance data, @Nullable String brokerAccountId);
+    CompletableFuture<Void> setPositionBalance(@NotNull SandboxSetPositionBalanceRequest balanceRequest,
+                                               @Nullable String brokerAccountId);
 
     /**
      * Сброс всех установленных значений по активам.

@@ -13,9 +13,9 @@ import org.jetbrains.annotations.NotNull;
 import ru.tinkoff.invest.openapi.Context;
 import ru.tinkoff.invest.openapi.exceptions.OpenApiException;
 import ru.tinkoff.invest.openapi.exceptions.WrongTokenException;
-import ru.tinkoff.invest.openapi.models.EmptyPayload;
-import ru.tinkoff.invest.openapi.models.ErrorPayload;
-import ru.tinkoff.invest.openapi.models.RestResponse;
+import ru.tinkoff.invest.openapi.model.rest.Empty;
+import ru.tinkoff.invest.openapi.model.rest.Error;
+import ru.tinkoff.invest.openapi.model.rest.ErrorPayload;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,11 +24,11 @@ import java.util.logging.Logger;
 
 public abstract class BaseContextImpl implements Context {
 
-    protected static final TypeReference<RestResponse<ErrorPayload>> errorTypeReference =
-            new TypeReference<RestResponse<ErrorPayload>>() {
+    protected static final TypeReference<Error> errorTypeReference =
+            new TypeReference<Error>() {
             };
-    protected static final TypeReference<RestResponse<EmptyPayload>> emptyPayloadTypeReference =
-            new TypeReference<RestResponse<EmptyPayload>>() {
+    protected static final TypeReference<Empty> emptyPayloadTypeReference =
+            new TypeReference<Empty>() {
             };
 
     protected final String authToken;
@@ -74,11 +74,11 @@ public abstract class BaseContextImpl implements Context {
                 throw new WrongTokenException();
             default:
                 final InputStream errorStream = Objects.requireNonNull(response.body()).byteStream();
-                final RestResponse<ErrorPayload> answerBody = mapper.readValue(errorStream, errorTypeReference);
-                final ErrorPayload error = answerBody.payload;
-                final String message = "Ошибка при исполнении запроса, trackingId = " + answerBody.trackingId;
+                final Error answerBody = mapper.readValue(errorStream, errorTypeReference);
+                final ErrorPayload error = answerBody.getPayload();
+                final String message = "Ошибка при исполнении запроса, trackingId = " + answerBody.getTrackingId();
                 logger.severe(message);
-                throw new OpenApiException(error.message, error.code);
+                throw new OpenApiException(error.getMessage(), error.getCode());
         }
     }
 

@@ -1,10 +1,9 @@
-package ru.tinkoff.invest.openapi.models.streaming;
+package ru.tinkoff.invest.openapi.model.streaming;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.tinkoff.invest.openapi.models.market.CandleInterval;
 
 import java.util.Objects;
 
@@ -91,12 +90,11 @@ public abstract class StreamingRequest {
         @NotNull
         @Override
         public String onOffPairId() {
-            return new StringBuilder("Candle(")
-                .append(figi)
-                .append(",")
-                .append(interval.name())
-                .append(")")
-                .toString();
+            return "Candle(" +
+                    figi +
+                    "," +
+                    interval.name() +
+                    ")";
         }
 
         @Override
@@ -151,12 +149,11 @@ public abstract class StreamingRequest {
         @NotNull
         @Override
         public String onOffPairId() {
-            return new StringBuilder("Candle(")
-                    .append(figi)
-                    .append(",")
-                    .append(interval.name())
-                    .append(")")
-                    .toString();
+            return "Candle(" +
+                    figi +
+                    "," +
+                    interval.name() +
+                    ")";
         }
 
         @Override
@@ -198,10 +195,9 @@ public abstract class StreamingRequest {
         @NotNull
         @Override
         public String onOffPairId() {
-            return new StringBuilder("InstrumentInfo(")
-                    .append(figi)
-                    .append(")")
-                    .toString();
+            return "InstrumentInfo(" +
+                    figi +
+                    ")";
         }
 
         @Override
@@ -243,10 +239,9 @@ public abstract class StreamingRequest {
         @NotNull
         @Override
         public String onOffPairId() {
-            return new StringBuilder("InstrumentInfo(")
-                    .append(figi)
-                    .append(")")
-                    .toString();
+            return "InstrumentInfo(" +
+                    figi +
+                    ")";
         }
 
         @Override
@@ -301,12 +296,11 @@ public abstract class StreamingRequest {
         @NotNull
         @Override
         public String onOffPairId() {
-            return new StringBuilder("Orderbook(")
-                    .append(figi)
-                    .append(",")
-                    .append(depth)
-                    .append(")")
-                    .toString();
+            return "Orderbook(" +
+                    figi +
+                    "," +
+                    depth +
+                    ")";
         }
 
         @Override
@@ -362,12 +356,11 @@ public abstract class StreamingRequest {
         @NotNull
         @Override
         public String onOffPairId() {
-            return new StringBuilder("Orderbook(")
-                    .append(figi)
-                    .append(",")
-                    .append(depth)
-                    .append(")")
-                    .toString();
+            return "Orderbook(" +
+                    figi +
+                    "," +
+                    depth +
+                    ")";
         }
 
         @Override

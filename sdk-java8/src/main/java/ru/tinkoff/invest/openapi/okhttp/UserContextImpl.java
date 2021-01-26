@@ -4,9 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import ru.tinkoff.invest.openapi.UserContext;
-import ru.tinkoff.invest.openapi.exceptions.OpenApiException;
-import ru.tinkoff.invest.openapi.models.RestResponse;
-import ru.tinkoff.invest.openapi.models.user.AccountsList;
+import ru.tinkoff.invest.openapi.model.rest.UserAccounts;
+import ru.tinkoff.invest.openapi.model.rest.UserAccountsResponse;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
@@ -15,8 +14,8 @@ import java.util.logging.Logger;
 
 final class UserContextImpl extends BaseContextImpl implements UserContext {
 
-    private static final TypeReference<RestResponse<AccountsList>> accountsListTypeReference =
-            new TypeReference<RestResponse<AccountsList>>() {
+    private static final TypeReference<UserAccountsResponse> accountsListTypeReference =
+            new TypeReference<UserAccountsResponse>() {
             };
 
     public UserContextImpl(@NotNull final OkHttpClient client,
@@ -34,8 +33,8 @@ final class UserContextImpl extends BaseContextImpl implements UserContext {
 
     @Override
     @NotNull
-    public CompletableFuture<AccountsList> getAccounts() {
-        final CompletableFuture<AccountsList> future = new CompletableFuture<>();
+    public CompletableFuture<UserAccounts> getAccounts() {
+        final CompletableFuture<UserAccounts> future = new CompletableFuture<>();
         final HttpUrl requestUrl = finalUrl.newBuilder()
                 .addPathSegment("accounts")
                 .build();
@@ -52,8 +51,8 @@ final class UserContextImpl extends BaseContextImpl implements UserContext {
             @Override
             public void onResponse(@NotNull final Call call, @NotNull final Response response) {
                 try {
-                    final RestResponse<AccountsList> result = handleResponse(response, accountsListTypeReference);
-                    future.complete(result.payload);
+                    final UserAccountsResponse result = handleResponse(response, accountsListTypeReference);
+                    future.complete(result.getPayload());
                 } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 }

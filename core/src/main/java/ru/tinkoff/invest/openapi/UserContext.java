@@ -4,7 +4,7 @@ import java.util.concurrent.CompletableFuture;
 
 import org.jetbrains.annotations.NotNull;
 
-import ru.tinkoff.invest.openapi.models.user.AccountsList;
+import ru.tinkoff.invest.openapi.model.rest.UserAccounts;
 
 /**
  * Интерфейс работы с OpenAPI в части касающейся получения информации о клиенте.
@@ -17,6 +17,6 @@ public interface UserContext extends Context {
      * @return Список счетов.
      */
     @NotNull
-    CompletableFuture<AccountsList> getAccounts();
+    CompletableFuture<UserAccounts> getAccounts();
 
 }

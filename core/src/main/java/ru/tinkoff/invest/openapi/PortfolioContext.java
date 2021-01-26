@@ -2,8 +2,7 @@ package ru.tinkoff.invest.openapi;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.tinkoff.invest.openapi.models.portfolio.Portfolio;
-import ru.tinkoff.invest.openapi.models.portfolio.PortfolioCurrencies;
+import ru.tinkoff.invest.openapi.model.rest.*;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -30,6 +29,6 @@ public interface PortfolioContext extends Context {
      * @return Портфель валют.
      */
     @NotNull
-    CompletableFuture<PortfolioCurrencies> getPortfolioCurrencies(@Nullable String brokerAccountId);
+    CompletableFuture<Currencies> getPortfolioCurrencies(@Nullable String brokerAccountId);
 
 }

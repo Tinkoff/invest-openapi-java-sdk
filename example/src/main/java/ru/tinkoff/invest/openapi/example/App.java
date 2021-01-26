@@ -2,9 +2,10 @@ package ru.tinkoff.invest.openapi.example;
 
 import ru.tinkoff.invest.openapi.OpenApi;
 import ru.tinkoff.invest.openapi.SandboxOpenApi;
-import ru.tinkoff.invest.openapi.models.market.Instrument;
-import ru.tinkoff.invest.openapi.models.portfolio.PortfolioCurrencies;
-import ru.tinkoff.invest.openapi.models.streaming.StreamingRequest;
+import ru.tinkoff.invest.openapi.model.rest.CurrencyPosition;
+import ru.tinkoff.invest.openapi.model.rest.MarketInstrument;
+import ru.tinkoff.invest.openapi.model.rest.SandboxRegisterRequest;
+import ru.tinkoff.invest.openapi.model.streaming.StreamingRequest;
 import ru.tinkoff.invest.openapi.okhttp.OkHttpOpenApiFactory;
 
 import java.io.FileNotFoundException;
@@ -43,7 +44,7 @@ public class App {
             if (parameters.sandboxMode) {
                 api = factory.createSandboxOpenApiClient(Executors.newSingleThreadExecutor());
                 // ОБЯЗАТЕЛЬНО нужно выполнить регистрацию в "песочнице"
-                ((SandboxOpenApi) api).getSandboxContext().performRegistration(null).join();
+                ((SandboxOpenApi) api).getSandboxContext().performRegistration(new SandboxRegisterRequest()).join();
             } else {
                 api = factory.createOpenApiClient(Executors.newSingleThreadExecutor());
             }
@@ -55,7 +56,7 @@ public class App {
             final var currentOrders = api.getOrdersContext().getOrders(null).join();
             logger.info("Количество текущих заявок: " + currentOrders.size());
             final var currentPositions = api.getPortfolioContext().getPortfolio(null).join();
-            logger.info("Количество текущих позиций: " + currentPositions.positions.size());
+            logger.info("Количество текущих позиций: " + currentPositions.getPositions().size());
 
             for (int i = 0; i < parameters.tickers.length; i++) {
                 final var ticker = parameters.tickers[i];
@@ -64,9 +65,9 @@ public class App {
                 logger.info("Ищём по тикеру " + ticker + "... ");
                 final var instrumentsList = api.getMarketContext().searchMarketInstrumentsByTicker(ticker).join();
 
-                final var instrumentOpt = instrumentsList.instruments.stream().findFirst();
+                final var instrumentOpt = instrumentsList.getInstruments().stream().findFirst();
 
-                final Instrument instrument;
+                final MarketInstrument instrument;
                 if (instrumentOpt.isEmpty()) {
                     logger.severe("Не нашлось инструмента с нужным тикером.");
                     return;
@@ -77,20 +78,20 @@ public class App {
                 logger.info("Получаем валютные балансы... ");
                 final var portfolioCurrencies = api.getPortfolioContext().getPortfolioCurrencies(null).join();
 
-                final var portfolioCurrencyOpt = portfolioCurrencies.currencies.stream()
-                        .filter(pc -> pc.currency == instrument.currency)
+                final var portfolioCurrencyOpt = portfolioCurrencies.getCurrencies().stream()
+                        .filter(pc -> pc.getCurrency() == instrument.getCurrency())
                         .findFirst();
 
-                final PortfolioCurrencies.PortfolioCurrency portfolioCurrency;
+                final CurrencyPosition portfolioCurrency;
                 if (portfolioCurrencyOpt.isEmpty()) {
                     logger.severe("Не нашлось нужной валютной позиции.");
                     return;
                 } else {
                     portfolioCurrency = portfolioCurrencyOpt.get();
-                    logger.info("Нужной валюты " + portfolioCurrency.currency + " на счету " + portfolioCurrency.balance.toPlainString());
+                    logger.info("Нужной валюты " + portfolioCurrency.getCurrency() + " на счету " + portfolioCurrency.getBalance().toPlainString());
                 }
 
-                api.getStreamingContext().sendRequest(StreamingRequest.subscribeCandle(instrument.figi, candleInterval));
+                api.getStreamingContext().sendRequest(StreamingRequest.subscribeCandle(instrument.getFigi(), candleInterval));
             }
 
             initCleanupProcedure(api, logger);

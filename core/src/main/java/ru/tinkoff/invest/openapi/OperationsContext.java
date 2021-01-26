@@ -2,7 +2,7 @@ package ru.tinkoff.invest.openapi;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.tinkoff.invest.openapi.models.operations.OperationsList;
+import ru.tinkoff.invest.openapi.model.rest.*;
 
 import java.time.OffsetDateTime;
 import java.util.concurrent.CompletableFuture;
@@ -23,9 +23,9 @@ public interface OperationsContext extends Context {
      * @return Список операций.
      */
     @NotNull
-    CompletableFuture<OperationsList> getOperations(@NotNull OffsetDateTime from,
-                                                    @NotNull OffsetDateTime to,
-                                                    @Nullable String figi,
-                                                    @Nullable String brokerAccountId);
+    CompletableFuture<Operations> getOperations(@NotNull OffsetDateTime from,
+                                                @NotNull OffsetDateTime to,
+                                                @Nullable String figi,
+                                                @Nullable String brokerAccountId);
 
 }

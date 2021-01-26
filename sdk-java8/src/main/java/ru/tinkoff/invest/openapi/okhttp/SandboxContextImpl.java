@@ -5,10 +5,7 @@ import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.tinkoff.invest.openapi.SandboxContext;
-import ru.tinkoff.invest.openapi.exceptions.OpenApiException;
-import ru.tinkoff.invest.openapi.models.sandbox.CurrencyBalance;
-import ru.tinkoff.invest.openapi.models.sandbox.PositionBalance;
-import ru.tinkoff.invest.openapi.models.user.BrokerAccountType;
+import ru.tinkoff.invest.openapi.model.rest.*;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -33,17 +30,19 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
 
     @Override
     @NotNull
-    public CompletableFuture<Void> performRegistration(@Nullable final BrokerAccountType brokerAccountType) {
+    public CompletableFuture<Void> performRegistration(@NotNull final SandboxRegisterRequest registerRequest) {
         final CompletableFuture<Void> future = new CompletableFuture<>();
         final HttpUrl requestUrl = finalUrl.newBuilder()
                 .addPathSegment("register")
                 .build();
-        final RequestBody requestBody;
-        if (Objects.nonNull(brokerAccountType)) {
-            requestBody = RequestBody.create("{\"brokerAccountType\": \"" + brokerAccountType + "\"}", MediaType.get("application/json"));
-        } else {
-            requestBody = RequestBody.create(new byte[] {});
+        final String renderedBody;
+        try {
+            renderedBody = mapper.writeValueAsString(registerRequest);
+        } catch (JsonProcessingException ex) {
+            future.completeExceptionally(ex);
+            return future;
         }
+        final RequestBody requestBody = RequestBody.create(renderedBody, MediaType.get("application/json"));
 
         final Request request = prepareRequest(requestUrl)
                 .post(requestBody)
@@ -72,12 +71,12 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
 
     @Override
     @NotNull
-    public CompletableFuture<Void> setCurrencyBalance(@NotNull final CurrencyBalance data,
-                                                      @Nullable final String brokerAccountId) {
+    public CompletableFuture<Void> setCurrencyBalance(@NotNull final SandboxSetCurrencyBalanceRequest balanceRequest,
+                                                      @Nullable String brokerAccountId) {
         final CompletableFuture<Void> future = new CompletableFuture<>();
         final String renderedBody;
         try {
-            renderedBody = mapper.writeValueAsString(data);
+            renderedBody = mapper.writeValueAsString(balanceRequest);
         } catch (JsonProcessingException ex) {
             future.completeExceptionally(ex);
             return future;
@@ -117,12 +116,12 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
 
     @Override
     @NotNull
-    public CompletableFuture<Void> setPositionBalance(@NotNull final PositionBalance data,
-                                                      @Nullable final String brokerAccountId) {
+    public CompletableFuture<Void> setPositionBalance(@NotNull final SandboxSetPositionBalanceRequest balanceRequest,
+                                                      @Nullable String brokerAccountId) {
         final CompletableFuture<Void> future = new CompletableFuture<>();
         final String renderedBody;
         try {
-            renderedBody = mapper.writeValueAsString(data);
+            renderedBody = mapper.writeValueAsString(balanceRequest);
         } catch (JsonProcessingException ex) {
             future.completeExceptionally(ex);
             return future;
