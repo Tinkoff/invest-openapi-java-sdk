@@ -27,7 +27,7 @@ public interface SandboxContext extends Context {
     /**
      * Установка значения валютного актива.
      *
-     * @param data Жалаемые параметры позиции.
+     * @param balanceRequest Параметры запроса.
      * @param brokerAccountId Идентификатор брокерского счёта.
      * 
      * @return Ничего.
@@ -39,7 +39,7 @@ public interface SandboxContext extends Context {
     /**
      * Установка позиции по инструменту.
      *
-     * @param data Жалаемые параметры позиции.
+     * @param balanceRequest Параметры запроса.
      * @param brokerAccountId Идентификатор брокерского счёта.
      * 
      * @return Ничего.
