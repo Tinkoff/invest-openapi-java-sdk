@@ -10,8 +10,6 @@ import ru.tinkoff.invest.openapi.model.rest.*;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 final class PortfolioContextImpl extends BaseContextImpl implements PortfolioContext {
 
@@ -24,9 +22,8 @@ final class PortfolioContextImpl extends BaseContextImpl implements PortfolioCon
 
     public PortfolioContextImpl(@NotNull final OkHttpClient client,
                                 @NotNull final String url,
-                                @NotNull final String authToken,
-                                @NotNull final Logger logger) {
-        super(client, url, authToken, logger);
+                                @NotNull final String authToken) {
+        super(client, url, authToken);
     }
 
     @NotNull
@@ -51,7 +48,7 @@ final class PortfolioContextImpl extends BaseContextImpl implements PortfolioCon
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull final Call call, @NotNull final IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 
@@ -86,7 +83,7 @@ final class PortfolioContextImpl extends BaseContextImpl implements PortfolioCon
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull final Call call, @NotNull final IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 

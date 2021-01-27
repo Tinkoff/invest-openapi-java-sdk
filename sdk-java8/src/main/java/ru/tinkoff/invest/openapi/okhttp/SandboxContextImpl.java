@@ -11,8 +11,6 @@ import ru.tinkoff.invest.openapi.model.rest.*;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 final class SandboxContextImpl extends BaseContextImpl implements SandboxContext {
 
@@ -22,9 +20,8 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
 
     public SandboxContextImpl(@NotNull final OkHttpClient client,
                               @NotNull final String url,
-                              @NotNull final String authToken,
-                              @NotNull final Logger logger) {
-        super(client, url, authToken, logger);
+                              @NotNull final String authToken) {
+        super(client, url, authToken);
     }
 
     @Override
@@ -56,7 +53,7 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 
@@ -101,7 +98,7 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 
@@ -146,7 +143,7 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 
@@ -182,7 +179,7 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 
@@ -218,7 +215,7 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 

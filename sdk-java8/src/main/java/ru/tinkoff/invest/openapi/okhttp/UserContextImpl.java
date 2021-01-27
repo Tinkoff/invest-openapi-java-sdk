@@ -9,8 +9,6 @@ import ru.tinkoff.invest.openapi.model.rest.UserAccountsResponse;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 final class UserContextImpl extends BaseContextImpl implements UserContext {
 
@@ -20,9 +18,8 @@ final class UserContextImpl extends BaseContextImpl implements UserContext {
 
     public UserContextImpl(@NotNull final OkHttpClient client,
                            @NotNull final String url,
-                           @NotNull final String authToken,
-                           @NotNull final Logger logger) {
-        super(client, url, authToken, logger);
+                           @NotNull final String authToken) {
+        super(client, url, authToken);
     }
 
     @NotNull
@@ -44,7 +41,7 @@ final class UserContextImpl extends BaseContextImpl implements UserContext {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull final Call call, @NotNull final IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 

@@ -9,7 +9,7 @@ public class OrderAlreadyCancelledException extends OpenApiException {
 
     private static final long serialVersionUID = -5527556849561779960L;
 
-    private static Pattern orderIdExtractionPattern = Pattern.compile("^.+id (.+)$");
+    private static final Pattern orderIdExtractionPattern = Pattern.compile("^.+id (.+)$");
 
     private final String orderId;
 
@@ -21,7 +21,7 @@ public class OrderAlreadyCancelledException extends OpenApiException {
         this.orderId = matchResult.group(matchResult.groupCount());
     }
 
-    public String getCurrency() {
+    public String getOrderId() {
         return orderId;
     }
 

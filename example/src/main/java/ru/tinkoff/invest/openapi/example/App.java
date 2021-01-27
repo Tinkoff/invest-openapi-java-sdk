@@ -36,8 +36,9 @@ public class App {
             return;
         }
 
-        final var factory = new OkHttpOpenApiFactory(parameters.ssoToken, logger);
+
         try {
+            final var factory = new OkHttpOpenApiFactory(parameters.ssoToken);
             final OpenApi api;
 
             logger.info("Создаём подключение... ");

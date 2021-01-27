@@ -3,15 +3,15 @@ package ru.tinkoff.invest.openapi.okhttp;
 import okhttp3.OkHttpClient;
 import org.jetbrains.annotations.NotNull;
 import ru.tinkoff.invest.openapi.*;
+
+import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.Executor;
-import java.util.logging.Logger;
 
 public class OkHttpOpenApiFactory extends OpenApiFactoryBase {
 
-    public OkHttpOpenApiFactory(@NotNull final String token,
-                                @NotNull final Logger logger) {
-        super(token, logger);
+    public OkHttpOpenApiFactory(@NotNull final String token) throws IOException {
+        super(token);
     }
 
     @NotNull
@@ -28,8 +28,7 @@ public class OkHttpOpenApiFactory extends OpenApiFactoryBase {
                 config.streamingUrl,
                 config.streamingParallelism,
                 authToken,
-                executor,
-                logger
+                executor
         );
     }
 
@@ -47,8 +46,7 @@ public class OkHttpOpenApiFactory extends OpenApiFactoryBase {
                 config.streamingUrl,
                 config.streamingParallelism,
                 authToken,
-                executor,
-                logger
+                executor
         );
     }
 

@@ -6,18 +6,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 import java.util.concurrent.Executor;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 abstract public class OpenApiFactoryBase {
 
     protected final OpenApiConfig config;
     protected final String authToken;
-    protected final Logger logger;
 
-    public OpenApiFactoryBase(@NotNull final String token,
-                              @NotNull final Logger logger) {
-        this.logger = logger;
+    public OpenApiFactoryBase(@NotNull final String token) throws IOException {
         this.authToken = "Bearer " + token;
 
         this.config = extractConfig();
@@ -35,7 +30,7 @@ abstract public class OpenApiFactoryBase {
      * @return Параметры конфигурации.
      */
     @NotNull
-    protected OpenApiConfig extractConfig() {
+    protected OpenApiConfig extractConfig() throws IOException {
         final Properties prop = new Properties();
 
         final ClassLoader classLoader = OpenApiFactoryBase.class.getClassLoader();
@@ -47,8 +42,6 @@ abstract public class OpenApiFactoryBase {
 
             //load properties file from class path, inside static method
             prop.load(input);
-        } catch (IOException ex) {
-            logger.log(Level.SEVERE, "Не нашёлся файл конфигурации.", ex);
         }
 
         final String host = prop.getProperty("ru.tinkoff.invest.openapi.host");

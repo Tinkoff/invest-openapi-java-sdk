@@ -20,7 +20,6 @@ import ru.tinkoff.invest.openapi.model.rest.ErrorPayload;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
-import java.util.logging.Logger;
 
 public abstract class BaseContextImpl implements Context {
 
@@ -35,12 +34,11 @@ public abstract class BaseContextImpl implements Context {
     protected final HttpUrl finalUrl;
     protected final OkHttpClient client;
     protected final ObjectMapper mapper;
-    protected final Logger logger;
+    protected final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(this.getClass());
 
     public BaseContextImpl(@NotNull final OkHttpClient client,
                            @NotNull final String url,
-                           @NotNull final String authToken,
-                           @NotNull final Logger logger) {
+                           @NotNull final String authToken) {
 
         this.authToken = authToken;
         this.finalUrl = Objects.requireNonNull(HttpUrl.parse(url))
@@ -48,7 +46,6 @@ public abstract class BaseContextImpl implements Context {
                 .addPathSegment(this.getPath())
                 .build();
         this.client = client;
-        this.logger = logger;
         this.mapper = new ObjectMapper();
 
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -77,7 +74,7 @@ public abstract class BaseContextImpl implements Context {
                 final Error answerBody = mapper.readValue(errorStream, errorTypeReference);
                 final ErrorPayload error = answerBody.getPayload();
                 final String message = "Ошибка при исполнении запроса, trackingId = " + answerBody.getTrackingId();
-                logger.severe(message);
+                logger.error(message);
                 throw new OpenApiException(error.getMessage(), error.getCode());
         }
     }

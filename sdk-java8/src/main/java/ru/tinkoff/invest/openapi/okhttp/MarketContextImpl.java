@@ -13,8 +13,6 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 final class MarketContextImpl extends BaseContextImpl implements MarketContext {
 
@@ -36,9 +34,8 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
 
     public MarketContextImpl(@NotNull final OkHttpClient client,
                              @NotNull final String url,
-                             @NotNull final String authToken,
-                             @NotNull final Logger logger) {
-        super(client, url, authToken, logger);
+                             @NotNull final String authToken) {
+        super(client, url, authToken);
     }
 
     @NotNull
@@ -60,7 +57,7 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 
@@ -91,7 +88,7 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 
@@ -122,7 +119,7 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 
@@ -153,7 +150,7 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 
@@ -186,7 +183,7 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 
@@ -239,7 +236,7 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 
@@ -279,7 +276,7 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 
@@ -312,7 +309,7 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 

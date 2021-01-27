@@ -1,7 +1,6 @@
 package ru.tinkoff.invest.openapi.okhttp;
 
 import java.util.concurrent.Executor;
-import java.util.logging.Logger;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -31,16 +30,15 @@ public class OkHttpSandboxOpenApi extends OkHttpOpenApi implements SandboxOpenAp
         final String streamingUrl,
         final int streamingParallelism,
         final String authToken,
-        final Executor executor,
-        final Logger logger
+        final Executor executor
     ) {
-        final MarketContextImpl marketContext = new MarketContextImpl(client, apiUrl, authToken, logger);
-        final OperationsContextImpl operationsContext = new OperationsContextImpl(client, apiUrl, authToken, logger);
-        final OrdersContextImpl ordersContext = new OrdersContextImpl(client, apiUrl, authToken, logger);
-        final PortfolioContextImpl portfolioContext = new PortfolioContextImpl(client, apiUrl, authToken, logger);
-        final UserContextImpl userContext = new UserContextImpl(client, apiUrl, authToken, logger);
-        final StreamingContextImpl streamingContext = new StreamingContextImpl(client, streamingUrl, authToken, streamingParallelism, logger, executor);
-        final SandboxContextImpl sandboxContext = new SandboxContextImpl(client, apiUrl, authToken, logger);
+        final MarketContextImpl marketContext = new MarketContextImpl(client, apiUrl, authToken);
+        final OperationsContextImpl operationsContext = new OperationsContextImpl(client, apiUrl, authToken);
+        final OrdersContextImpl ordersContext = new OrdersContextImpl(client, apiUrl, authToken);
+        final PortfolioContextImpl portfolioContext = new PortfolioContextImpl(client, apiUrl, authToken);
+        final UserContextImpl userContext = new UserContextImpl(client, apiUrl, authToken);
+        final StreamingContextImpl streamingContext = new StreamingContextImpl(client, streamingUrl, authToken, streamingParallelism, executor);
+        final SandboxContextImpl sandboxContext = new SandboxContextImpl(client, apiUrl, authToken);
 
         return new OkHttpSandboxOpenApi(
                 client,

@@ -25,8 +25,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 class StreamingContextImpl implements StreamingContext {
 
@@ -36,7 +34,7 @@ class StreamingContextImpl implements StreamingContext {
     private final WebSocket[] wsClients;
     private final ArrayList<Set<StreamingRequest.ActivatingRequest>> requestsHistory;
     private final ObjectMapper mapper;
-    private final Logger logger;
+    private final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(StreamingContextImpl.class);
     private final OkHttpClient client;
     private final okhttp3.Request wsRequest;
     private final StreamingEventPublisher publisher;
@@ -47,9 +45,7 @@ class StreamingContextImpl implements StreamingContext {
                          @NotNull final String streamingUrl,
                          @NotNull final String authToken,
                          final int streamingParallelism,
-                         @NotNull final Logger logger,
                          @NotNull final Executor executor) {
-        this.logger = logger;
         this.publisher = new StreamingEventPublisher(executor);
         this.client = client;
         this.mapper = new ObjectMapper();
@@ -82,7 +78,7 @@ class StreamingContextImpl implements StreamingContext {
 
             wsClient.send(message);
         } catch (JsonProcessingException ex) {
-            logger.log(Level.SEVERE, "Не удалось сериализовать сообщение в JSON", ex);
+            logger.error("Не удалось сериализовать сообщение в JSON", ex);
         }
     }
 
@@ -358,7 +354,7 @@ class StreamingContextImpl implements StreamingContext {
                     sub.signal(signal);
                 }
             } catch (JsonProcessingException ex) {
-                logger.log(Level.SEVERE, "Не удалось десериализовать JSON пришедший из Streaming API", ex);
+                logger.error("Не удалось десериализовать JSON пришедший из Streaming API", ex);
             }
         }
 
@@ -380,7 +376,7 @@ class StreamingContextImpl implements StreamingContext {
         public void onMessage(@NotNull WebSocket webSocket, @NotNull ByteString bytes) {
             super.onMessage(webSocket, bytes);
 
-            logger.warning("Streaming API #" + id + " клиент получил байтовый тип сообщения!");
+            logger.warn("Streaming API #" + id + " клиент получил байтовый тип сообщения!");
         }
 
         @Override
@@ -392,17 +388,17 @@ class StreamingContextImpl implements StreamingContext {
             if (Objects.nonNull(response)) {
                 int responseCode = response.code();
                 if (responseCode == 401 || responseCode == 403) {
-                    logger.log(Level.SEVERE, "Для Streaming API передан неверный токен.", t);
+                    logger.error("Для Streaming API передан неверный токен.", t);
                     stop();
                     return;
                 }
             }
 
             try {
-                logger.log(Level.SEVERE, "Что-то произошло в Streaming API клиенте #" + id, t);
+                logger.error("Что-то произошло в Streaming API клиенте #" + id, t);
                 restore(this);
             } catch (Exception ex) {
-                logger.log(Level.SEVERE, "При восстановлении Streaming API клиента #" + id + " что-то произошло", ex);
+                logger.error("При восстановлении Streaming API клиента #" + id + " что-то произошло", ex);
             }
         }
     }
