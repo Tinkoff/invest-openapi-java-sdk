@@ -37,9 +37,9 @@ final class OperationsContextImpl extends BaseContextImpl implements OperationsC
     @Override
     @NotNull
     public CompletableFuture<Operations> getOperations(@NotNull final OffsetDateTime from,
-                                                           @NotNull final OffsetDateTime to,
-                                                           @Nullable final String figi,
-                                                           @Nullable final String brokerAccountId) {
+                                                       @NotNull final OffsetDateTime to,
+                                                       @Nullable final String figi,
+                                                       @Nullable final String brokerAccountId) {
         final CompletableFuture<Operations> future = new CompletableFuture<>();
         HttpUrl.Builder builder = finalUrl.newBuilder();
         if (Objects.nonNull(figi) && !figi.isEmpty())

@@ -2,6 +2,7 @@ package ru.tinkoff.invest.openapi;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import ru.tinkoff.invest.openapi.model.rest.SandboxAccount;
 import ru.tinkoff.invest.openapi.model.rest.SandboxRegisterRequest;
 import ru.tinkoff.invest.openapi.model.rest.SandboxSetCurrencyBalanceRequest;
 import ru.tinkoff.invest.openapi.model.rest.SandboxSetPositionBalanceRequest;
@@ -16,12 +17,12 @@ public interface SandboxContext extends Context {
     /**
      * Регистрация в системе "песочницы". Проводится один раз для клиента.
      *
-     * @param brokerAccountType Тип брокерского счёта.
+     * @param registerRequest Параметры запроса.
      * 
-     * @return Ничего.
+     * @return "Песочный" брокерский счёт.
      */
     @NotNull
-    CompletableFuture<Void> performRegistration(@NotNull SandboxRegisterRequest registerRequest);
+    CompletableFuture<SandboxAccount> performRegistration(@NotNull SandboxRegisterRequest registerRequest);
 
     /**
      * Установка значения валютного актива.

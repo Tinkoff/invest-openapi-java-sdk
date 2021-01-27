@@ -1,6 +1,7 @@
 package ru.tinkoff.invest.openapi.okhttp;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,6 +15,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 final class SandboxContextImpl extends BaseContextImpl implements SandboxContext {
+
+    private static final TypeReference<SandboxRegisterResponse> sandboxRegisterResponseReference =
+            new TypeReference<SandboxRegisterResponse>() {
+            };
 
     public SandboxContextImpl(@NotNull final OkHttpClient client,
                               @NotNull final String url,
@@ -30,8 +35,8 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
 
     @Override
     @NotNull
-    public CompletableFuture<Void> performRegistration(@NotNull final SandboxRegisterRequest registerRequest) {
-        final CompletableFuture<Void> future = new CompletableFuture<>();
+    public CompletableFuture<SandboxAccount> performRegistration(@NotNull final SandboxRegisterRequest registerRequest) {
+        final CompletableFuture<SandboxAccount> future = new CompletableFuture<>();
         final HttpUrl requestUrl = finalUrl.newBuilder()
                 .addPathSegment("register")
                 .build();
@@ -58,8 +63,8 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) {
                 try {
-                    handleResponse(response, emptyPayloadTypeReference);
-                    future.complete(null);
+                    final SandboxRegisterResponse result = handleResponse(response, sandboxRegisterResponseReference);
+                    future.complete(result.getPayload());
                 } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 }
