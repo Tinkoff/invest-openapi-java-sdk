@@ -166,6 +166,42 @@ final class SandboxContextImpl extends BaseContextImpl implements SandboxContext
 
     @Override
     @NotNull
+    public CompletableFuture<Void> removeAccount(@Nullable String brokerAccountId) {
+        final CompletableFuture<Void> future = new CompletableFuture<>();
+
+        HttpUrl.Builder builder = finalUrl.newBuilder();
+        if (Objects.nonNull(brokerAccountId) && !brokerAccountId.isEmpty())
+            builder.addQueryParameter("brokerAccountId", brokerAccountId);
+        final HttpUrl requestUrl = builder
+                .addPathSegment("remove")
+                .build();
+        final Request request = prepareRequest(requestUrl)
+                .post(RequestBody.create(new byte[] {}))
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                future.completeExceptionally(e);
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) {
+                try {
+                    handleResponse(response, emptyPayloadTypeReference);
+                    future.complete(null);
+                } catch (Exception ex) {
+                    future.completeExceptionally(ex);
+                }
+            }
+        });
+
+        return future;
+    }
+
+    @Override
+    @NotNull
     public CompletableFuture<Void> clearAll(@Nullable final String brokerAccountId) {
         final CompletableFuture<Void> future = new CompletableFuture<>();
 

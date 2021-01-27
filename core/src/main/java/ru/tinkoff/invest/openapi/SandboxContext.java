@@ -49,6 +49,16 @@ public interface SandboxContext extends Context {
                                                @Nullable String brokerAccountId);
 
     /**
+     * Удаление "песочного" брокерского счёта.
+     *
+     * @param brokerAccountId Идентификатор брокерского счёта.
+     *
+     * @return Ничего.
+     */
+    @NotNull
+    CompletableFuture<Void> removeAccount(@Nullable String brokerAccountId);
+
+    /**
      * Сброс всех установленных значений по активам.
      *
      * @param brokerAccountId Идентификатор брокерского счёта.
@@ -57,5 +67,4 @@ public interface SandboxContext extends Context {
      */
     @NotNull
     CompletableFuture<Void> clearAll(@Nullable String brokerAccountId);
-
 }
