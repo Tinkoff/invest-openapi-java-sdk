@@ -5,30 +5,25 @@ import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.tinkoff.invest.openapi.PortfolioContext;
-import ru.tinkoff.invest.openapi.models.RestResponse;
-import ru.tinkoff.invest.openapi.models.portfolio.Portfolio;
-import ru.tinkoff.invest.openapi.models.portfolio.PortfolioCurrencies;
+import ru.tinkoff.invest.openapi.model.rest.*;
 
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 final class PortfolioContextImpl extends BaseContextImpl implements PortfolioContext {
 
-    private static final TypeReference<RestResponse<Portfolio>> portfolioTypeReference =
-            new TypeReference<RestResponse<Portfolio>>() {
+    private static final TypeReference<PortfolioResponse> portfolioTypeReference =
+            new TypeReference<PortfolioResponse>() {
             };
-    private static final TypeReference<RestResponse<PortfolioCurrencies>> portfolioCurrenciesTypeReference =
-            new TypeReference<RestResponse<PortfolioCurrencies>>() {
+    private static final TypeReference<PortfolioCurrenciesResponse> portfolioCurrenciesTypeReference =
+            new TypeReference<PortfolioCurrenciesResponse>() {
             };
 
     public PortfolioContextImpl(@NotNull final OkHttpClient client,
                                 @NotNull final String url,
-                                @NotNull final String authToken,
-                                @NotNull final Logger logger) {
-        super(client, url, authToken, logger);
+                                @NotNull final String authToken) {
+        super(client, url, authToken);
     }
 
     @NotNull
@@ -53,15 +48,15 @@ final class PortfolioContextImpl extends BaseContextImpl implements PortfolioCon
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull final Call call, @NotNull final IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 
             @Override
             public void onResponse(@NotNull final Call call, @NotNull final Response response) {
                 try {
-                    final RestResponse<Portfolio> result = handleResponse(response, portfolioTypeReference);
-                    future.complete(result.payload);
+                    final PortfolioResponse result = handleResponse(response, portfolioTypeReference);
+                    future.complete(result.getPayload());
                 } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 }
@@ -73,8 +68,8 @@ final class PortfolioContextImpl extends BaseContextImpl implements PortfolioCon
 
     @Override
     @NotNull
-    public CompletableFuture<PortfolioCurrencies> getPortfolioCurrencies(@Nullable final String brokerAccountId) {
-        final CompletableFuture<PortfolioCurrencies> future = new CompletableFuture<>();
+    public CompletableFuture<Currencies> getPortfolioCurrencies(@Nullable final String brokerAccountId) {
+        final CompletableFuture<Currencies> future = new CompletableFuture<>();
 
         HttpUrl.Builder builder = finalUrl.newBuilder();
         if (Objects.nonNull(brokerAccountId) && !brokerAccountId.isEmpty())
@@ -88,15 +83,15 @@ final class PortfolioContextImpl extends BaseContextImpl implements PortfolioCon
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull final Call call, @NotNull final IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 
             @Override
             public void onResponse(@NotNull final Call call, @NotNull final Response response) {
                 try {
-                    final RestResponse<PortfolioCurrencies> result = handleResponse(response, portfolioCurrenciesTypeReference);
-                    future.complete(result.payload);
+                    final PortfolioCurrenciesResponse result = handleResponse(response, portfolioCurrenciesTypeReference);
+                    future.complete(result.getPayload());
                 } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 }

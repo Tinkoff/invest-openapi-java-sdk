@@ -5,29 +5,24 @@ import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.tinkoff.invest.openapi.OperationsContext;
-import ru.tinkoff.invest.openapi.exceptions.OpenApiException;
-import ru.tinkoff.invest.openapi.models.RestResponse;
-import ru.tinkoff.invest.openapi.models.operations.OperationsList;
+import ru.tinkoff.invest.openapi.model.rest.*;
 
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 final class OperationsContextImpl extends BaseContextImpl implements OperationsContext {
 
-    private static final TypeReference<RestResponse<OperationsList>> operationsListTypeReference =
-            new TypeReference<RestResponse<OperationsList>>() {
+    private static final TypeReference<OperationsResponse> operationsListTypeReference =
+            new TypeReference<OperationsResponse>() {
             };
 
     public OperationsContextImpl(@NotNull final OkHttpClient client,
                                  @NotNull final String url,
-                                 @NotNull final String authToken,
-                                 @NotNull final Logger logger) {
-        super(client, url, authToken, logger);
+                                 @NotNull final String authToken) {
+        super(client, url, authToken);
     }
 
     @NotNull
@@ -38,11 +33,11 @@ final class OperationsContextImpl extends BaseContextImpl implements OperationsC
 
     @Override
     @NotNull
-    public CompletableFuture<OperationsList> getOperations(@NotNull final OffsetDateTime from,
-                                                           @NotNull final OffsetDateTime to,
-                                                           @Nullable final String figi,
-                                                           @Nullable final String brokerAccountId) {
-        final CompletableFuture<OperationsList> future = new CompletableFuture<>();
+    public CompletableFuture<Operations> getOperations(@NotNull final OffsetDateTime from,
+                                                       @NotNull final OffsetDateTime to,
+                                                       @Nullable final String figi,
+                                                       @Nullable final String brokerAccountId) {
+        final CompletableFuture<Operations> future = new CompletableFuture<>();
         HttpUrl.Builder builder = finalUrl.newBuilder();
         if (Objects.nonNull(figi) && !figi.isEmpty())
             builder.addQueryParameter("figi", figi);
@@ -58,15 +53,15 @@ final class OperationsContextImpl extends BaseContextImpl implements OperationsC
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull final Call call, @NotNull final IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 
             @Override
             public void onResponse(@NotNull final Call call, @NotNull final Response response) {
                 try {
-                    final RestResponse<OperationsList> result = handleResponse(response, operationsListTypeReference);
-                    future.complete(result.payload);
+                    final OperationsResponse result = handleResponse(response, operationsListTypeReference);
+                    future.complete(result.getPayload());
                 } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 }

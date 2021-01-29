@@ -6,40 +6,36 @@ import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import ru.tinkoff.invest.openapi.MarketContext;
 import ru.tinkoff.invest.openapi.exceptions.OpenApiException;
-import ru.tinkoff.invest.openapi.models.RestResponse;
-import ru.tinkoff.invest.openapi.models.market.*;
+import ru.tinkoff.invest.openapi.model.rest.*;
 
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 final class MarketContextImpl extends BaseContextImpl implements MarketContext {
 
     private static final String NOT_FOUND_MESSAGE_CODE = "NOT_FOUND";
     private static final String INSTRUMENT_ERROR_MESSAGE_CODE = "INSTRUMENT_ERROR";
 
-    private static final TypeReference<RestResponse<InstrumentsList>> instrumentsListTypeReference =
-            new TypeReference<RestResponse<InstrumentsList>>() {
+    private static final TypeReference<MarketInstrumentListResponse> instrumentsListTypeReference =
+            new TypeReference<MarketInstrumentListResponse>() {
             };
-    private static final TypeReference<RestResponse<Orderbook>> orderbookTypeReference =
-            new TypeReference<RestResponse<Orderbook>>() {
+    private static final TypeReference<OrderbookResponse> orderbookTypeReference =
+            new TypeReference<OrderbookResponse>() {
             };
-    private static final TypeReference<RestResponse<HistoricalCandles>> historicalCandlesTypeReference =
-            new TypeReference<RestResponse<HistoricalCandles>>() {
+    private static final TypeReference<CandlesResponse> historicalCandlesTypeReference =
+            new TypeReference<CandlesResponse>() {
             };
-    private static final TypeReference<RestResponse<Instrument>> instrumentTypeReference =
-            new TypeReference<RestResponse<Instrument>>() {
+    private static final TypeReference<SearchMarketInstrumentResponse> instrumentTypeReference =
+            new TypeReference<SearchMarketInstrumentResponse>() {
             };
 
     public MarketContextImpl(@NotNull final OkHttpClient client,
                              @NotNull final String url,
-                             @NotNull final String authToken,
-                             @NotNull final Logger logger) {
-        super(client, url, authToken, logger);
+                             @NotNull final String authToken) {
+        super(client, url, authToken);
     }
 
     @NotNull
@@ -50,8 +46,8 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
 
     @Override
     @NotNull
-    public CompletableFuture<InstrumentsList> getMarketStocks() {
-        final CompletableFuture<InstrumentsList> future = new CompletableFuture<>();
+    public CompletableFuture<MarketInstrumentList> getMarketStocks() {
+        final CompletableFuture<MarketInstrumentList> future = new CompletableFuture<>();
         final HttpUrl requestUrl = finalUrl.newBuilder()
                 .addPathSegment("stocks")
                 .build();
@@ -61,15 +57,15 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 
             @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+            public void onResponse(@NotNull Call call, @NotNull Response response) {
                 try {
-                    final RestResponse<InstrumentsList> result = handleResponse(response, instrumentsListTypeReference);
-                    future.complete(result.payload);
+                    final MarketInstrumentListResponse result = handleResponse(response, instrumentsListTypeReference);
+                    future.complete(result.getPayload());
                 } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 }
@@ -81,8 +77,8 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
 
     @Override
     @NotNull
-    public CompletableFuture<InstrumentsList> getMarketBonds() {
-        final CompletableFuture<InstrumentsList> future = new CompletableFuture<>();
+    public CompletableFuture<MarketInstrumentList> getMarketBonds() {
+        final CompletableFuture<MarketInstrumentList> future = new CompletableFuture<>();
         final HttpUrl requestUrl = finalUrl.newBuilder()
                 .addPathSegment("bonds")
                 .build();
@@ -92,15 +88,15 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) {
                 try {
-                    final RestResponse<InstrumentsList> result = handleResponse(response, instrumentsListTypeReference);
-                    future.complete(result.payload);
+                    final MarketInstrumentListResponse result = handleResponse(response, instrumentsListTypeReference);
+                    future.complete(result.getPayload());
                 } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 }
@@ -112,8 +108,8 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
 
     @Override
     @NotNull
-    public CompletableFuture<InstrumentsList> getMarketEtfs() {
-        final CompletableFuture<InstrumentsList> future = new CompletableFuture<>();
+    public CompletableFuture<MarketInstrumentList> getMarketEtfs() {
+        final CompletableFuture<MarketInstrumentList> future = new CompletableFuture<>();
         final HttpUrl requestUrl = finalUrl.newBuilder()
                 .addPathSegment("etfs")
                 .build();
@@ -123,15 +119,15 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) {
                 try {
-                    final RestResponse<InstrumentsList> result = handleResponse(response, instrumentsListTypeReference);
-                    future.complete(result.payload);
+                    final MarketInstrumentListResponse result = handleResponse(response, instrumentsListTypeReference);
+                    future.complete(result.getPayload());
                 } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 }
@@ -143,8 +139,8 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
 
     @Override
     @NotNull
-    public CompletableFuture<InstrumentsList> getMarketCurrencies() {
-        final CompletableFuture<InstrumentsList> future = new CompletableFuture<>();
+    public CompletableFuture<MarketInstrumentList> getMarketCurrencies() {
+        final CompletableFuture<MarketInstrumentList> future = new CompletableFuture<>();
         final HttpUrl requestUrl = finalUrl.newBuilder()
                 .addPathSegment("currencies")
                 .build();
@@ -154,15 +150,15 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) {
                 try {
-                    final RestResponse<InstrumentsList> result = handleResponse(response, instrumentsListTypeReference);
-                    future.complete(result.payload);
+                    final MarketInstrumentListResponse result = handleResponse(response, instrumentsListTypeReference);
+                    future.complete(result.getPayload());
                 } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 }
@@ -187,15 +183,15 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) {
                 try {
-                    final RestResponse<Orderbook> result = handleResponse(response, orderbookTypeReference);
-                    future.complete(Optional.of(result.payload));
+                    final OrderbookResponse result = handleResponse(response, orderbookTypeReference);
+                    future.complete(Optional.of(result.getPayload()));
                 } catch (OpenApiException ex) {
                     if (ex.getCode().equals(INSTRUMENT_ERROR_MESSAGE_CODE)) {
                         future.complete(Optional.empty());
@@ -213,11 +209,11 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
 
     @Override
     @NotNull
-    public CompletableFuture<Optional<HistoricalCandles>> getMarketCandles(@NotNull final String figi,
-                                                                           @NotNull final OffsetDateTime from,
-                                                                           @NotNull final OffsetDateTime to,
-                                                                           @NotNull final CandleInterval interval) {
-        final CompletableFuture<Optional<HistoricalCandles>> future = new CompletableFuture<>();
+    public CompletableFuture<Optional<Candles>> getMarketCandles(@NotNull final String figi,
+                                                                 @NotNull final OffsetDateTime from,
+                                                                 @NotNull final OffsetDateTime to,
+                                                                 @NotNull final CandleResolution interval) {
+        final CompletableFuture<Optional<Candles>> future = new CompletableFuture<>();
         String renderedInterval;
         try {
             renderedInterval = mapper.writeValueAsString(interval);
@@ -240,16 +236,16 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) {
                 try {
-                    final RestResponse<HistoricalCandles> result =
+                    final CandlesResponse result =
                             handleResponse(response, historicalCandlesTypeReference);
-                    future.complete(Optional.of(result.payload));
+                    future.complete(Optional.of(result.getPayload()));
                 } catch (OpenApiException ex) {
                     if (ex.getCode().equals(INSTRUMENT_ERROR_MESSAGE_CODE)) {
                         future.complete(Optional.empty());
@@ -267,8 +263,8 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
 
     @Override
     @NotNull
-    public CompletableFuture<InstrumentsList> searchMarketInstrumentsByTicker(@NotNull final String ticker) {
-        final CompletableFuture<InstrumentsList> future = new CompletableFuture<>();
+    public CompletableFuture<MarketInstrumentList> searchMarketInstrumentsByTicker(@NotNull final String ticker) {
+        final CompletableFuture<MarketInstrumentList> future = new CompletableFuture<>();
         final HttpUrl requestUrl = finalUrl.newBuilder()
                 .addPathSegment("search")
                 .addPathSegment("by-ticker")
@@ -280,15 +276,15 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 
             @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+            public void onResponse(@NotNull Call call, @NotNull Response response) {
                 try {
-                    final RestResponse<InstrumentsList> result = handleResponse(response, instrumentsListTypeReference);
-                    future.complete(result.payload);
+                    final MarketInstrumentListResponse result = handleResponse(response, instrumentsListTypeReference);
+                    future.complete(result.getPayload());
                 } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 }
@@ -300,8 +296,8 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
 
     @Override
     @NotNull
-    public CompletableFuture<Optional<Instrument>> searchMarketInstrumentByFigi(@NotNull final String figi) {
-        final CompletableFuture<Optional<Instrument>> future = new CompletableFuture<>();
+    public CompletableFuture<Optional<SearchMarketInstrument>> searchMarketInstrumentByFigi(@NotNull final String figi) {
+        final CompletableFuture<Optional<SearchMarketInstrument>> future = new CompletableFuture<>();
         final HttpUrl requestUrl = finalUrl.newBuilder()
                 .addPathSegment("search")
                 .addPathSegment("by-figi")
@@ -313,15 +309,15 @@ final class MarketContextImpl extends BaseContextImpl implements MarketContext {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                logger.log(Level.SEVERE, "При запросе к REST API произошла ошибка", e);
+                logger.error("При запросе к REST API произошла ошибка", e);
                 future.completeExceptionally(e);
             }
 
             @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+            public void onResponse(@NotNull Call call, @NotNull Response response) {
                 try {
-                    final RestResponse<Instrument> result = handleResponse(response, instrumentTypeReference);
-                    future.complete(Optional.of(result.payload));
+                    final SearchMarketInstrumentResponse result = handleResponse(response, instrumentTypeReference);
+                    future.complete(Optional.of(result.getPayload()));
                 } catch (OpenApiException ex) {
                     if (ex.getCode().equals(NOT_FOUND_MESSAGE_CODE)) {
                         future.complete(Optional.empty());

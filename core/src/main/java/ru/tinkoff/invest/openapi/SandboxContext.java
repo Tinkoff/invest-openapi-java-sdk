@@ -2,9 +2,10 @@ package ru.tinkoff.invest.openapi;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.tinkoff.invest.openapi.models.sandbox.CurrencyBalance;
-import ru.tinkoff.invest.openapi.models.sandbox.PositionBalance;
-import ru.tinkoff.invest.openapi.models.user.BrokerAccountType;
+import ru.tinkoff.invest.openapi.model.rest.SandboxAccount;
+import ru.tinkoff.invest.openapi.model.rest.SandboxRegisterRequest;
+import ru.tinkoff.invest.openapi.model.rest.SandboxSetCurrencyBalanceRequest;
+import ru.tinkoff.invest.openapi.model.rest.SandboxSetPositionBalanceRequest;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -16,34 +17,46 @@ public interface SandboxContext extends Context {
     /**
      * Регистрация в системе "песочницы". Проводится один раз для клиента.
      *
-     * @param brokerAccountType Тип брокерского счёта.
+     * @param registerRequest Параметры запроса.
      * 
-     * @return Ничего.
+     * @return "Песочный" брокерский счёт.
      */
     @NotNull
-    CompletableFuture<Void> performRegistration(@Nullable BrokerAccountType brokerAccountType);
+    CompletableFuture<SandboxAccount> performRegistration(@NotNull SandboxRegisterRequest registerRequest);
 
     /**
      * Установка значения валютного актива.
      *
-     * @param data Жалаемые параметры позиции.
+     * @param balanceRequest Параметры запроса.
      * @param brokerAccountId Идентификатор брокерского счёта.
      * 
      * @return Ничего.
      */
     @NotNull
-    CompletableFuture<Void> setCurrencyBalance(@NotNull CurrencyBalance data, @Nullable String brokerAccountId);
+    CompletableFuture<Void> setCurrencyBalance(@NotNull SandboxSetCurrencyBalanceRequest balanceRequest,
+                                               @Nullable String brokerAccountId);
 
     /**
      * Установка позиции по инструменту.
      *
-     * @param data Жалаемые параметры позиции.
+     * @param balanceRequest Параметры запроса.
      * @param brokerAccountId Идентификатор брокерского счёта.
      * 
      * @return Ничего.
      */
     @NotNull
-    CompletableFuture<Void> setPositionBalance(@NotNull PositionBalance data, @Nullable String brokerAccountId);
+    CompletableFuture<Void> setPositionBalance(@NotNull SandboxSetPositionBalanceRequest balanceRequest,
+                                               @Nullable String brokerAccountId);
+
+    /**
+     * Удаление "песочного" брокерского счёта.
+     *
+     * @param brokerAccountId Идентификатор брокерского счёта.
+     *
+     * @return Ничего.
+     */
+    @NotNull
+    CompletableFuture<Void> removeAccount(@Nullable String brokerAccountId);
 
     /**
      * Сброс всех установленных значений по активам.
@@ -54,5 +67,4 @@ public interface SandboxContext extends Context {
      */
     @NotNull
     CompletableFuture<Void> clearAll(@Nullable String brokerAccountId);
-
 }

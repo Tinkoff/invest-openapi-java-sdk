@@ -80,35 +80,34 @@ docker run -it --rm --name invest-openapi-java-sdk -v "$PWD":/usr/src/invest-ope
 Для непосредственного взаимодействия с OpenAPI нужно создать подключение.
 
 ```java
-import ru.tinkoff.invest.openapi.OpenApi;
-import ru.tinkoff.invest.openapi.SandboxOpenApi;
-import ru.tinkoff.invest.openapi.okhttp.OkHttpOpenApiFactory;
-import java.util.concurrent.Executors;
 import org.reactivestreams.Subscriber;
-import java.util.Logger;
+import ru.tinkoff.invest.openapi.OpenApi;
+import ru.tinkoff.invest.openapi.okhttp.OkHttpOpenApi;
+import ru.tinkoff.invest.openapi.model.rest.*;
+import ru.tinkoff.invest.openapi.model.streaming.*;
 
-Logger logger = /* ваш вариант логгера */
-var token = "super_token"; // токен авторизации
-var sandboxMode = true;
-var factory = new OkHttpOpenApiFactory(token, logger);
-OpenApi api;
+import java.util.concurrent.Executors;
 
-if (sandboxMode) {
-    api = factory.createSandboxOpenApiClient(Executors.newSingleThreadExecutor());
-    // ОБЯЗАТЕЛЬНО нужно выполнить регистрацию в "песочнице"
-    ((SandboxOpenApi) api).getSandboxContext().performRegistration(null).join();
-} else {
-    api = factory.createOpenApiClient(Executors.newSingleThreadExecutor());
+class Example {
+    public static void main(String[] args) {
+      String token = "super_token"; // токен авторизации
+      boolean sandboxMode = true;
+      OpenApi api = new OkHttpOpenApi(token, sandboxMode);
+
+      if (api.isSandboxMode()) {
+        api.getSandboxContext().performRegistration(new SandboxRegisterRequest()).join();
+      }
+
+      Subscriber<StreamingEvent> listener = new Subscriber() { /* ваш вариант слушателя */ };
+      api.getStreamingContext().getEventPublisher().subscribe(listener);
+
+      // оформляем подписку на поток "свечей"
+      api.getStreamingContext().sendRequest(StreamingRequest.subscribeCandle("<какой-то figi>", CandleInterval.FIVE_MIN));
+
+      // Вся работа происходит через объекты контекста, все запросы асинхронны
+      Portfolio portfolio = api.getPortfolioContext.getPortfolio().join(); // получить текущий портфель
+    }
 }
-
-Subscriber listener = /* ваш вариант слушателя */
-api.getStreamingContext().getEventPublisher().subscribe(listener);
-
-// оформляем подписку на поток "свечей"
-api.getStreamingContext().sendRequest(StreamingRequest.subscribeCandle("<какой-то figi>", CandleInterval.FIVE_MIN));
-
-// Вся работа происходит через объекты контекста, все запросы асинхронны
-var portfolio = api.portfolioContext.getPortfolio().join(); // получить текущий портфель
 ```
 
 ### А пример готового робота есть?

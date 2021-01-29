@@ -1,7 +1,7 @@
 package ru.tinkoff.invest.openapi.example;
 
 import org.jetbrains.annotations.NotNull;
-import ru.tinkoff.invest.openapi.models.market.CandleInterval;
+import ru.tinkoff.invest.openapi.model.streaming.CandleInterval;
 
 import java.util.Arrays;
 
@@ -44,15 +44,15 @@ public class TradingParameters {
     private static CandleInterval parseCandleInterval(final String str) {
         switch (str) {
             case "1min":
-                return CandleInterval.ONE_MIN;
+                return CandleInterval._1MIN;
             case "2min":
-                return CandleInterval.TWO_MIN;
+                return CandleInterval._2MIN;
             case "3min":
-                return CandleInterval.THREE_MIN;
+                return CandleInterval._3MIN;
             case "5min":
-                return CandleInterval.FIVE_MIN;
+                return CandleInterval._5MIN;
             case "10min":
-                return CandleInterval.TEN_MIN;
+                return CandleInterval._10MIN;
             default:
                 throw new IllegalArgumentException("Не распознан разрешающий интервал!");
         }

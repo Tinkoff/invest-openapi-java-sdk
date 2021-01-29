@@ -13,8 +13,8 @@ import org.reactivestreams.Subscription;
 import org.reactivestreams.Publisher;
 
 import ru.tinkoff.invest.openapi.StreamingContext;
-import ru.tinkoff.invest.openapi.models.streaming.StreamingEvent;
-import ru.tinkoff.invest.openapi.models.streaming.StreamingRequest;
+import ru.tinkoff.invest.openapi.model.streaming.StreamingEvent;
+import ru.tinkoff.invest.openapi.model.streaming.StreamingRequest;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -25,18 +25,17 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 class StreamingContextImpl implements StreamingContext {
 
-    private static final TypeReference<StreamingEvent> streamingEventTypeReference = new TypeReference<StreamingEvent>() {
-    };
+    private static final TypeReference<StreamingEvent> streamingEventTypeReference =
+            new TypeReference<StreamingEvent>() {
+            };
 
     private final WebSocket[] wsClients;
     private final ArrayList<Set<StreamingRequest.ActivatingRequest>> requestsHistory;
     private final ObjectMapper mapper;
-    private final Logger logger;
+    private final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(StreamingContextImpl.class);
     private final OkHttpClient client;
     private final okhttp3.Request wsRequest;
     private final StreamingEventPublisher publisher;
@@ -47,9 +46,7 @@ class StreamingContextImpl implements StreamingContext {
                          @NotNull final String streamingUrl,
                          @NotNull final String authToken,
                          final int streamingParallelism,
-                         @NotNull final Logger logger,
                          @NotNull final Executor executor) {
-        this.logger = logger;
         this.publisher = new StreamingEventPublisher(executor);
         this.client = client;
         this.mapper = new ObjectMapper();
@@ -82,7 +79,7 @@ class StreamingContextImpl implements StreamingContext {
 
             wsClient.send(message);
         } catch (JsonProcessingException ex) {
-            logger.log(Level.SEVERE, "Не удалось сериализовать сообщение в JSON", ex);
+            logger.error("Не удалось сериализовать сообщение в JSON", ex);
         }
     }
 
@@ -297,16 +294,12 @@ class StreamingContextImpl implements StreamingContext {
         return this.publisher;
     }
 
-    public boolean hasStopped() {
-        return this.hasStopped;
-    }
-
-    public synchronized void stop() {
+    @Override
+    public synchronized void close() {
         if (!this.hasStopped) {
             for (final WebSocket ws : this.wsClients) {
                 ws.close(1000, null);
             }
-            client.dispatcher().executorService().shutdown();
 
             this.hasStopped = true;
         }
@@ -358,7 +351,7 @@ class StreamingContextImpl implements StreamingContext {
                     sub.signal(signal);
                 }
             } catch (JsonProcessingException ex) {
-                logger.log(Level.SEVERE, "Не удалось десериализовать JSON пришедший из Streaming API", ex);
+                logger.error("Не удалось десериализовать JSON пришедший из Streaming API", ex);
             }
         }
 
@@ -380,7 +373,7 @@ class StreamingContextImpl implements StreamingContext {
         public void onMessage(@NotNull WebSocket webSocket, @NotNull ByteString bytes) {
             super.onMessage(webSocket, bytes);
 
-            logger.warning("Streaming API #" + id + " клиент получил байтовый тип сообщения!");
+            logger.warn("Streaming API #" + id + " клиент получил байтовый тип сообщения!");
         }
 
         @Override
@@ -389,20 +382,20 @@ class StreamingContextImpl implements StreamingContext {
                               @Nullable final Response response) {
             super.onFailure(webSocket, t, response);
 
-            if (Objects.nonNull(response)) {
+            if (response != null) {
                 int responseCode = response.code();
                 if (responseCode == 401 || responseCode == 403) {
-                    logger.log(Level.SEVERE, "Для Streaming API передан неверный токен.", t);
-                    stop();
+                    logger.error("Для Streaming API передан неверный токен.", t);
+                    close();
                     return;
                 }
             }
 
             try {
-                logger.log(Level.SEVERE, "Что-то произошло в Streaming API клиенте #" + id, t);
+                logger.error("Что-то произошло в Streaming API клиенте #" + id, t);
                 restore(this);
             } catch (Exception ex) {
-                logger.log(Level.SEVERE, "При восстановлении Streaming API клиента #" + id + " что-то произошло", ex);
+                logger.error("При восстановлении Streaming API клиента #" + id + " что-то произошло", ex);
             }
         }
     }

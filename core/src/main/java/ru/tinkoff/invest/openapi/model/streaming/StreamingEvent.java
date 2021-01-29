@@ -1,4 +1,4 @@
-package ru.tinkoff.invest.openapi.models.streaming;
+package ru.tinkoff.invest.openapi.model.streaming;
 
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -13,7 +13,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.tinkoff.invest.openapi.models.market.CandleInterval;
 
 import java.io.IOException;
 import java.math.BigDecimal;

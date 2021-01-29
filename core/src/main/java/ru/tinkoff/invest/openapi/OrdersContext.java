@@ -2,10 +2,7 @@ package ru.tinkoff.invest.openapi;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.tinkoff.invest.openapi.models.orders.LimitOrder;
-import ru.tinkoff.invest.openapi.models.orders.MarketOrder;
-import ru.tinkoff.invest.openapi.models.orders.Order;
-import ru.tinkoff.invest.openapi.models.orders.PlacedOrder;
+import ru.tinkoff.invest.openapi.model.rest.*;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -35,9 +32,9 @@ public interface OrdersContext extends Context {
      * @return Размещённая заявка.
      */
     @NotNull
-    CompletableFuture<PlacedOrder> placeLimitOrder(@NotNull String figi,
-                                                   @NotNull LimitOrder limitOrder,
-                                                   @Nullable String brokerAccountId);
+    CompletableFuture<PlacedLimitOrder> placeLimitOrder(@NotNull String figi,
+                                                        @NotNull LimitOrderRequest limitOrder,
+                                                        @Nullable String brokerAccountId);
 
     /**
      * Размещение рыночной заявки.
@@ -49,9 +46,9 @@ public interface OrdersContext extends Context {
      * @return Размещённая заявка.
      */
     @NotNull
-    CompletableFuture<PlacedOrder> placeMarketOrder(@NotNull String figi,
-                                                    @NotNull MarketOrder marketOrder,
-                                                    @Nullable String brokerAccountId);
+    CompletableFuture<PlacedMarketOrder> placeMarketOrder(@NotNull String figi,
+                                                          @NotNull MarketOrderRequest marketOrder,
+                                                          @Nullable String brokerAccountId);
 
     /**
      * Отзыв лимитной заявки.

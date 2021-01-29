@@ -1,7 +1,7 @@
 package ru.tinkoff.invest.openapi;
 
 import org.jetbrains.annotations.NotNull;
-import ru.tinkoff.invest.openapi.models.market.*;
+import ru.tinkoff.invest.openapi.model.rest.*;
 
 import java.time.OffsetDateTime;
 import java.util.Optional;
@@ -18,7 +18,8 @@ public interface MarketContext extends Context {
      * @return Список акций.
      */
     @NotNull
-    CompletableFuture<InstrumentsList> getMarketStocks();
+    CompletableFuture<MarketInstrumentList> getMarketStocks();
+
 
     /**
      * Асинхронное получение бондов, доступных для торговли.
@@ -26,7 +27,7 @@ public interface MarketContext extends Context {
      * @return Список облигаций.
      */
     @NotNull
-    CompletableFuture<InstrumentsList> getMarketBonds();
+    CompletableFuture<MarketInstrumentList> getMarketBonds();
 
     /**
      * Асинхронное получение списка фондов, доступных для торговли.
@@ -34,7 +35,7 @@ public interface MarketContext extends Context {
      * @return Список фондов.
      */
     @NotNull
-    CompletableFuture<InstrumentsList> getMarketEtfs();
+    CompletableFuture<MarketInstrumentList> getMarketEtfs();
 
     /**
      * Асинхронное получение списка валют, доступных для торговли.
@@ -42,7 +43,7 @@ public interface MarketContext extends Context {
      * @return Список валют.
      */
     @NotNull
-    CompletableFuture<InstrumentsList> getMarketCurrencies();
+    CompletableFuture<MarketInstrumentList> getMarketCurrencies();
 
     /**
      * Асинхронное получение текущего состояния торгового "стакана".
@@ -66,10 +67,10 @@ public interface MarketContext extends Context {
      * @return Данные по свечам инструмента или ничего, если инструмент не найден.
      */
     @NotNull
-    CompletableFuture<Optional<HistoricalCandles>> getMarketCandles(@NotNull String figi,
-                                                                    @NotNull OffsetDateTime from,
-                                                                    @NotNull OffsetDateTime to,
-                                                                    @NotNull CandleInterval interval);
+    CompletableFuture<Optional<Candles>> getMarketCandles(@NotNull String figi,
+                                                          @NotNull OffsetDateTime from,
+                                                          @NotNull OffsetDateTime to,
+                                                          @NotNull CandleResolution interval);
 
     /**
      * Асинхронный поиск инструментов по тикеру.
@@ -79,7 +80,7 @@ public interface MarketContext extends Context {
      * @return Список инструментов.
      */
     @NotNull
-    CompletableFuture<InstrumentsList> searchMarketInstrumentsByTicker(@NotNull String ticker);
+    CompletableFuture<MarketInstrumentList> searchMarketInstrumentsByTicker(@NotNull String ticker);
 
     /**
      * Асинронный поиск инструмента по идентификатору.
@@ -89,6 +90,6 @@ public interface MarketContext extends Context {
      * @return Найденный инструмент или ничего, если инструмент не найден.
      */
     @NotNull
-    CompletableFuture<Optional<Instrument>> searchMarketInstrumentByFigi(@NotNull String figi);
+    CompletableFuture<Optional<SearchMarketInstrument>> searchMarketInstrumentByFigi(@NotNull String figi);
 
 }

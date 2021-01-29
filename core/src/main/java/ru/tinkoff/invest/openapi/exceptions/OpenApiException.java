@@ -1,7 +1,5 @@
 package ru.tinkoff.invest.openapi.exceptions;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -16,11 +14,8 @@ public class OpenApiException extends Exception {
      */
     private final String code;
 
-    @JsonCreator
-    public OpenApiException(@JsonProperty("message")
-                            @NotNull
+    public OpenApiException(@NotNull
                             final String message,
-                            @JsonProperty("code")
                             @NotNull
                             final String code) {
         super(message);
@@ -31,5 +26,4 @@ public class OpenApiException extends Exception {
     public String getCode() {
         return code;
     }
-    
 }
