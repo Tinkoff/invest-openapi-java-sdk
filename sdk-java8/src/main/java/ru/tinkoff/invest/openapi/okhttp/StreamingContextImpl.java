@@ -28,8 +28,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 class StreamingContextImpl implements StreamingContext {
 
-    private static final TypeReference<StreamingEvent> streamingEventTypeReference = new TypeReference<StreamingEvent>() {
-    };
+    private static final TypeReference<StreamingEvent> streamingEventTypeReference =
+            new TypeReference<StreamingEvent>() {
+            };
 
     private final WebSocket[] wsClients;
     private final ArrayList<Set<StreamingRequest.ActivatingRequest>> requestsHistory;
@@ -293,16 +294,12 @@ class StreamingContextImpl implements StreamingContext {
         return this.publisher;
     }
 
-    public boolean hasStopped() {
-        return this.hasStopped;
-    }
-
-    public synchronized void stop() {
+    @Override
+    public synchronized void close() {
         if (!this.hasStopped) {
             for (final WebSocket ws : this.wsClients) {
                 ws.close(1000, null);
             }
-            client.dispatcher().executorService().shutdown();
 
             this.hasStopped = true;
         }
@@ -385,11 +382,11 @@ class StreamingContextImpl implements StreamingContext {
                               @Nullable final Response response) {
             super.onFailure(webSocket, t, response);
 
-            if (Objects.nonNull(response)) {
+            if (response != null) {
                 int responseCode = response.code();
                 if (responseCode == 401 || responseCode == 403) {
                     logger.error("Для Streaming API передан неверный токен.", t);
-                    stop();
+                    close();
                     return;
                 }
             }

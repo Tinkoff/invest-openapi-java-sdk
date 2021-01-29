@@ -1,12 +1,11 @@
 package ru.tinkoff.invest.openapi.example;
 
 import ru.tinkoff.invest.openapi.OpenApi;
-import ru.tinkoff.invest.openapi.SandboxOpenApi;
 import ru.tinkoff.invest.openapi.model.rest.CurrencyPosition;
 import ru.tinkoff.invest.openapi.model.rest.MarketInstrument;
 import ru.tinkoff.invest.openapi.model.rest.SandboxRegisterRequest;
 import ru.tinkoff.invest.openapi.model.streaming.StreamingRequest;
-import ru.tinkoff.invest.openapi.okhttp.OkHttpOpenApiFactory;
+import ru.tinkoff.invest.openapi.okhttp.OkHttpOpenApi;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -15,12 +14,13 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
-import java.util.logging.*;
+import java.util.logging.LogManager;
 
 public class App {
 
+    static org.slf4j.Logger logger;
+
     public static void main(String[] args) {
-        final Logger logger;
         try {
             logger = initLogger();
         } catch (IOException ex) {
@@ -32,25 +32,18 @@ public class App {
         try {
             parameters = extractParams(args);
         } catch (IllegalArgumentException ex) {
-            logger.log(Level.SEVERE, "Не удалось извлечь торговые параметры.", ex);
+            logger.error("Не удалось извлечь торговые параметры.", ex);
             return;
         }
 
-
-        try {
-            final var factory = new OkHttpOpenApiFactory(parameters.ssoToken);
-            final OpenApi api;
-
+        try (final OpenApi api = new OkHttpOpenApi(parameters.ssoToken, true)) {
             logger.info("Создаём подключение... ");
-            if (parameters.sandboxMode) {
-                api = factory.createSandboxOpenApiClient(Executors.newSingleThreadExecutor());
+            if (api.isSandboxMode()) {
                 // ОБЯЗАТЕЛЬНО нужно выполнить регистрацию в "песочнице"
-                ((SandboxOpenApi) api).getSandboxContext().performRegistration(new SandboxRegisterRequest()).join();
-            } else {
-                api = factory.createOpenApiClient(Executors.newSingleThreadExecutor());
+                api.getSandboxContext().performRegistration(new SandboxRegisterRequest()).join();
             }
 
-            final var listener = new StreamingApiSubscriber(logger, Executors.newSingleThreadExecutor());
+            final var listener = new StreamingApiSubscriber(Executors.newSingleThreadExecutor());
 
             api.getStreamingContext().getEventPublisher().subscribe(listener);
 
@@ -70,7 +63,7 @@ public class App {
 
                 final MarketInstrument instrument;
                 if (instrumentOpt.isEmpty()) {
-                    logger.severe("Не нашлось инструмента с нужным тикером.");
+                    logger.error("Не нашлось инструмента с нужным тикером.");
                     return;
                 } else {
                     instrument = instrumentOpt.get();
@@ -85,7 +78,7 @@ public class App {
 
                 final CurrencyPosition portfolioCurrency;
                 if (portfolioCurrencyOpt.isEmpty()) {
-                    logger.severe("Не нашлось нужной валютной позиции.");
+                    logger.error("Не нашлось нужной валютной позиции.");
                     return;
                 } else {
                     portfolioCurrency = portfolioCurrencyOpt.get();
@@ -95,18 +88,14 @@ public class App {
                 api.getStreamingContext().sendRequest(StreamingRequest.subscribeCandle(instrument.getFigi(), candleInterval));
             }
 
-            initCleanupProcedure(api, logger);
-
             final var result = new CompletableFuture<Void>();
             result.join();
-
-            api.close();
         } catch (final Exception ex) {
-            logger.log(Level.SEVERE, "Что-то пошло не так.", ex);
+            logger.error("Что-то пошло не так.", ex);
         }
     }
 
-    private static Logger initLogger() throws IOException {
+    private static org.slf4j.Logger initLogger() throws IOException {
         final var logManager = LogManager.getLogManager();
         final var classLoader = App.class.getClassLoader();
 
@@ -120,7 +109,7 @@ public class App {
             logManager.readConfiguration(input);
         }
 
-        return Logger.getLogger(App.class.getName());
+        return org.slf4j.LoggerFactory.getLogger(App.class);
     }
 
     private static TradingParameters extractParams(final String[] args) throws IllegalArgumentException {
@@ -135,17 +124,6 @@ public class App {
         } else {
             return TradingParameters.fromProgramArgs(args[0], args[1], args[2], args[3]);
         }
-    }
-
-    private static void initCleanupProcedure(final OpenApi api, final Logger logger) {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            try {
-                logger.info("Закрываем соединение... ");
-                if (!api.hasClosed()) api.close();
-            } catch (final Exception e) {
-                logger.log(Level.SEVERE, "Что-то произошло при закрытии соединения!", e);
-            }
-        }));
     }
 
 }

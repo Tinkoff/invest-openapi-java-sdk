@@ -7,7 +7,9 @@ import org.reactivestreams.Publisher;
 import ru.tinkoff.invest.openapi.model.streaming.StreamingEvent;
 import ru.tinkoff.invest.openapi.model.streaming.StreamingRequest;
 
-public interface StreamingContext {
+import java.io.Closeable;
+
+public interface StreamingContext extends Closeable {
     void sendRequest(@NotNull StreamingRequest request) throws JsonProcessingException;
 
     @NotNull

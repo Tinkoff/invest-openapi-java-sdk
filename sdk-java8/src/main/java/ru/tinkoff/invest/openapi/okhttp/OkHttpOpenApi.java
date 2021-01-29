@@ -1,120 +1,112 @@
 package ru.tinkoff.invest.openapi.okhttp;
 
-import java.util.concurrent.Executor;
-
-import org.jetbrains.annotations.NotNull;
-
 import okhttp3.OkHttpClient;
+import org.jetbrains.annotations.NotNull;
 import ru.tinkoff.invest.openapi.*;
 
-public class OkHttpOpenApi implements OpenApi {
+import java.time.Duration;
+import java.util.Objects;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
 
-    @NotNull
-    private final MarketContextImpl marketContext;
-    @NotNull
-    private final OperationsContextImpl operationsContext;
-    @NotNull
-    private final OrdersContextImpl ordersContext;
-    @NotNull
-    private final PortfolioContextImpl portfolioContext;
-    @NotNull
-    private final UserContextImpl userContext;
-    @NotNull
-    private final StreamingContextImpl streamingContext;
-    @NotNull
+public final class OkHttpOpenApi extends OpenApi {
+
+    private final Executor executor;
     private final OkHttpClient client;
-    private boolean hasClosed;
+    private final String apiUrl;
 
-    OkHttpOpenApi(@NotNull OkHttpClient client,
-                  @NotNull final MarketContextImpl marketContext,
-                  @NotNull final OperationsContextImpl operationsContext,
-                  @NotNull final OrdersContextImpl ordersContext,
-                  @NotNull final PortfolioContextImpl portfolioContext,
-                  @NotNull final UserContextImpl userContext,
-                  @NotNull final StreamingContextImpl streamingContext) {
-        this.client = client;
-        this.marketContext = marketContext;
-        this.operationsContext = operationsContext;
-        this.ordersContext = ordersContext;
-        this.portfolioContext = portfolioContext;
-        this.userContext = userContext;
-        this.streamingContext = streamingContext;
-        this.hasClosed = false;
+    private SandboxContext sandboxContext;
+    private OrdersContext ordersContext;
+    private PortfolioContext portfolioContext;
+    private MarketContext marketContext;
+    private OperationsContext operationsContext;
+    private UserContext userContext;
+    private StreamingContext streamingContext;
+
+    public OkHttpOpenApi(@NotNull final String token,
+                         final boolean sandboxMode,
+                         @NotNull final Executor executor) {
+        super(token, sandboxMode);
+        this.executor = executor;
+        this.client = new OkHttpClient.Builder()
+                .pingInterval(Duration.ofSeconds(5))
+                .build();
+        this.apiUrl = sandboxMode ? this.config.sandboxApiUrl : this.config.marketApiUrl;
     }
 
-    public static OkHttpOpenApi create(
-        final OkHttpClient client,
-        final String apiUrl,
-        final String streamingUrl,
-        final int streamingParallelism,
-        final String authToken,
-        final Executor executor
-    ) {
-        final MarketContextImpl marketContext = new MarketContextImpl(client, apiUrl, authToken);
-        final OperationsContextImpl operationsContext = new OperationsContextImpl(client, apiUrl, authToken);
-        final OrdersContextImpl ordersContext = new OrdersContextImpl(client, apiUrl, authToken);
-        final PortfolioContextImpl portfolioContext = new PortfolioContextImpl(client, apiUrl, authToken);
-        final UserContextImpl userContext = new UserContextImpl(client, apiUrl, authToken);
-        final StreamingContextImpl streamingContext = new StreamingContextImpl(client, streamingUrl, authToken, streamingParallelism, executor);
-
-        return new OkHttpOpenApi(
-                client,
-                marketContext,
-                operationsContext,
-                ordersContext,
-                portfolioContext,
-                userContext,
-                streamingContext
-        );
-    }
-
-    @NotNull
-    @Override
-    public MarketContext getMarketContext() {
-        return this.marketContext;
-    }
-
-    @NotNull
-    @Override
-    public OperationsContext getOperationsContext() {
-        return this.operationsContext;
-    }
-
-    @NotNull
-    @Override
-    public OrdersContext getOrdersContext() {
-        return this.ordersContext;
-    }
-
-    @NotNull
-    @Override
-    public PortfolioContext getPortfolioContext() {
-        return this.portfolioContext;
-    }
-
-    @NotNull
-    @Override
-    public UserContext getUserContext() {
-        return this.userContext;
-    }
-
-    @NotNull
-    @Override
-    public StreamingContext getStreamingContext() {
-        return this.streamingContext;
+    public OkHttpOpenApi(@NotNull final String token, final boolean sandboxMode) {
+        this(token, sandboxMode, ForkJoinPool.commonPool());
     }
 
     @Override
     public void close() {
-        if (!hasClosed) {
-            if (!this.streamingContext.hasStopped()) this.streamingContext.stop();
-            this.client.dispatcher().executorService().shutdown();
-            this.hasClosed = true;
-        }        
+        this.client.dispatcher().executorService().shutdown();
     }
 
-    @Override
-    public boolean hasClosed() {
-        return this.hasClosed;
+    @NotNull
+    public SandboxContext getSandboxContext() {
+        if (this.isSandboxMode) {
+            if (this.sandboxContext == null) {
+                this.sandboxContext = new SandboxContextImpl(client, apiUrl, authToken);
+            }
+            return this.sandboxContext;
+        } else {
+            throw new RuntimeException("Попытка воспользоваться \"песочным\" контекстом API не в режиме \"песочницы\"");
+        }
     }
+
+    @NotNull
+    public OrdersContext getOrdersContext() {
+        if (this.ordersContext == null) {
+            this.ordersContext = new OrdersContextImpl(client, apiUrl, authToken);
+        }
+        return this.ordersContext;
+    }
+
+    @NotNull
+    public PortfolioContext getPortfolioContext() {
+        if (Objects.isNull(this.portfolioContext)) {
+            this.portfolioContext = new PortfolioContextImpl(client, apiUrl, authToken);
+        }
+        return this.portfolioContext;
+    }
+
+    @NotNull
+    public MarketContext getMarketContext() {
+        if (this.marketContext == null) {
+            this.marketContext = new MarketContextImpl(client, apiUrl, authToken);
+        }
+        return this.marketContext;
+    }
+
+    @NotNull
+    public OperationsContext getOperationsContext() {
+        if (this.operationsContext == null) {
+            this.operationsContext = new OperationsContextImpl(client, apiUrl, authToken);
+        }
+        return this.operationsContext;
+    }
+
+    @NotNull
+    public UserContext getUserContext() {
+        if (this.userContext == null) {
+            this.userContext = new UserContextImpl(client, apiUrl, authToken);
+        }
+        return this.userContext;
+    }
+
+    @NotNull
+    public StreamingContext getStreamingContext() {
+        if (this.streamingContext == null) {
+            this.streamingContext = new StreamingContextImpl(
+                    client,
+                    this.config.streamingUrl,
+                    authToken,
+                    this.config.streamingParallelism,
+                    executor
+            );
+        }
+        return this.streamingContext;
+    }
+
 }
