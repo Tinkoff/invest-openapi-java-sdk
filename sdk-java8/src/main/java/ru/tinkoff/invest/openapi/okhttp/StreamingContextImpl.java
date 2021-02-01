@@ -70,7 +70,7 @@ class StreamingContextImpl implements StreamingContext {
         try {
             final String message = mapper.writeValueAsString(request);
 
-            final int clientIndex = request.onOffPairId().hashCode() % this.wsClients.length;
+            final int clientIndex = Math.abs(request.onOffPairId().hashCode()) % this.wsClients.length;
             final WebSocket wsClient = this.wsClients[clientIndex];
 
             final Set<StreamingRequest.ActivatingRequest> wsClientHistory = this.requestsHistory.get(clientIndex);
