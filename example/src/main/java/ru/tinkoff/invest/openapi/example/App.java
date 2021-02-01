@@ -1,5 +1,6 @@
 package ru.tinkoff.invest.openapi.example;
 
+import io.reactivex.rxjava3.core.Flowable;
 import ru.tinkoff.invest.openapi.OpenApi;
 import ru.tinkoff.invest.openapi.model.rest.CurrencyPosition;
 import ru.tinkoff.invest.openapi.model.rest.MarketInstrument;
@@ -13,7 +14,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
 import java.util.logging.LogManager;
 
 public class App {
@@ -43,9 +43,12 @@ public class App {
                 api.getSandboxContext().performRegistration(new SandboxRegisterRequest()).join();
             }
 
-            final var listener = new StreamingApiSubscriber(Executors.newSingleThreadExecutor());
-
-            api.getStreamingContext().getEventPublisher().subscribe(listener);
+            final var stopNotifier = new CompletableFuture<Void>();
+            final var rxStreaming = Flowable.fromPublisher(api.getStreamingContext());
+            final var rxSubscription = rxStreaming
+                    .doOnError(stopNotifier::completeExceptionally)
+                    .doOnComplete(() -> stopNotifier.complete(null))
+                    .forEach(event -> logger.info("Пришло новое событие из Streaming API\n" + event));
 
             final var currentOrders = api.getOrdersContext().getOrders(null).join();
             logger.info("Количество текущих заявок: " + currentOrders.size());
@@ -88,8 +91,7 @@ public class App {
                 api.getStreamingContext().sendRequest(StreamingRequest.subscribeCandle(instrument.getFigi(), candleInterval));
             }
 
-            final var result = new CompletableFuture<Void>();
-            result.join();
+            stopNotifier.join();
         } catch (final Exception ex) {
             logger.error("Что-то пошло не так.", ex);
         }
