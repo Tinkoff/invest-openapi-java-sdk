@@ -99,7 +99,7 @@ class Example {
       }
 
       Subscriber<StreamingEvent> listener = new Subscriber() { /* ваш вариант слушателя */ };
-      api.getStreamingContext().getEventPublisher().subscribe(listener);
+      api.getStreamingContext().subscribe(listener);
 
       // оформляем подписку на поток "свечей"
       api.getStreamingContext().sendRequest(StreamingRequest.subscribeCandle("<какой-то figi>", CandleInterval.FIVE_MIN));
