@@ -20,12 +20,6 @@
             <organization>Tinkoff Bank</organization>
             <organizationUrl>https://www.tinkoff.ru/</organizationUrl>
         </developer>
-        <developer>
-            <name>Nikita Melnikov</name>
-            <email>n.v.melnikov@tinkoff.ru</email>
-            <organization>Tinkoff Bank</organization>
-            <organizationUrl>https://www.tinkoff.ru/</organizationUrl>
-        </developer>
     </developers>
 
     <licenses>
