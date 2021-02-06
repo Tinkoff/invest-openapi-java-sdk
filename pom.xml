@@ -31,9 +31,9 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:git://github.com/TinkoffCreditSystems/invest-openapi-java-sdk.git</connection>
-        <developerConnection>scm:git:ssh://github.com:TinkoffCreditSystems/invest-openapi-java-sdk.git</developerConnection>
-        <url>https://github.com/TinkoffCreditSystems/invest-openapi-java-sdk/tree/master</url>
+        <url>https://github.com/TinkoffCreditSystems/invest-openapi-java-sdk</url>
+        <connection>scm:git:ssh://git@github.com/TinkoffCreditSystems/invest-openapi-java-sdk.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/TinkoffCreditSystems/invest-openapi-java-sdk.git</developerConnection>
     </scm>
 
     <modules>
@@ -55,7 +55,7 @@
           <id>ossrh</id>
           <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
-      </distributionManagement>
+    </distributionManagement>
 
     <build>
         <plugins>
@@ -105,6 +105,16 @@
                 <version>3.0.0-M1</version>
                 <configuration>
                     <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>3.0.0-M1</version>
+                <configuration>
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <releaseProfiles>releases</releaseProfiles>
                 </configuration>
             </plugin>
         </plugins>
