@@ -36,7 +36,7 @@ public class App {
             return;
         }
 
-        try (final OpenApi api = new OkHttpOpenApi(parameters.ssoToken, true)) {
+        try (final OpenApi api = new OkHttpOpenApi(parameters.ssoToken, parameters.sandboxMode)) {
             logger.info("Создаём подключение... ");
             if (api.isSandboxMode()) {
                 // ОБЯЗАТЕЛЬНО нужно выполнить регистрацию в "песочнице"
