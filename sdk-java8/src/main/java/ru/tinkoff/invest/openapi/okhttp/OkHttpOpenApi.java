@@ -40,7 +40,7 @@ public final class OkHttpOpenApi extends OpenApi {
 
     @Override
     public void close() {
-        this.client.dispatcher().executorService().shutdown();
+        this.client.dispatcher().executorService().shutdownNow();
     }
 
     @NotNull
