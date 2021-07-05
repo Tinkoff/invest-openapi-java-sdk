@@ -32,7 +32,7 @@
         <connection>scm:git:ssh://git@github.com/TinkoffCreditSystems/invest-openapi-java-sdk.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/TinkoffCreditSystems/invest-openapi-java-sdk.git</developerConnection>
       <tag>HEAD</tag>
-  </scm>
+    </scm>
 
     <modules>
         <module>core</module>
@@ -101,9 +101,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
                 <version>3.0.0-M1</version>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
