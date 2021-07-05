@@ -4,7 +4,7 @@
     <groupId>ru.tinkoff.invest</groupId>
     <artifactId>openapi-java-sdk</artifactId>
     <packaging>pom</packaging>
-    <version>0.5.1</version>
+    <version>0.6-SNAPSHOT</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Java SDK for Tinkoff Open API</description>
