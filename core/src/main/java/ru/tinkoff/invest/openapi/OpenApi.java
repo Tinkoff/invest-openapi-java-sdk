@@ -8,13 +8,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-abstract public class OpenApi implements Closeable {
+public abstract class OpenApi implements Closeable {
 
     protected final OpenApiConfig config;
     protected final boolean isSandboxMode;
     protected final String authToken;
 
-    public OpenApi(@NotNull final String token, final boolean isSandboxMode) {
+    protected OpenApi(@NotNull final String token, final boolean isSandboxMode) {
         this.authToken = "Bearer " + token;
         this.isSandboxMode = isSandboxMode;
 
@@ -35,25 +35,25 @@ abstract public class OpenApi implements Closeable {
     }
 
     @NotNull
-    abstract public SandboxContext getSandboxContext();
+    public abstract SandboxContext getSandboxContext();
 
     @NotNull
-    abstract public OrdersContext getOrdersContext();
+    public abstract OrdersContext getOrdersContext();
 
     @NotNull
-    abstract public PortfolioContext getPortfolioContext();
+    public abstract PortfolioContext getPortfolioContext();
 
     @NotNull
-    abstract public MarketContext getMarketContext();
+    public abstract MarketContext getMarketContext();
 
     @NotNull
-    abstract public OperationsContext getOperationsContext();
+    public abstract OperationsContext getOperationsContext();
 
     @NotNull
-    abstract public UserContext getUserContext();
+    public abstract UserContext getUserContext();
 
     @NotNull
-    abstract public StreamingContext getStreamingContext();
+    public abstract StreamingContext getStreamingContext();
 
     /**
      * Извлечение параметров конфигурации.

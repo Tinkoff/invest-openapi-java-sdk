@@ -38,12 +38,12 @@ public abstract class StreamingRequest {
     @NotNull
     public abstract String onOffPairId();
 
-    public static abstract class ActivatingRequest extends StreamingRequest {
+    public abstract static class ActivatingRequest extends StreamingRequest {
         protected ActivatingRequest(String requestId) {
             super(requestId);
         }
     }
-    public static abstract class DeactivatingRequest extends StreamingRequest {
+    public abstract static class DeactivatingRequest extends StreamingRequest {
         protected DeactivatingRequest(String requestId) {
             super(requestId);
         }

@@ -9,7 +9,7 @@ public class NotEnoughBalanceException extends OpenApiException {
 
     private static final long serialVersionUID = -4135428712268662987L;
 
-    private static Pattern currencyExtractionPattern = Pattern.compile("^.+=(\\w+)$");
+    private static final Pattern currencyExtractionPattern = Pattern.compile("^.+=(\\w+)$");
 
     private final String currency;
 
