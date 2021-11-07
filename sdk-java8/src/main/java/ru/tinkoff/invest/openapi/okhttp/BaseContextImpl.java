@@ -71,11 +71,18 @@ public abstract class BaseContextImpl implements Context {
                 throw new WrongTokenException();
             default:
                 final InputStream errorStream = Objects.requireNonNull(response.body()).byteStream();
-                final Error answerBody = mapper.readValue(errorStream, errorTypeReference);
-                final ErrorPayload error = answerBody.getPayload();
-                final String message = "Ошибка при исполнении запроса, trackingId = " + answerBody.getTrackingId();
-                logger.error(message);
-                throw new OpenApiException(error.getMessage(), error.getCode());
+                if (errorStream.available() == 0) {
+                    final String message = String.format("Запрос завершился с кодом %d без тела", response.code());
+                    logger.error(message);
+                    throw new RuntimeException(message);
+                } else {
+                    final Error answerBody = mapper.readValue(errorStream, errorTypeReference);
+                    final ErrorPayload error = answerBody.getPayload();
+                    final String message = "Ошибка при исполнении запроса, trackingId = " + answerBody.getTrackingId();
+                    logger.error(message);
+                    throw new OpenApiException(error.getMessage(), error.getCode());
+                }
+                
         }
     }
 
