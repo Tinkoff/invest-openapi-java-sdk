@@ -3,7 +3,7 @@ package ru.tinkoff.invest.openapi.exceptions;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Исключение возникающее при ошибках в выполнении запросов к OpenAPI.
+ * Исключение, возникающее при ошибках в выполнении запросов к OpenAPI.
  */
 public class OpenApiException extends Exception {
 

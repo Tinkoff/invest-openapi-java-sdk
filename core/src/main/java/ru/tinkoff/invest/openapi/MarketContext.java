@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Интерфейс работы с OpenAPI в части касающейся получения рыночной информации.
+ * Интерфейс работы с OpenAPI в части, касающейся получения рыночной информации.
  */
 public interface MarketContext extends Context {
 
@@ -83,7 +83,7 @@ public interface MarketContext extends Context {
     CompletableFuture<MarketInstrumentList> searchMarketInstrumentsByTicker(@NotNull String ticker);
 
     /**
-     * Асинронный поиск инструмента по идентификатору.
+     * Асинхронный поиск инструмента по идентификатору.
      *
      * @param figi Искомый тикер.
      * 

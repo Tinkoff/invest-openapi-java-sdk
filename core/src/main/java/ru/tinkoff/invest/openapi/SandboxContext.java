@@ -10,7 +10,7 @@ import ru.tinkoff.invest.openapi.model.rest.SandboxSetPositionBalanceRequest;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Интерфейс работы с OpenAPI в части касающейся режима "песочницы".
+ * Интерфейс работы с OpenAPI в части, касающейся режима "песочницы".
  */
 public interface SandboxContext extends Context {
 
