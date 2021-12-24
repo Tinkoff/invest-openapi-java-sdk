@@ -8,7 +8,7 @@ import java.time.OffsetDateTime;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Интерфейс работы с OpenAPI в части касающейся получения информации об операциях.
+ * Интерфейс работы с OpenAPI в части, касающейся получения информации об операциях.
  */
 public interface OperationsContext extends Context {
 

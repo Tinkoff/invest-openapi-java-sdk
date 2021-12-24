@@ -7,7 +7,7 @@ import ru.tinkoff.invest.openapi.model.rest.*;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Интерфейс работы с OpenAPI в части касающейся получения информации о состоянии портфеля.
+ * Интерфейс работы с OpenAPI в части, касающейся получения информации о состоянии портфеля.
  */
 public interface PortfolioContext extends Context {
 

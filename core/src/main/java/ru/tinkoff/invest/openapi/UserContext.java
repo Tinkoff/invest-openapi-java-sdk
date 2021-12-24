@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import ru.tinkoff.invest.openapi.model.rest.UserAccounts;
 
 /**
- * Интерфейс работы с OpenAPI в части касающейся получения информации о клиенте.
+ * Интерфейс работы с OpenAPI в части, касающейся получения информации о клиенте.
  */
 public interface UserContext extends Context {
 

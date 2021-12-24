@@ -1,7 +1,7 @@
 package ru.tinkoff.invest.openapi.exceptions;
 
 /**
- * Исключение возникающее при попытке использовать неверный авторизационный токен.
+ * Исключение, возникающее при попытке использовать неверный авторизационный токен.
  */
 public class WrongTokenException extends OpenApiException {
 

@@ -59,7 +59,7 @@ public class App {
                 final var ticker = parameters.tickers[i];
                 final var candleInterval = parameters.candleIntervals[i];
 
-                logger.info("Ищём по тикеру " + ticker + "... ");
+                logger.info("Ищем по тикеру " + ticker + "... ");
                 final var instrumentsList = api.getMarketContext().searchMarketInstrumentsByTicker(ticker).join();
 
                 final var instrumentOpt = instrumentsList.getInstruments().stream().findFirst();

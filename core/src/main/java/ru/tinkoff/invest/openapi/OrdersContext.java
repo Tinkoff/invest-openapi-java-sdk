@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Интерфейс работы с OpenAPI в части касающейся заявок.
+ * Интерфейс работы с OpenAPI в части, касающейся заявок.
  */
 public interface OrdersContext extends Context {
 

@@ -23,7 +23,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * Общий класс для моделей событий приходящих из streaming.
+ * Общий класс для моделей событий, приходящих из streaming.
  */
 @JsonDeserialize(using = StreamingEvent.StreamingEventDeserializer.class)
 public abstract class StreamingEvent {
@@ -45,7 +45,7 @@ public abstract class StreamingEvent {
         private final BigDecimal closingPrice;
 
         /**
-         * Цена макисмальная цена.
+         * Максимальная цена.
          */
         private final BigDecimal highestPrice;
 
@@ -460,7 +460,7 @@ public abstract class StreamingEvent {
     }
 
     /**
-     * Модель сообщения об ошибке пришедшей из streaming.
+     * Модель сообщения об ошибке, пришедшей из streaming.
      */
     @JsonDeserialize
     public static class Error extends StreamingEvent {
