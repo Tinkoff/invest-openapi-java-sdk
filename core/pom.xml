@@ -45,7 +45,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>https://tinkoffcreditsystems.github.io/invest-openapi/swagger-ui/swagger.yaml</inputSpec>
+                            <inputSpec>https://tinkoff.github.io/invest-openapi/swagger-ui/swagger.yaml</inputSpec>
                             <language>java</language>
                             <configOptions>
                                 <sourceFolder>main/java</sourceFolder>
