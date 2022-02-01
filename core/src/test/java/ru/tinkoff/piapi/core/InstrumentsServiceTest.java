@@ -886,7 +886,9 @@ public class InstrumentsServiceTest extends GrpcClientTester<InstrumentsService>
   @Test
   void getAccruedInterests_Test() {
     var expected = GetAccruedInterestsResponse.newBuilder()
-      .addAccruedInterests(AccruedInterest.newBuilder().setValuePercent(3.14f).build())
+      .addAccruedInterests(
+        AccruedInterest.newBuilder().setValuePercent(
+          Quotation.newBuilder().setUnits(1).build()).build())
       .build();
     var grpcService = mock(InstrumentsServiceGrpc.InstrumentsServiceImplBase.class, delegatesTo(
       new InstrumentsServiceGrpc.InstrumentsServiceImplBase() {

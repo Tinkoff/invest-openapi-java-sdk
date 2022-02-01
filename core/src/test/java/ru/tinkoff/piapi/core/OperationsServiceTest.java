@@ -99,7 +99,7 @@ public class OperationsServiceTest extends GrpcClientTester<OperationsService> {
       .setTotalAmountEtf(MoneyValue.newBuilder().setUnits(3).build())
       .setTotalAmountFutures(MoneyValue.newBuilder().setUnits(4).build())
       .setTotalAmountShares(MoneyValue.newBuilder().setUnits(5).build())
-      .setExpectedYield(1.0f)
+      .setExpectedYield(Quotation.newBuilder().setUnits(6).build())
       .build();
     var grpcService = mock(OperationsServiceGrpc.OperationsServiceImplBase.class, delegatesTo(
       new OperationsServiceGrpc.OperationsServiceImplBase() {

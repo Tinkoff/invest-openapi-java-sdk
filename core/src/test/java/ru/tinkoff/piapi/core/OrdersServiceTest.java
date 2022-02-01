@@ -38,9 +38,9 @@ public class OrdersServiceTest extends GrpcClientTester<OrdersService> {
   @Test
   void tradeStream_Test() {
     var expected = List.of(
-      TradesStreamResponse.newBuilder().setOrderId("order1").build(),
-      TradesStreamResponse.newBuilder().setOrderId("order2").build(),
-      TradesStreamResponse.newBuilder().setOrderId("order3").build()
+      TradesStreamResponse.newBuilder().setOrderTrades(OrderTrades.newBuilder().setOrderId("order1").build()).build(),
+      TradesStreamResponse.newBuilder().setOrderTrades(OrderTrades.newBuilder().setOrderId("order2").build()).build(),
+      TradesStreamResponse.newBuilder().setOrderTrades(OrderTrades.newBuilder().setOrderId("order3").build()).build()
     );
     var grpcService = mock(OrdersStreamServiceGrpc.OrdersStreamServiceImplBase.class, delegatesTo(
       new OrdersStreamServiceGrpc.OrdersStreamServiceImplBase() {

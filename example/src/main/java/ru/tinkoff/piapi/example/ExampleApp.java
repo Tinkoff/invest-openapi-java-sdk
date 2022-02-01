@@ -7,9 +7,6 @@ import org.slf4j.LoggerFactory;
 import ru.tinkoff.piapi.contract.v1.*;
 import ru.tinkoff.piapi.core.InvestApi;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-
 public class ExampleApp {
   static final Logger logger = LoggerFactory.getLogger(ExampleApp.class);
 
@@ -17,12 +14,9 @@ public class ExampleApp {
     var token = args[0];
     var sandbox = InvestApi.createSandbox(InvestApi.defaultChannel(token));
 
-    var schedule = sandbox.getInstrumentsService()
-      .getTradingScheduleSync("XXX", Instant.now(), Instant.now().plus(1L, ChronoUnit.DAYS));
-
     // Пример синхронного (блокирующего) вызова для получения списка валют.
     var currencies = sandbox.getInstrumentsService()
-      .getCurrenciesSync(InstrumentStatus.INSTRUMENT_STATUS_ALL);
+      .getTradableCurrenciesSync();
 
     // Пример ассинхронного вызова для получения списка счетов в "песочнице".
     sandbox.getSandboxService().getAccounts()
