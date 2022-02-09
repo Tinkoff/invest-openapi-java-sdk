@@ -15,6 +15,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import io.smallrye.mutiny.Multi;
+import ru.tinkoff.piapi.core.utils.DateUtils;
+import ru.tinkoff.piapi.core.utils.Helpers;
 
 public class HelpersTest {
 
@@ -38,7 +40,7 @@ public class HelpersTest {
       .setNanos(input.getNano())
       .build();
 
-    var actual = Helpers.instantToTimestamp(input);
+    var actual = DateUtils.instantToTimestamp(input);
 
     assertEquals(expected, actual);
   }
@@ -51,7 +53,7 @@ public class HelpersTest {
       .build();
     var expected = Instant.ofEpochSecond(input.getSeconds(), input.getNanos());
 
-    var actual = Helpers.timestampToInstant(input);
+    var actual = DateUtils.timestampToInstant(input);
 
     assertEquals(expected, actual);
   }

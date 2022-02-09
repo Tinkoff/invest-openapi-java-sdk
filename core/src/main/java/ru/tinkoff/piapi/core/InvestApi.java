@@ -110,6 +110,21 @@ public class InvestApi {
   }
 
   /**
+   * Создаёт экземпляр API для реальной торговли с использованием
+   * готовой конфигурации GRPC-соединения.
+   * <p>
+   * ВНИМАНИЕ! Конфигурация должна включать в себя авторизацию
+   * с использованием необходимого токена для реальной торговли.
+   *
+   * @param token Токен для торговли.
+   * @return Экземпляр API для реальной торговли.
+   */
+  @Nonnull
+  public static InvestApi create(@Nonnull String token) {
+    return new InvestApi(defaultChannel(token), false, false);
+  }
+
+  /**
    * Создаёт экземпляр API в режиме "только для чтения"
    * с использованием готовой конфигурации GRPC-соединения.
    * <p>
@@ -122,6 +137,21 @@ public class InvestApi {
   @Nonnull
   public static InvestApi createReadonly(@Nonnull Channel channel) {
     return new InvestApi(channel, false, true);
+  }
+
+  /**
+   * Создаёт экземпляр API в режиме "только для чтения"
+   * с использованием готовой конфигурации GRPC-соединения.
+   * <p>
+   * ВНИМАНИЕ! Конфигурация должна включать в себя авторизацию
+   * с использованием необходимого токена для режима "только для чтения".
+   *
+   * @param token Токен для торговли.
+   * @return Экземпляр API для реальной торговли.
+   */
+  @Nonnull
+  public static InvestApi createReadonly(@Nonnull String token) {
+    return new InvestApi(defaultChannel(token), false, true);
   }
 
   /**
@@ -139,6 +169,22 @@ public class InvestApi {
     return new InvestApi(channel, true, false);
   }
 
+
+  /**
+   * Создаёт экземпляр API для работы в "песочнице" с использованием
+   * готовой конфигурации GRPC-соединения.
+   * <p>
+   * ВНИМАНИЕ! Конфигурация должна включать в себя авторизацию
+   * с использованием необходимого токена для "песочницы".
+   *
+   * @param token Токен для торговли.
+   * @return Экземпляр API "песочницы".
+   */
+  @Nonnull
+  public static InvestApi createSandbox(@Nonnull String token) {
+    return new InvestApi(defaultChannel(token), true, false);
+  }
+
   @Nonnull
   public static Channel defaultChannel(String token) {
     var headers = new Metadata();
@@ -153,7 +199,7 @@ public class InvestApi {
       .withOption(
         ChannelOption.CONNECT_TIMEOUT_MILLIS,
         (int) connectionTimeout.toMillis()) // Намерено сужаем тип - предполагается,
-      // что таймаут имеет тразумную величину.
+      // что таймаут имеет разумную величину.
       .useTransportSecurity()
       .build();
   }

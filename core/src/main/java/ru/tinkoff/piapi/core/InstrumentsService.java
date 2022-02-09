@@ -4,6 +4,8 @@ import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import ru.tinkoff.piapi.contract.v1.*;
+import ru.tinkoff.piapi.core.utils.DateUtils;
+import ru.tinkoff.piapi.core.utils.Helpers;
 
 import javax.annotation.Nonnull;
 import java.time.Instant;
@@ -63,8 +65,8 @@ public class InstrumentsService {
     if (areFromAndToValid(from, to)) {
       return instrumentsBlockingStub.tradingSchedules(
           TradingSchedulesRequest.newBuilder()
-            .setFrom(Helpers.instantToTimestamp(from))
-            .setTo(Helpers.instantToTimestamp(to))
+            .setFrom(DateUtils.instantToTimestamp(from))
+            .setTo(DateUtils.instantToTimestamp(to))
             .build())
         .getExchangesList();
     } else {
@@ -93,8 +95,8 @@ public class InstrumentsService {
           instrumentsBlockingStub.tradingSchedules(
               TradingSchedulesRequest.newBuilder()
                 .setExchange(exchange)
-                .setFrom(Helpers.instantToTimestamp(from))
-                .setTo(Helpers.instantToTimestamp(to))
+                .setFrom(DateUtils.instantToTimestamp(from))
+                .setTo(DateUtils.instantToTimestamp(to))
                 .build())
             .getExchangesList()
             .get(0));
@@ -284,9 +286,6 @@ public class InstrumentsService {
       .getInstrumentsList();
   }
 
-  // TODO методы ниже (получение фьючерсов, акций и просто "инструментов") переделать по подобию тех, что выше.
-  // TODO Не забыть про асинхронные версии и юнит-тесты.
-
   @Nonnull
   public Optional<Future> getFutureByTickerSync(
     @Nonnull String ticker,
@@ -305,10 +304,19 @@ public class InstrumentsService {
   }
 
   @Nonnull
-  public List<Future> getFuturesSync(@Nonnull InstrumentStatus status) {
+  public List<Future> getTradableFuturesSync() {
     return instrumentsBlockingStub.futures(
         InstrumentsRequest.newBuilder()
-          .setInstrumentStatus(status)
+          .setInstrumentStatus(InstrumentStatus.INSTRUMENT_STATUS_BASE)
+          .build())
+      .getInstrumentsList();
+  }
+
+  @Nonnull
+  public List<Future> getAllFuturesSync() {
+    return instrumentsBlockingStub.futures(
+        InstrumentsRequest.newBuilder()
+          .setInstrumentStatus(InstrumentStatus.INSTRUMENT_STATUS_ALL)
           .build())
       .getInstrumentsList();
   }
@@ -331,10 +339,19 @@ public class InstrumentsService {
   }
 
   @Nonnull
-  public List<Share> getSharesSync(@Nonnull InstrumentStatus status) {
+  public List<Share> getTradableSharesSync() {
     return instrumentsBlockingStub.shares(
         InstrumentsRequest.newBuilder()
-          .setInstrumentStatus(status)
+          .setInstrumentStatus(InstrumentStatus.INSTRUMENT_STATUS_BASE)
+          .build())
+      .getInstrumentsList();
+  }
+
+  @Nonnull
+  public List<Share> getAllSharesSync() {
+    return instrumentsBlockingStub.shares(
+        InstrumentsRequest.newBuilder()
+          .setInstrumentStatus(InstrumentStatus.INSTRUMENT_STATUS_ALL)
           .build())
       .getInstrumentsList();
   }
@@ -348,8 +365,8 @@ public class InstrumentsService {
     return instrumentsBlockingStub.getAccruedInterests(
         GetAccruedInterestsRequest.newBuilder()
           .setFigi(figi)
-          .setFrom(Helpers.instantToTimestamp(from))
-          .setTo(Helpers.instantToTimestamp(to))
+          .setFrom(DateUtils.instantToTimestamp(from))
+          .setTo(DateUtils.instantToTimestamp(to))
           .build())
       .getAccruedInterestsList();
   }
@@ -389,8 +406,8 @@ public class InstrumentsService {
     return instrumentsBlockingStub.getDividends(
         GetDividendsRequest.newBuilder()
           .setFigi(figi)
-          .setFrom(Helpers.instantToTimestamp(from))
-          .setTo(Helpers.instantToTimestamp(to))
+          .setFrom(DateUtils.instantToTimestamp(from))
+          .setTo(DateUtils.instantToTimestamp(to))
           .build())
       .getDividendsList();
   }
@@ -412,8 +429,8 @@ public class InstrumentsService {
       return Helpers.<TradingSchedulesResponse>wrapWithFuture(
           observer -> instrumentsStub.tradingSchedules(
             TradingSchedulesRequest.newBuilder()
-              .setFrom(Helpers.instantToTimestamp(from))
-              .setTo(Helpers.instantToTimestamp(to))
+              .setFrom(DateUtils.instantToTimestamp(from))
+              .setTo(DateUtils.instantToTimestamp(to))
               .build(),
             observer))
         .thenApply(TradingSchedulesResponse::getExchangesList);
@@ -442,8 +459,8 @@ public class InstrumentsService {
           observer -> instrumentsStub.tradingSchedules(
             TradingSchedulesRequest.newBuilder()
               .setExchange(exchange)
-              .setFrom(Helpers.instantToTimestamp(from))
-              .setTo(Helpers.instantToTimestamp(to))
+              .setFrom(DateUtils.instantToTimestamp(from))
+              .setTo(DateUtils.instantToTimestamp(to))
               .build(),
             observer))
         .handle((response, ex) -> {
@@ -609,11 +626,22 @@ public class InstrumentsService {
   }
 
   @Nonnull
-  public CompletableFuture<List<Future>> getFutures(@Nonnull InstrumentStatus status) {
+  public CompletableFuture<List<Future>> getAllFutures() {
     return Helpers.<FuturesResponse>wrapWithFuture(
         observer -> instrumentsStub.futures(
           InstrumentsRequest.newBuilder()
-            .setInstrumentStatus(status)
+            .setInstrumentStatus(InstrumentStatus.INSTRUMENT_STATUS_ALL)
+            .build(),
+          observer))
+      .thenApply(FuturesResponse::getInstrumentsList);
+  }
+
+  @Nonnull
+  public CompletableFuture<List<Future>> getTradableFutures() {
+    return Helpers.<FuturesResponse>wrapWithFuture(
+        observer -> instrumentsStub.futures(
+          InstrumentsRequest.newBuilder()
+            .setInstrumentStatus(InstrumentStatus.INSTRUMENT_STATUS_BASE)
             .build(),
           observer))
       .thenApply(FuturesResponse::getInstrumentsList);
@@ -639,11 +667,22 @@ public class InstrumentsService {
   }
 
   @Nonnull
-  public CompletableFuture<List<Share>> getShares(@Nonnull InstrumentStatus status) {
+  public CompletableFuture<List<Share>> getAllShares() {
     return Helpers.<SharesResponse>wrapWithFuture(
         observer -> instrumentsStub.shares(
           InstrumentsRequest.newBuilder()
-            .setInstrumentStatus(status)
+            .setInstrumentStatus(InstrumentStatus.INSTRUMENT_STATUS_ALL)
+            .build(),
+          observer))
+      .thenApply(SharesResponse::getInstrumentsList);
+  }
+
+  @Nonnull
+  public CompletableFuture<List<Share>> getTradableShares() {
+    return Helpers.<SharesResponse>wrapWithFuture(
+        observer -> instrumentsStub.shares(
+          InstrumentsRequest.newBuilder()
+            .setInstrumentStatus(InstrumentStatus.INSTRUMENT_STATUS_BASE)
             .build(),
           observer))
       .thenApply(SharesResponse::getInstrumentsList);
@@ -658,8 +697,8 @@ public class InstrumentsService {
         observer -> instrumentsStub.getAccruedInterests(
           GetAccruedInterestsRequest.newBuilder()
             .setFigi(figi)
-            .setFrom(Helpers.instantToTimestamp(from))
-            .setTo(Helpers.instantToTimestamp(to))
+            .setFrom(DateUtils.instantToTimestamp(from))
+            .setTo(DateUtils.instantToTimestamp(to))
             .build(),
           observer))
       .thenApply(GetAccruedInterestsResponse::getAccruedInterestsList);
@@ -703,8 +742,8 @@ public class InstrumentsService {
         observer -> instrumentsStub.getDividends(
           GetDividendsRequest.newBuilder()
             .setFigi(figi)
-            .setFrom(Helpers.instantToTimestamp(from))
-            .setTo(Helpers.instantToTimestamp(to))
+            .setFrom(DateUtils.instantToTimestamp(from))
+            .setTo(DateUtils.instantToTimestamp(to))
             .build(),
           observer))
       .thenApply(GetDividendsResponse::getDividendsList);

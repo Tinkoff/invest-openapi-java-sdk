@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import ru.tinkoff.piapi.contract.v1.*;
+import ru.tinkoff.piapi.core.utils.DateUtils;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -58,11 +59,11 @@ public class InstrumentsServiceTest extends GrpcClientTester<InstrumentsService>
         .setTo(Timestamp.newBuilder().setSeconds(1234567890).setNanos(111222333).build())
         .build();
       var actualSync = service.getTradingSchedulesSync(
-        Helpers.timestampToInstant(inArg.getFrom()),
-        Helpers.timestampToInstant(inArg.getTo()));
+        DateUtils.timestampToInstant(inArg.getFrom()),
+        DateUtils.timestampToInstant(inArg.getTo()));
       var actualAsync = service.getTradingSchedules(
-        Helpers.timestampToInstant(inArg.getFrom()),
-        Helpers.timestampToInstant(inArg.getTo())).join();
+        DateUtils.timestampToInstant(inArg.getFrom()),
+        DateUtils.timestampToInstant(inArg.getTo())).join();
 
       assertIterableEquals(expected.getExchangesList(), actualSync);
       assertIterableEquals(expected.getExchangesList(), actualAsync);
@@ -120,12 +121,12 @@ public class InstrumentsServiceTest extends GrpcClientTester<InstrumentsService>
         .build();
       var actualSync = service.getTradingScheduleSync(
         exchange,
-        Helpers.timestampToInstant(inArg.getFrom()),
-        Helpers.timestampToInstant(inArg.getTo()));
+        DateUtils.timestampToInstant(inArg.getFrom()),
+        DateUtils.timestampToInstant(inArg.getTo()));
       var actualAsync = service.getTradingSchedule(
         exchange,
-        Helpers.timestampToInstant(inArg.getFrom()),
-        Helpers.timestampToInstant(inArg.getTo())).join();
+        DateUtils.timestampToInstant(inArg.getFrom()),
+        DateUtils.timestampToInstant(inArg.getTo())).join();
 
       assertEquals(Optional.of(expected.getExchangesList().get(0)), actualSync);
       assertEquals(Optional.of(expected.getExchangesList().get(0)), actualAsync);
@@ -181,12 +182,12 @@ public class InstrumentsServiceTest extends GrpcClientTester<InstrumentsService>
         .build();
       var actualSync = service.getTradingScheduleSync(
         exchange,
-        Helpers.timestampToInstant(inArg.getFrom()),
-        Helpers.timestampToInstant(inArg.getTo()));
+        DateUtils.timestampToInstant(inArg.getFrom()),
+        DateUtils.timestampToInstant(inArg.getTo()));
       var actualAsync = service.getTradingSchedule(
         exchange,
-        Helpers.timestampToInstant(inArg.getFrom()),
-        Helpers.timestampToInstant(inArg.getTo())).join();
+        DateUtils.timestampToInstant(inArg.getFrom()),
+        DateUtils.timestampToInstant(inArg.getTo())).join();
 
       assertEquals(expected, actualSync);
       assertEquals(expected, actualAsync);
@@ -787,8 +788,8 @@ public class InstrumentsServiceTest extends GrpcClientTester<InstrumentsService>
     var inArg = InstrumentsRequest.newBuilder()
       .setInstrumentStatus(InstrumentStatus.INSTRUMENT_STATUS_ALL)
       .build();
-    var actualSync = service.getFuturesSync(inArg.getInstrumentStatus());
-    var actualAsync = service.getFutures(inArg.getInstrumentStatus()).join();
+    var actualSync = service.getAllFuturesSync();
+    var actualAsync = service.getAllFutures().join();
 
     assertIterableEquals(expected.getInstrumentsList(), actualSync);
     assertIterableEquals(expected.getInstrumentsList(), actualAsync);
@@ -874,8 +875,8 @@ public class InstrumentsServiceTest extends GrpcClientTester<InstrumentsService>
     var inArg = InstrumentsRequest.newBuilder()
       .setInstrumentStatus(InstrumentStatus.INSTRUMENT_STATUS_ALL)
       .build();
-    var actualSync = service.getSharesSync(inArg.getInstrumentStatus());
-    var actualAsync = service.getShares(inArg.getInstrumentStatus()).join();
+    var actualSync = service.getAllSharesSync();
+    var actualAsync = service.getAllShares().join();
 
     assertIterableEquals(expected.getInstrumentsList(), actualSync);
     assertIterableEquals(expected.getInstrumentsList(), actualAsync);
@@ -908,12 +909,12 @@ public class InstrumentsServiceTest extends GrpcClientTester<InstrumentsService>
       .build();
     var actualSync = service.getAccruedInterestsSync(
       inArg.getFigi(),
-      Helpers.timestampToInstant(inArg.getFrom()),
-      Helpers.timestampToInstant(inArg.getTo()));
+      DateUtils.timestampToInstant(inArg.getFrom()),
+      DateUtils.timestampToInstant(inArg.getTo()));
     var actualAsync = service.getAccruedInterests(
       inArg.getFigi(),
-      Helpers.timestampToInstant(inArg.getFrom()),
-      Helpers.timestampToInstant(inArg.getTo())).join();
+      DateUtils.timestampToInstant(inArg.getFrom()),
+      DateUtils.timestampToInstant(inArg.getTo())).join();
 
     assertIterableEquals(expected.getAccruedInterestsList(), actualSync);
     assertIterableEquals(expected.getAccruedInterestsList(), actualAsync);
@@ -1032,12 +1033,12 @@ public class InstrumentsServiceTest extends GrpcClientTester<InstrumentsService>
       .build();
     var actualSync = service.getDividendsSync(
       inArg.getFigi(),
-      Helpers.timestampToInstant(inArg.getFrom()),
-      Helpers.timestampToInstant(inArg.getTo()));
+      DateUtils.timestampToInstant(inArg.getFrom()),
+      DateUtils.timestampToInstant(inArg.getTo()));
     var actualAsync = service.getDividends(
       inArg.getFigi(),
-      Helpers.timestampToInstant(inArg.getFrom()),
-      Helpers.timestampToInstant(inArg.getTo())).join();
+      DateUtils.timestampToInstant(inArg.getFrom()),
+      DateUtils.timestampToInstant(inArg.getTo())).join();
 
     assertIterableEquals(expected.getDividendsList(), actualSync);
     assertIterableEquals(expected.getDividendsList(), actualAsync);

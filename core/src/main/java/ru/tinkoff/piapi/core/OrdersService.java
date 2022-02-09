@@ -4,12 +4,15 @@ import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.subscription.BackPressureStrategy;
 import org.reactivestreams.FlowAdapters;
 import ru.tinkoff.piapi.contract.v1.*;
+import ru.tinkoff.piapi.core.utils.DateUtils;
+import ru.tinkoff.piapi.core.utils.Helpers;
 
 import javax.annotation.Nonnull;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow.Publisher;
+import java.util.function.Consumer;
 
 public class OrdersService {
   private final OrdersStreamServiceGrpc.OrdersStreamServiceStub ordersStreamStub;
@@ -28,8 +31,10 @@ public class OrdersService {
     this.readonlyMode = readonlyMode;
   }
 
+
+
   @Nonnull
-  public Publisher<TradesStreamResponse> tradesStream() {
+  public Publisher<TradesStreamResponse> ordersStream() {
     var mutinyPublisher = Multi.createFrom().<TradesStreamResponse>emitter(
       emitter -> ordersStreamStub.tradesStream(
         TradesStreamRequest.newBuilder().build(),
@@ -37,6 +42,15 @@ public class OrdersService {
       BackPressureStrategy.BUFFER);
 
     return FlowAdapters.toFlowPublisher(mutinyPublisher);
+  }
+
+  public void subscribeTradesStream(Consumer<TradesStreamResponse> consumer) {
+    Multi.createFrom()
+      .safePublisher(
+        FlowAdapters.toPublisher(ordersStream()))
+      .subscribe()
+      .asIterable()
+      .forEach(consumer);
   }
 
   @Nonnull
@@ -75,7 +89,7 @@ public class OrdersService {
           .build())
       .getTime();
 
-    return Helpers.timestampToInstant(responseTime);
+    return DateUtils.timestampToInstant(responseTime);
   }
 
   @Nonnull
@@ -136,7 +150,7 @@ public class OrdersService {
             .setOrderId(orderId)
             .build(),
           observer))
-      .thenApply(response -> Helpers.timestampToInstant(response.getTime()));
+      .thenApply(response -> DateUtils.timestampToInstant(response.getTime()));
   }
 
   @Nonnull

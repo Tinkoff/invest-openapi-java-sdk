@@ -4,6 +4,7 @@ import io.grpc.Channel;
 import io.grpc.stub.StreamObserver;
 import org.junit.jupiter.api.Test;
 import ru.tinkoff.piapi.contract.v1.*;
+import ru.tinkoff.piapi.core.utils.DateUtils;
 
 import java.time.Instant;
 
@@ -82,8 +83,8 @@ public class OperationsServiceTest extends GrpcClientTester<OperationsService> {
 
     var inArg = OperationsRequest.newBuilder()
       .setAccountId(accountId)
-      .setFrom(Helpers.instantToTimestamp(someMoment))
-      .setTo(Helpers.instantToTimestamp(someMoment))
+      .setFrom(DateUtils.instantToTimestamp(someMoment))
+      .setTo(DateUtils.instantToTimestamp(someMoment))
       .setState(OperationState.OPERATION_STATE_CANCELED)
       .setFigi("")
       .build();

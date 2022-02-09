@@ -1,6 +1,7 @@
 package ru.tinkoff.piapi.core;
 
 import ru.tinkoff.piapi.contract.v1.*;
+import ru.tinkoff.piapi.core.utils.Helpers;
 
 import javax.annotation.Nonnull;
 import java.util.List;

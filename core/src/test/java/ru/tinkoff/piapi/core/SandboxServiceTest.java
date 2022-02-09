@@ -5,6 +5,7 @@ import io.grpc.Channel;
 import io.grpc.stub.StreamObserver;
 import org.junit.jupiter.api.Test;
 import ru.tinkoff.piapi.contract.v1.*;
+import ru.tinkoff.piapi.core.utils.DateUtils;
 
 import java.time.Instant;
 
@@ -188,8 +189,8 @@ public class SandboxServiceTest extends GrpcClientTester<SandboxService> {
     var actualSync = service.cancelOrderSync(accountId, orderId);
     var actualAsync = service.cancelOrder(accountId, orderId).join();
 
-    assertEquals(Helpers.timestampToInstant(expected.getTime()), actualSync);
-    assertEquals(Helpers.timestampToInstant(expected.getTime()), actualAsync);
+    assertEquals(DateUtils.timestampToInstant(expected.getTime()), actualSync);
+    assertEquals(DateUtils.timestampToInstant(expected.getTime()), actualAsync);
 
     var inArg = CancelOrderRequest.newBuilder()
       .setAccountId(accountId)
@@ -289,8 +290,8 @@ public class SandboxServiceTest extends GrpcClientTester<SandboxService> {
 
     var inArg = OperationsRequest.newBuilder()
       .setAccountId(accountId)
-      .setFrom(Helpers.instantToTimestamp(someMoment))
-      .setTo(Helpers.instantToTimestamp(someMoment))
+      .setFrom(DateUtils.instantToTimestamp(someMoment))
+      .setTo(DateUtils.instantToTimestamp(someMoment))
       .setState(OperationState.OPERATION_STATE_CANCELED)
       .setFigi("")
       .build();

@@ -1,6 +1,8 @@
 package ru.tinkoff.piapi.core;
 
 import ru.tinkoff.piapi.contract.v1.*;
+import ru.tinkoff.piapi.core.utils.DateUtils;
+import ru.tinkoff.piapi.core.utils.Helpers;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -84,7 +86,7 @@ public class SandboxService {
           .build())
       .getTime();
 
-    return Helpers.timestampToInstant(responseTime);
+    return DateUtils.timestampToInstant(responseTime);
   }
 
   @Nonnull
@@ -114,8 +116,8 @@ public class SandboxService {
     return sandboxBlockingStub.getSandboxOperations(
       OperationsRequest.newBuilder()
         .setAccountId(accountId)
-        .setFrom(Helpers.instantToTimestamp(from))
-        .setTo(Helpers.instantToTimestamp(to))
+        .setFrom(DateUtils.instantToTimestamp(from))
+        .setTo(DateUtils.instantToTimestamp(to))
         .setState(operationState)
         .setFigi(figi == null ? "" : figi)
         .build())
@@ -213,7 +215,7 @@ public class SandboxService {
             .setOrderId(orderId)
             .build(),
           observer))
-      .thenApply(response -> Helpers.timestampToInstant(response.getTime()));
+      .thenApply(response -> DateUtils.timestampToInstant(response.getTime()));
   }
 
   @Nonnull
@@ -248,8 +250,8 @@ public class SandboxService {
       observer -> sandboxStub.getSandboxOperations(
         OperationsRequest.newBuilder()
           .setAccountId(accountId)
-          .setFrom(Helpers.instantToTimestamp(from))
-          .setTo(Helpers.instantToTimestamp(to))
+          .setFrom(DateUtils.instantToTimestamp(from))
+          .setTo(DateUtils.instantToTimestamp(to))
           .setState(operationState)
           .setFigi(figi == null ? "" : figi)
           .build(),

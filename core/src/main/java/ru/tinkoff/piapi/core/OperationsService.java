@@ -1,6 +1,8 @@
 package ru.tinkoff.piapi.core;
 
 import ru.tinkoff.piapi.contract.v1.*;
+import ru.tinkoff.piapi.core.utils.DateUtils;
+import ru.tinkoff.piapi.core.utils.Helpers;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -29,8 +31,8 @@ public class OperationsService {
     return operationsBlockingStub.getOperations(
         OperationsRequest.newBuilder()
           .setAccountId(accountId)
-          .setFrom(Helpers.instantToTimestamp(from))
-          .setTo(Helpers.instantToTimestamp(to))
+          .setFrom(DateUtils.instantToTimestamp(from))
+          .setTo(DateUtils.instantToTimestamp(to))
           .setState(operationState)
           .setFigi(figi == null ? "" : figi)
           .build())
@@ -66,8 +68,8 @@ public class OperationsService {
         observer -> operationsStub.getOperations(
           OperationsRequest.newBuilder()
             .setAccountId(accountId)
-            .setFrom(Helpers.instantToTimestamp(from))
-            .setTo(Helpers.instantToTimestamp(to))
+            .setFrom(DateUtils.instantToTimestamp(from))
+            .setTo(DateUtils.instantToTimestamp(to))
             .setState(operationState)
             .setFigi(figi == null ? "" : figi)
             .build(),

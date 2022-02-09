@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import org.reactivestreams.FlowAdapters;
 import ru.tinkoff.piapi.contract.v1.*;
+import ru.tinkoff.piapi.core.utils.DateUtils;
 
 import java.util.List;
 import java.util.concurrent.CompletionException;
@@ -56,7 +57,7 @@ public class OrdersServiceTest extends GrpcClientTester<OrdersService> {
     var service = mkClientBasedOnServer(grpcService);
 
     var actual = Multi.createFrom()
-      .publisher(FlowAdapters.toPublisher(service.tradesStream()))
+      .publisher(FlowAdapters.toPublisher(service.ordersStream()))
       .subscribe()
       .asStream()
       .collect(Collectors.toList());
@@ -179,8 +180,8 @@ public class OrdersServiceTest extends GrpcClientTester<OrdersService> {
     var actualSync = service.cancelOrderSync(accountId, orderId);
     var actualAsync = service.cancelOrder(accountId, orderId).join();
 
-    assertEquals(Helpers.timestampToInstant(expected.getTime()), actualSync);
-    assertEquals(Helpers.timestampToInstant(expected.getTime()), actualAsync);
+    assertEquals(DateUtils.timestampToInstant(expected.getTime()), actualSync);
+    assertEquals(DateUtils.timestampToInstant(expected.getTime()), actualAsync);
 
     var inArg = CancelOrderRequest.newBuilder()
       .setAccountId(accountId)

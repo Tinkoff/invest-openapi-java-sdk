@@ -7,6 +7,7 @@ import io.smallrye.mutiny.Multi;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.FlowAdapters;
 import ru.tinkoff.piapi.contract.v1.*;
+import ru.tinkoff.piapi.core.utils.DateUtils;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -108,10 +109,10 @@ public class MarketDataServiceTest extends GrpcClientTester<MarketDataService> {
       .setTo(Timestamp.newBuilder().setSeconds(1234567890).setNanos(111222333).build())
       .setInterval(CandleInterval.CANDLE_INTERVAL_1_MIN)
       .build();
-    var actualSync = service.getCandlesSync(inArg.getFigi(), Helpers.timestampToInstant(inArg.getFrom()),
-      Helpers.timestampToInstant(inArg.getTo()), inArg.getInterval());
-    var actualAsync = service.getCandles(inArg.getFigi(), Helpers.timestampToInstant(inArg.getFrom()),
-      Helpers.timestampToInstant(inArg.getTo()), inArg.getInterval()).join();
+    var actualSync = service.getCandlesSync(inArg.getFigi(), DateUtils.timestampToInstant(inArg.getFrom()),
+      DateUtils.timestampToInstant(inArg.getTo()), inArg.getInterval());
+    var actualAsync = service.getCandles(inArg.getFigi(), DateUtils.timestampToInstant(inArg.getFrom()),
+      DateUtils.timestampToInstant(inArg.getTo()), inArg.getInterval()).join();
 
     assertIterableEquals(expected.getCandlesList(), actualSync);
     assertIterableEquals(expected.getCandlesList(), actualAsync);

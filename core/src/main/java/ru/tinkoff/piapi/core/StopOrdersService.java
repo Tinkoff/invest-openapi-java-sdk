@@ -1,6 +1,8 @@
 package ru.tinkoff.piapi.core;
 
 import ru.tinkoff.piapi.contract.v1.*;
+import ru.tinkoff.piapi.core.utils.DateUtils;
+import ru.tinkoff.piapi.core.utils.Helpers;
 
 import javax.annotation.Nonnull;
 import java.time.Instant;
@@ -68,7 +70,7 @@ public class StopOrdersService {
           .setAccountId(accountId)
           .setExpirationType(StopOrderExpirationType.STOP_ORDER_EXPIRATION_TYPE_GOOD_TILL_DATE)
           .setStopOrderType(type)
-          .setExpireDate(Helpers.instantToTimestamp(expireDate))
+          .setExpireDate(DateUtils.instantToTimestamp(expireDate))
           .build())
       .getStopOrderId();
   }
@@ -95,7 +97,7 @@ public class StopOrdersService {
           .build())
       .getTime();
 
-    return Helpers.timestampToInstant(responseTime);
+    return DateUtils.timestampToInstant(responseTime);
   }
 
   @Nonnull
@@ -148,7 +150,7 @@ public class StopOrdersService {
             .setAccountId(accountId)
             .setExpirationType(StopOrderExpirationType.STOP_ORDER_EXPIRATION_TYPE_GOOD_TILL_DATE)
             .setStopOrderType(type)
-            .setExpireDate(Helpers.instantToTimestamp(expireDate))
+            .setExpireDate(DateUtils.instantToTimestamp(expireDate))
             .build(),
           observer))
       .thenApply(PostStopOrderResponse::getStopOrderId);
@@ -178,6 +180,6 @@ public class StopOrdersService {
             .setStopOrderId(stopOrderId)
             .build(),
           observer))
-      .thenApply(response -> Helpers.timestampToInstant(response.getTime()));
+      .thenApply(response -> DateUtils.timestampToInstant(response.getTime()));
   }
 }

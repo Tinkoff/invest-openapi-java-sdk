@@ -8,6 +8,7 @@ import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import ru.tinkoff.piapi.contract.v1.*;
+import ru.tinkoff.piapi.core.utils.DateUtils;
 
 import java.time.Instant;
 import java.util.concurrent.CompletionException;
@@ -124,7 +125,7 @@ public class StopOrdersServiceTest extends GrpcClientTester<StopOrdersService> {
       inArg.getDirection(),
       inArg.getAccountId(),
       inArg.getStopOrderType(),
-      Helpers.timestampToInstant(inArg.getExpireDate())
+      DateUtils.timestampToInstant(inArg.getExpireDate())
     );
     var actualAsync = service.postStopOrderGoodTillDate(
       inArg.getFigi(),
@@ -134,7 +135,7 @@ public class StopOrdersServiceTest extends GrpcClientTester<StopOrdersService> {
       inArg.getDirection(),
       inArg.getAccountId(),
       inArg.getStopOrderType(),
-      Helpers.timestampToInstant(inArg.getExpireDate())
+      DateUtils.timestampToInstant(inArg.getExpireDate())
     ).join();
 
     assertEquals(expected.getStopOrderId(), actualSync);
@@ -199,8 +200,8 @@ public class StopOrdersServiceTest extends GrpcClientTester<StopOrdersService> {
     var actualSync = service.cancelStopOrderSync(accountId, stopOrderId);
     var actualAsync = service.cancelStopOrder(accountId, stopOrderId).join();
 
-    assertEquals(Helpers.timestampToInstant(expected.getTime()), actualSync);
-    assertEquals(Helpers.timestampToInstant(expected.getTime()), actualAsync);
+    assertEquals(DateUtils.timestampToInstant(expected.getTime()), actualSync);
+    assertEquals(DateUtils.timestampToInstant(expected.getTime()), actualAsync);
 
     var inArg = CancelStopOrderRequest.newBuilder()
       .setAccountId(accountId)

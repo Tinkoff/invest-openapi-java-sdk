@@ -1,20 +1,18 @@
-package ru.tinkoff.piapi.core;
+package ru.tinkoff.piapi.core.utils;
 
-import com.google.protobuf.Timestamp;
 import io.grpc.stub.StreamObserver;
 import io.smallrye.mutiny.subscription.MultiEmitter;
 
-import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-class Helpers {
+public class Helpers {
 
   /**
    * Связывание асинхронного Unary-вызова с {@link CompletableFuture}.
    *
    * @param callPerformer Асинхронный Unary-вызов.
-   * @param <T> Тип результата вызова.
+   * @param <T>           Тип результата вызова.
    * @return {@link CompletableFuture} с результатом вызова.
    */
   public static <T> CompletableFuture<T> wrapWithFuture(
@@ -48,33 +46,10 @@ class Helpers {
   }
 
   /**
-   * Преобразование java {@link Instant} в google {@link Timestamp}.
-   *
-   * @param i Экземпляр {@link Instant}.
-   * @return Эквивалентный {@link Timestamp}.
-   */
-  public static Timestamp instantToTimestamp(Instant i) {
-    return Timestamp.newBuilder()
-      .setSeconds(i.getEpochSecond())
-      .setNanos(i.getNano())
-      .build();
-  }
-
-  /**
-   * Преобразование google {@link Timestamp} в java {@link Instant}.
-   *
-   * @param t Экземпляр {@link Timestamp}.
-   * @return Эквивалентный {@link Instant}.
-   */
-  public static Instant timestampToInstant(Timestamp t) {
-    return Instant.ofEpochSecond(t.getSeconds(), t.getNanos());
-  }
-
-  /**
    * Связывание {@link MultiEmitter} со {@link StreamObserver}.
    *
    * @param emitter Экземпляр {@link MultiEmitter}.
-   * @param <T> Тип оперируемый {@link MultiEmitter}.
+   * @param <T>     Тип оперируемый {@link MultiEmitter}.
    * @return Связанный {@link StreamObserver}.
    */
   public static <T> StreamObserver<T> wrapEmitterWithStreamObserver(MultiEmitter<? super T> emitter) {
