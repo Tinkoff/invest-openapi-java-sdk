@@ -1,63 +1,21 @@
 package ru.tinkoff.piapi.core.utils;
 
-import com.google.protobuf.Timestamp;
 import ru.tinkoff.piapi.contract.v1.MoneyValue;
 import ru.tinkoff.piapi.contract.v1.Quotation;
 
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 
 public class MapperUtils {
 
-  private static final ZoneOffset DEFAULT_ZONE_OFFSET = ZoneOffset.UTC;
 
-  public static Timestamp mapTimestamp(Long epochSeconds) {
-    return Timestamp.newBuilder().setSeconds(epochSeconds).build();
-  }
-
-  public static Timestamp mapTimestamp(Instant instant) {
-    return Timestamp.newBuilder()
-      .setSeconds(instant.getEpochSecond())
-      .setNanos(instant.getNano())
-      .build();
-  }
-
-  public static Timestamp mapTimestamp(OffsetDateTime offsetDateTime) {
-    Instant instant = offsetDateTime.toInstant();
-
-    return Timestamp.newBuilder()
-      .setSeconds(instant.getEpochSecond())
-      .setNanos(instant.getNano())
-      .build();
-  }
-
-  public static Instant toInstant(Timestamp timestamp) {
-    return Instant.ofEpochSecond(timestamp.getSeconds(), timestamp.getNanos());
-  }
-
-  public static LocalDate epochSecondToLocalDate(Timestamp timestamp) {
-    return Instant.ofEpochMilli(timestamp.getSeconds() * 1000).atZone(DEFAULT_ZONE_OFFSET).toLocalDate();
-  }
-
-  public static Long convertOffsetDateTimeToLong(OffsetDateTime offsetDateTime) {
-    if (offsetDateTime == null) {
-      return null;
-    }
-
-    return offsetDateTime.toInstant().getEpochSecond();
-  }
-
-  public static Quotation mapQuotation(BigDecimal value) {
+  public static Quotation bigDecimalToQuotation(BigDecimal value) {
     return Quotation.newBuilder()
       .setUnits(getUnits(value))
       .setNano(getNano(value))
       .build();
   }
 
-  public static MoneyValue mapMoney(BigDecimal value, String currency) {
+  public static MoneyValue bigDecimalToMoneyValue(BigDecimal value, String currency) {
     return MoneyValue.newBuilder()
       .setUnits(getUnits(value))
       .setNano(getNano(value))
@@ -77,8 +35,8 @@ public class MapperUtils {
     return value != null ? value.toLowerCase() : "";
   }
 
-  public static MoneyValue mapMoney(BigDecimal value) {
-    return mapMoney(value, null);
+  public static MoneyValue bigDecimalToMoneyValue(BigDecimal value) {
+    return bigDecimalToMoneyValue(value, null);
   }
 
   /**
