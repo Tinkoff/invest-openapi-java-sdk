@@ -38,22 +38,23 @@ import static ru.tinkoff.piapi.core.utils.MapperUtils.quotationToBigDecimal;
 public class Example {
   static final Logger log = LoggerFactory.getLogger(Example.class);
 
-  //Дешевая бумага, стоимостью 1-2 рубля за лот
-  private static final String CHEAP_INSTRUMENT = "BBG00RPRPX12";
-
   public static void main(String[] args) {
+    //Figi инструмента, который будет использоваться в методах исполнения заявок и стоп-заявок
+    //Для тестирования рекомендуется использовать дешевые бумаги
+    var instrumentFigi = args[1];
+
     var token = args[0];
     var api = InvestApi.create(token);
 
-    //unary
+    //Примеры unary запросов
     instrumentsServiceExample(api);
     marketdataServiceExample(api);
     operationsServiceExample(api);
-    ordersServiceExample(api);
-    stopOrdersServiceExample(api);
     usersServiceExample(api);
+    ordersServiceExample(api, instrumentFigi);
+    stopOrdersServiceExample(api, instrumentFigi);
 
-    //streams
+    //Примеры подписок на стримы
     marketdataStreamExample(api);
     ordersStreamExample(api);
   }
@@ -127,14 +128,12 @@ public class Example {
   }
 
 
-  private static void stopOrdersServiceExample(InvestApi api) {
+  private static void stopOrdersServiceExample(InvestApi api, String figi) {
 
     //Выставляем стоп-заявку
     var accounts = api.getUserService().getAccountsSync();
     var mainAccount = accounts.get(0).getId();
 
-    //Дешевая бумага, стоимостью 1-2 рубля за лот
-    var figi = CHEAP_INSTRUMENT;
     var lastPrice = api.getMarketDataService().getLastPricesSync(List.of(figi)).get(0).getPrice();
     var minPriceIncrement = api.getInstrumentsService().getInstrumentByFigiSync(figi).get().getMinPriceIncrement();
     var stopPrice = Quotation.newBuilder().setUnits(lastPrice.getUnits() - minPriceIncrement.getUnits() * 100).setNano(lastPrice.getNano() - minPriceIncrement.getNano() * 100).build();
@@ -150,13 +149,11 @@ public class Example {
     log.info("стоп заявка с id {} отменена", stopOrderId);
   }
 
-  private static void ordersServiceExample(InvestApi api) {
+  private static void ordersServiceExample(InvestApi api, String figi) {
     //Выставляем заявку
     var accounts = api.getUserService().getAccountsSync();
     var mainAccount = accounts.get(0).getId();
 
-    //Дешевая бумага, стоимостью 1-2 рубля за лот
-    var figi = CHEAP_INSTRUMENT;
     var lastPrice = api.getMarketDataService().getLastPricesSync(List.of(figi)).get(0).getPrice();
     var minPriceIncrement = api.getInstrumentsService().getInstrumentByFigiSync(figi).get().getMinPriceIncrement();
     var price = Quotation.newBuilder().setUnits(lastPrice.getUnits() - minPriceIncrement.getUnits() * 100).setNano(lastPrice.getNano() - minPriceIncrement.getNano() * 100).build();

@@ -52,8 +52,9 @@ public class DateUtils {
 
   /**
    * Преобразование java {@link OffsetDateTime} в java {@link Long}.
+   * Количество секунд в формате epoch будет по часовому поясу UTC
    *
-   * @param offsetDateTime Экземпляр google {@link OffsetDateTime}.
+   * @param offsetDateTime Экземпляр {@link OffsetDateTime}.
    * @return Эквивалентный {@link Long}.
    */
   public static Long offsetDateTimeToLong(OffsetDateTime offsetDateTime) {
