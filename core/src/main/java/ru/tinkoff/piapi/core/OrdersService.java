@@ -31,8 +31,6 @@ public class OrdersService {
     this.readonlyMode = readonlyMode;
   }
 
-
-
   @Nonnull
   public Publisher<TradesStreamResponse> ordersStream() {
     var mutinyPublisher = Multi.createFrom().<TradesStreamResponse>emitter(

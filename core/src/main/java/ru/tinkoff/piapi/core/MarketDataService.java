@@ -73,68 +73,6 @@ public class MarketDataService {
     return FlowAdapters.toFlowPublisher(mutinyPublisher);
   }
 
-  public void subscribeTradeStream(Consumer<MarketDataResponse> consumer, Iterable<String> figis) {
-    var builder = SubscribeTradesRequest.newBuilder().setSubscriptionAction(SubscriptionAction.SUBSCRIPTION_ACTION_SUBSCRIBE);
-    for (String figi : figis) {
-      builder.addInstruments(TradeInstrument.newBuilder().setFigi(figi).build());
-    }
-    var tradeRequest = builder.build();
-    var marketdataRequest = MarketDataRequest.newBuilder().setSubscribeTradesRequest(tradeRequest).build();
-    subscribe(consumer, marketdataRequest);
-  }
-
-
-  public void subscribeInfoStream(Consumer<MarketDataResponse> consumer, Iterable<String> figis) {
-    var builder = SubscribeInfoRequest.newBuilder().setSubscriptionAction(SubscriptionAction.SUBSCRIPTION_ACTION_SUBSCRIBE);
-    for (String figi : figis) {
-      builder.addInstruments(InfoInstrument.newBuilder().setFigi(figi).build());
-    }
-    var infoRequest = builder.build();
-    var marketdataRequest = MarketDataRequest.newBuilder().setSubscribeInfoRequest(infoRequest).build();
-    subscribe(consumer, marketdataRequest);
-  }
-
-  public void subscribeCandlesStream(Consumer<MarketDataResponse> consumer, Iterable<String> figis) {
-    subscribeCandlesStream(consumer, figis, SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE);
-  }
-
-  public void subscribeCandlesStream(Consumer<MarketDataResponse> consumer, Iterable<String> figis, SubscriptionInterval interval) {
-    var builder = SubscribeCandlesRequest.newBuilder().setSubscriptionAction(SubscriptionAction.SUBSCRIPTION_ACTION_SUBSCRIBE);
-    for (String figi : figis) {
-      builder.addInstruments(CandleInstrument.newBuilder().setFigi(figi).setInterval(interval).build());
-    }
-    var candlesRequest = builder.build();
-    var marketdataRequest = MarketDataRequest.newBuilder().setSubscribeCandlesRequest(candlesRequest).build();
-    subscribe(consumer, marketdataRequest);
-  }
-
-  public void subscribeOrderbookStream(Consumer<MarketDataResponse> consumer, Iterable<String> figis) {
-    subscribeOrderbookStream(consumer, figis, 10);
-  }
-
-  public void subscribeOrderbookStream(Consumer<MarketDataResponse> consumer, Iterable<String> figis, int depth) {
-    var builder = SubscribeOrderBookRequest.newBuilder().setSubscriptionAction(SubscriptionAction.SUBSCRIPTION_ACTION_SUBSCRIBE);
-    for (String figi : figis) {
-      builder.addInstruments(OrderBookInstrument.newBuilder().setFigi(figi).setDepth(depth).build());
-    }
-    var orderbookRequest = builder.build();
-    var marketdataRequest = MarketDataRequest.newBuilder().setSubscribeOrderBookRequest(orderbookRequest).build();
-    subscribe(consumer, marketdataRequest);
-  }
-
-  private void subscribe(Consumer<MarketDataResponse> consumer, MarketDataRequest marketdataRequest) {
-    var request = FlowAdapters.toFlowPublisher(
-      Multi.createFrom().<MarketDataRequest>emitter(
-        emitter -> emitter.emit(marketdataRequest)
-      ));
-    Multi.createFrom()
-      .safePublisher(
-        FlowAdapters.toPublisher(marketDataStream(request)))
-      .subscribe()
-      .asIterable()
-      .forEach(consumer);
-  }
-
   @Nonnull
   public List<HistoricCandle> getCandlesSync(
     @Nonnull String figi,

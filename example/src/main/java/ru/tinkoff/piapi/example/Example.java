@@ -1,17 +1,23 @@
 package ru.tinkoff.piapi.example;
 
+import io.smallrye.mutiny.Multi;
+import org.reactivestreams.FlowAdapters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.tinkoff.piapi.contract.v1.Account;
 import ru.tinkoff.piapi.contract.v1.AccruedInterest;
+import ru.tinkoff.piapi.contract.v1.CandleInstrument;
 import ru.tinkoff.piapi.contract.v1.CandleInterval;
 import ru.tinkoff.piapi.contract.v1.Dividend;
 import ru.tinkoff.piapi.contract.v1.HistoricCandle;
+import ru.tinkoff.piapi.contract.v1.InfoInstrument;
 import ru.tinkoff.piapi.contract.v1.LastPrice;
+import ru.tinkoff.piapi.contract.v1.MarketDataRequest;
 import ru.tinkoff.piapi.contract.v1.MarketDataResponse;
 import ru.tinkoff.piapi.contract.v1.MoneyValue;
 import ru.tinkoff.piapi.contract.v1.OperationState;
 import ru.tinkoff.piapi.contract.v1.Order;
+import ru.tinkoff.piapi.contract.v1.OrderBookInstrument;
 import ru.tinkoff.piapi.contract.v1.OrderDirection;
 import ru.tinkoff.piapi.contract.v1.OrderType;
 import ru.tinkoff.piapi.contract.v1.PositionsFutures;
@@ -20,6 +26,13 @@ import ru.tinkoff.piapi.contract.v1.Quotation;
 import ru.tinkoff.piapi.contract.v1.Share;
 import ru.tinkoff.piapi.contract.v1.StopOrderDirection;
 import ru.tinkoff.piapi.contract.v1.StopOrderType;
+import ru.tinkoff.piapi.contract.v1.SubscribeCandlesRequest;
+import ru.tinkoff.piapi.contract.v1.SubscribeInfoRequest;
+import ru.tinkoff.piapi.contract.v1.SubscribeOrderBookRequest;
+import ru.tinkoff.piapi.contract.v1.SubscribeTradesRequest;
+import ru.tinkoff.piapi.contract.v1.SubscriptionAction;
+import ru.tinkoff.piapi.contract.v1.SubscriptionInterval;
+import ru.tinkoff.piapi.contract.v1.TradeInstrument;
 import ru.tinkoff.piapi.contract.v1.TradesStreamResponse;
 import ru.tinkoff.piapi.contract.v1.TradingDay;
 import ru.tinkoff.piapi.core.InvestApi;
@@ -67,8 +80,9 @@ public class Example {
         log.info("Новые данные по сделкам: {}", item);
       }
     };
+
     //блокирующий вызов
-    api.getOrdersService().subscribeTradesStream(consumer);
+     api.getOrdersService().subscribeTradesStream(consumer);
   }
 
   private static List<String> randomFigi(InvestApi api, int count) {
@@ -97,11 +111,70 @@ public class Example {
     };
 
     var randomFigi = randomFigi(api, 5);
-    //блокирующие вызовы
-    api.getMarketDataService().subscribeInfoStream(consumer, randomFigi);
-    api.getMarketDataService().subscribeTradeStream(consumer, randomFigi);
-    api.getMarketDataService().subscribeCandlesStream(consumer, randomFigi);
-    api.getMarketDataService().subscribeOrderbookStream(consumer, randomFigi);
+
+    // Пример stream-вызова со статусом инструментов.
+    // На вход подаётся поток запросов.
+    var request = FlowAdapters.toFlowPublisher(
+      Multi.createFrom().<MarketDataRequest>emitter(emitter -> {
+        emitter.emit(marketdataSubscribeInfoRequest(randomFigi));
+        emitter.emit(marketdataSubscribeOrderbookRequest(randomFigi, 1));
+        emitter.emit(marketdataSubscribeTradesRequest(randomFigi));
+        emitter.emit(marketdataSubscribeCandlesRequest(randomFigi, SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE));
+        // emitter.complete(); <-- Если остановить поток запросов, то остановиться и поток ответов.
+      }));
+
+    // На выходе поток ответов.
+    Multi.createFrom()
+      .safePublisher(
+        FlowAdapters.toPublisher(
+          api.getMarketDataService().marketDataStream(request)))
+      .subscribe()
+      .asIterable()
+      .forEach(consumer);
+  }
+
+  private static MarketDataRequest marketdataSubscribeInfoRequest(List<String> figiList) {
+    var builder = SubscribeInfoRequest.newBuilder()
+      .setSubscriptionAction(SubscriptionAction.SUBSCRIPTION_ACTION_SUBSCRIBE);
+    for (String figi : figiList) {
+      builder.addInstruments(InfoInstrument.newBuilder().setFigi(figi).build());
+    }
+    return MarketDataRequest.newBuilder()
+      .setSubscribeInfoRequest(builder.build())
+      .build();
+  }
+
+  private static MarketDataRequest marketdataSubscribeOrderbookRequest(List<String> figiList, int depth) {
+    var builder = SubscribeOrderBookRequest.newBuilder()
+      .setSubscriptionAction(SubscriptionAction.SUBSCRIPTION_ACTION_SUBSCRIBE);
+    for (String figi : figiList) {
+      builder.addInstruments(OrderBookInstrument.newBuilder().setFigi(figi).setDepth(depth).build());
+    }
+    return MarketDataRequest.newBuilder()
+      .setSubscribeOrderBookRequest(builder.build())
+      .build();
+  }
+
+  private static MarketDataRequest marketdataSubscribeTradesRequest(List<String> figiList) {
+    var builder = SubscribeTradesRequest.newBuilder()
+      .setSubscriptionAction(SubscriptionAction.SUBSCRIPTION_ACTION_SUBSCRIBE);
+    for (String figi : figiList) {
+      builder.addInstruments(TradeInstrument.newBuilder().setFigi(figi).build());
+    }
+    return MarketDataRequest.newBuilder()
+      .setSubscribeTradesRequest(builder.build())
+      .build();
+  }
+
+  private static MarketDataRequest marketdataSubscribeCandlesRequest(List<String> figiList, SubscriptionInterval interval) {
+    var builder = SubscribeCandlesRequest.newBuilder()
+      .setSubscriptionAction(SubscriptionAction.SUBSCRIPTION_ACTION_SUBSCRIBE);
+    for (String figi : figiList) {
+      builder.addInstruments(CandleInstrument.newBuilder().setFigi(figi).setInterval(interval).build());
+    }
+    return MarketDataRequest.newBuilder()
+      .setSubscribeCandlesRequest(builder.build())
+      .build();
   }
 
   private static void usersServiceExample(InvestApi api) {
